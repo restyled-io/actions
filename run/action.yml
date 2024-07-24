@@ -5,9 +5,6 @@ inputs:
   log-breakpoint:
     description: "LOG_BREAKPOINT"
     default: 200
-  log-color:
-    description: "LOG_COLOR"
-    default: always
   log-format:
     description: "LOG_FORMAT"
     default: tty
@@ -59,6 +56,9 @@ runs:
         GIT_COMMITTER_EMAIL: ${{ inputs.committer-email }}
         GIT_COMMITTER_NAME: ${{ inputs.committer-name }}
         LOG_BREAKPOINT: ${{ inputs.log-breakpoint }}
-        LOG_COLOR: ${{ inputs.log-color }}
         LOG_FORMAT: ${{ inputs.log-format }}
         LOG_LEVEL: ${{ inputs.log-level }}
+
+        # It never makes sense to do otherwise
+        LOG_COLOR: always
+        LOG_CONCURRENCY: 1
