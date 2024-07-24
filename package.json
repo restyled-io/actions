@@ -1,0 +1,11 @@
+{
+  "name": "restyled-actions",
+  "version": "0.0.0",
+  "scripts": {
+    "readme": "npx action-docs -u && prettier --write README.md"
+  },
+  "devDependencies": {
+    "action-docs": "^2.4.0",
+    "prettier": "^3.2.4"
+  }
+}
