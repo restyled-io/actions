@@ -6,13 +6,15 @@
     "build": "tsc && ncc build lib/main.js && sed -i 's/\\x0D$//' ./dist/index.js",
     "format": "prettier --write \"**/*.ts\"",
     "format-check": "prettier --check \"**/*.ts\"",
-    "test": "jest"
+    "test": "jest",
+    "readme": "npx action-docs -u && prettier --write README.md"
   },
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.6.0",
     "@actions/exec": "^1.1.0",
-    "@actions/github": "^6.0.0"
+    "@actions/github": "^6.0.0",
+    "action-docs": "^2.4.2"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",

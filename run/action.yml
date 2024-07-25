@@ -3,17 +3,8 @@ description: Run the restyle CLI on changed files in a PR
 author: pbrisbin
 
 inputs:
-  log-breakpoint:
-    description: "LOG_BREAKPOINT"
-    default: 200
-  log-format:
-    description: "LOG_FORMAT"
-    default: tty
-  log-level:
-    description: "LOG_LEVEL"
-    default: "info"
   github-token:
-    description: "GITHUB_TOKEN"
+    description: "Token used to query for PR details"
     default: ${{ github.token }}
   committer-email:
     description: "Email used for Restyled commits"
@@ -21,14 +12,29 @@ inputs:
   committer-name:
     description: "Name used for Restyled commits"
     default: "Restyled.io"
+  log-level:
+    description: "Set `restyle`'s `LOG_LEVEL`"
+    default: "info"
+  log-format:
+    description: "Set `restyle`'s `LOG_FORMAT`"
+    default: tty
+  log-breakpoint:
+    description: "Set `restyle`'s `LOG_BREAKPOINT`"
+    default: 200
 
 outputs:
   differences:
+    description: "`true` if differences were created by restyling"
   git-patch:
+    description: "The restyle commits, formatted for use with `git am`"
   restyled-base:
+    description: "The base branch to use if opening fixes as a new PR"
   restyled-head:
+    description: "The head branch to use if opening fixes as a new PR "
   restyled-title:
+    description: "The title to use if opening fixes as a new PR"
   restyled-body:
+    description: "The body to use if opening fixes as a new PR"
 
 runs:
   using: "node20"
