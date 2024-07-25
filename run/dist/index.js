@@ -46,7 +46,7 @@ function getInputs() {
     };
 }
 function setOutputs(outputs) {
-    core.setOutput("differences", outputs.differences);
+    core.setOutput("differences", outputs.differences ? "true" : "false");
     core.setOutput("git-patch", outputs.gitPatch);
     core.setOutput("restyled-base", outputs.restyledBase);
     core.setOutput("restyled-head", outputs.restyledHead);
@@ -105,7 +105,7 @@ async function run() {
             },
         });
         let patch = "";
-        await exec.exec("git", ["format-patch", "--stdout"], {
+        await exec.exec("git", ["format-patch", "--stdout", pr.head.sh], {
             listeners: {
                 stdout: (data) => {
                     patch += data.toString();
