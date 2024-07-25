@@ -69,6 +69,7 @@ async function run() {
     }
 
     const pr = github.context.payload.pull_request;
+    core.debug(JSON.stringify(pr));
 
     if (!pr) {
       throw new Error("Payloads has no pull_request");
@@ -88,8 +89,9 @@ async function run() {
     const pullRequestJson = temp.path({ suffix: ".json" });
     fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
 
-    const paths = files.map((f) => f.filename);
-    const args = ["--pull-request-json", pullRequestJson].concat(paths);
+    const args = ["--pull-request-json", pullRequestJson]
+      .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
+      .concat(files.map((f) => f.filename));
 
     await exec.exec("restyle", args, {
       env: {
