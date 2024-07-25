@@ -15,4 +15,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
       - uses: ./setup
+        with:
+          tag: v0.4.0.0-rc
       - uses: ./run
