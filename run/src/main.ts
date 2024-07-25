@@ -98,7 +98,7 @@ async function run() {
       .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
       .concat(files.map((f) => f.filename));
 
-    await exec.exec("restyle", args, {
+    const ec = await exec.exec("restyle", args, {
       env: {
         GITHUB_TOKEN: inputs.githubToken,
         GIT_AUTHOR_EMAIL: inputs.committerEmail,
@@ -111,6 +111,7 @@ async function run() {
         LOG_COLOR: "always",
         LOG_CONCURRENCY: "1",
       },
+      ignoreReturnCode: true,
     });
 
     let patch = "";
@@ -127,9 +128,9 @@ async function run() {
     if (patch !== "") {
       const patch64 = Buffer.from(patch).toString("base64");
       core.info("Apply this patch locally with the following command:");
-      console.log("");
-      console.log(`  echo '${patch64}' | base64 -d | git am`);
-      console.log("");
+      core.info("  ");
+      core.info(`  echo '${patch64}' | base64 -d | git am`);
+      core.info("  ");
     }
 
     setOutputs({
@@ -140,6 +141,10 @@ async function run() {
       restyledTitle: `Restyled ${pr.title}`,
       restyledBody: pullRequestDescription(pr.number),
     });
+
+    if (ec !== 0) {
+      core.setFailed(`Restyler exited non-zero: ${ec}`);
+    }
   } catch (error) {
     if (error instanceof Error) {
       core.error(error);
