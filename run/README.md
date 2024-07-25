@@ -1,6 +1,6 @@
 # Run Restyle
 
-Run the restyle CLI on changed files in a PR
+Run the restyle CLI on changed files in a PR  
 
 <!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v2" -->
 
