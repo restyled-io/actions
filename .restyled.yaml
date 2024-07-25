@@ -1,2 +1,2 @@
-exclude_also:
+also_exclude:
   - "*/dist/**/*"
