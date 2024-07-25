@@ -6,25 +6,29 @@ import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
 type Inputs = {
-  logBreakpoint: number;
-  logFormat: string;
-  logLevel: string;
   githubToken: string;
+  failOnDifferences: boolean;
   committerEmail: string;
   committerName: string;
+  logLevel: string;
+  logFormat: string;
+  logBreakpoint: number;
 };
 
 function getInputs(): Inputs {
   return {
+    githubToken: core.getInput("github-token", { required: true }),
+    failOnDifferences: core.getBooleanInput("fail-on-differences", {
+      required: true,
+    }),
+    committerEmail: core.getInput("committer-email", { required: true }),
+    committerName: core.getInput("committer-name", { required: true }),
+    logLevel: core.getInput("log-level", { required: true }),
+    logFormat: core.getInput("log-format", { required: true }),
     logBreakpoint: parseInt(
       core.getInput("log-breakpoint", { required: true }),
       10,
     ),
-    logFormat: core.getInput("log-format", { required: true }),
-    logLevel: core.getInput("log-level", { required: true }),
-    githubToken: core.getInput("github-token", { required: true }),
-    committerEmail: core.getInput("committer-email", { required: true }),
-    committerName: core.getInput("committer-name", { required: true }),
   };
 }
 
@@ -91,6 +95,7 @@ async function run() {
 
     const args = ["--pull-request-json", pullRequestJson]
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
+      .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
       .concat(files.map((f) => f.filename));
 
     await exec.exec("restyle", args, {

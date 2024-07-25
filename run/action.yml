@@ -6,6 +6,9 @@ inputs:
   github-token:
     description: "Token used to query for PR details"
     default: ${{ github.token }}
+  fail-on-differences:
+    description: "Exit non-zero if differences were created"
+    default: false
   committer-email:
     description: "Email used for Restyled commits"
     default: "commits@restyled.io"
