@@ -108,7 +108,7 @@ async function run() {
 
     let patch = "";
 
-    await exec.exec("git", ["format-patch", "--stdout", pr.head.sh], {
+    await exec.exec("git", ["format-patch", "--stdout", pr.head.sha], {
       listeners: {
         stdout: (data: Buffer) => {
           patch += data.toString();
