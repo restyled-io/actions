@@ -91,9 +91,14 @@ Works for forks? **Yes**
 
 ## Record a patch and emit instructions for applying it
 
-**TODO**: `restyler.outputs.git-patch` is available, but we don't exactly have a
-good recommendation for where to store it such that a simple `curl|git am`
-instruction can be printed and copy/pasted by users.
+This happens by default and appears in the output of the `run` step:
+
+```console
+Apply this patch locally with the following command:
+
+  echo '...' | base64 -d | git am
+
+```
 
 Required permission: none.
 
