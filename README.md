@@ -1,5 +1,10 @@
 # Restyled Actions
 
+This repository contains two actions, to be used together:
+
+1. [actions/setup](./setup/README.md).
+1. [actions/run](./run/README.md).
+
 ## Usage
 
 ```yaml
@@ -16,15 +21,3 @@ jobs:
       - uses: restyled-io/actions/setup@v1
       - uses: restyled-io/actions/run@v1
 ```
-
-## Setup
-
-<!-- action-docs-inputs source="setup/action.yml" -->
-
-<!-- action-docs-outputs source="setup/action.yml" -->
-
-## Run
-
-<!-- action-docs-inputs source="run/action.yml" -->
-
-<!-- action-docs-outputs source="run/action.yml" -->

@@ -3,6 +3,7 @@ author: pbrisbin
 
 inputs:
   tag:
+    description: "Release tag to install, if empty latest is used"
     required: false
 
 outputs: {}
