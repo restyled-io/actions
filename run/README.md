@@ -2,12 +2,12 @@
 
 Run the restyle CLI on changed files in a PR
 
-<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v1" -->
+<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v2" -->
 
 ## Usage
 
 ```yaml
-- uses: restyled-io/actions/run@v1
+- uses: restyled-io/actions/run@v2
   with:
     github-token:
     # Token used to query for PR details
@@ -46,7 +46,7 @@ Run the restyle CLI on changed files in a PR
     # Default: 200
 ```
 
-<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v1" -->
+<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v2" -->
 
 <!-- action-docs-inputs source="action.yml" -->
 

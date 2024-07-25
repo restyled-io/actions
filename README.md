@@ -18,6 +18,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-      - uses: restyled-io/actions/setup@v1
-      - uses: restyled-io/actions/run@v1
+      - uses: restyled-io/actions/setup@v2
+      - uses: restyled-io/actions/run@v2
 ```
