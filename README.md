@@ -1,15 +1,23 @@
 # Restyled Actions
 
-This repository contains two actions, to be used together:
+> [!IMPORTANT]
+> Before using Restyled as a GitHub Action, make sure you prevent any previous
+> hosted installation from running. Otherwise, they may fight over the restyled
+> branch. This can be done by uninstalling the GitHub App entirely, or
+> configuring it for specific repositories and excluding the one where you plan
+> to use GitHub Actions.
 
-1. [actions/setup](./setup/README.md).
-1. [actions/run](./run/README.md).
-
-## Usage
+Create the file `.github/workflows/restyled.yml`:
 
 ```yaml
+name: Restyled
+
 on:
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   restyled:
@@ -19,5 +27,142 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
       - uses: restyled-io/actions/setup@v2
-      - uses: restyled-io/actions/run@v2
+      - id: restyler
+        uses: restyled-io/actions/run@v2
+
+      # See below
+```
+
+Then, to determine what happens when style has been corrected, add some of the
+things described below, salted to taste.
+
+## Manage a sibling "Restyled PR"
+
+```yaml
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          base: ${{ steps.restyler.outputs.restyled-base }}
+          branch: ${{ steps.restyler.outputs.restyled-head }}
+          title: ${{ steps.restyler.outputs.restyled-title }}
+          body: ${{ steps.restyler.outputs.restyled-body }}
+          # If desired:
+          # labels: "restyled"
+          # reviewers: ${{ github.event.pull_request.user.login }}
+          # team-reviewers: "..."
+          delete-branch: true
+          delete-branch: true
+```
+
+Required permissions: `contents:write`, `pull-requests:write`.
+
+Works for forks? **No**.
+
+## Push the changes directly to the original PR
+
+```yaml
+      - run: git push
+```
+
+Required permissions: `contents:write`.
+
+Works for forks? **No**
+
+## Emit failing status to the original PR
+
+```yaml
+      - if: ${{ steps.restyler.outputs.differences == 'true' }}
+        run: |
+          echo "Restyled found differences" >&2
+          exit 1
+```
+
+Required permission: none.
+
+Works for forks? **Yes**
+
+## Record a patch and emit instructions for applying it
+
+```yaml
+      - if: ${{ steps.restyler.outputs.differences == 'true' }}
+        run: |
+          curl  -d@- -o response.json <some pastebin> <<'EOM'
+          ${{ steps.restyler.outputs.git-patch }}
+          EOM
+
+          read -r url < <(jq '.url' response.json)
+
+          # Alternatively, you could use the build summary, an annotation, or
+          # an add-comment action
+          cat <<EOM
+          To apply these fixes, checkout your branch, run the following, and push:
+
+            % curl "$url" | git am
+
+          EOM
+```
+
+See [here](https://github.com/lorien/awesome-pastebins) for a list of pastebin options.
+
+Required permission: none.
+
+Works for forks? **Yes**
+
+## Complete reference example
+
+```yaml
+name: Restyled
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  restyled:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: restyled-io/restyler/setup@v2
+      - id: restyler
+        uses: restyled-io/restyler/run@v2
+
+      # Always make the patch available
+      - if: ${{ steps.restyler.outputs.differences == 'true' }}
+        run: |
+          curl  -d@- -o response.json <some pastebin> <<'EOM'
+          ${{ steps.restyler.outputs.git-patch }}
+          EOM
+
+          read -r url < <(jq '.url' response.json)
+
+          cat <<EOM
+          To apply these fixes, checkout your branch, run the following, and push:
+
+            % curl $url | git -am
+
+          EOM
+
+      # Manage a sibling PR if we're not a fork
+      - if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          base: ${{ steps.restyler.outputs.restyled-base }}
+          branch: ${{ steps.restyler.outputs.restyled-head }}
+          title: ${{ steps.restyler.outputs.restyled-title }}
+          body: ${{ steps.restyler.outputs.restyled-body }}
+          # If desired:
+          # labels: "restyled"
+          # reviewers: ${{ github.event.pull_request.user.login }}
+          # team-reviewers: "..."
+          delete-branch: true
+
+      # And fail the original PR on differences
+      - if: ${{ steps.restyler.outputs.differences == 'true' }}
+        run: |
+          echo "Restyled found differences" >&2
+          exit 1
 ```
