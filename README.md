@@ -75,6 +75,16 @@ Works for forks? **No**
           exit 1
 ```
 
+Or, if you don't need additional steps to run after this (or you configure them
+to always run), you can change the `run` invocation to:
+
+```yaml
+      - id: restyler
+        uses: restyled-io/actions/run@v2
+        with:
+          fail-on-differences: true
+```
+
 Required permission: none.
 
 Works for forks? **Yes**
