@@ -15,6 +15,12 @@ Run the restyle CLI on changed files in a PR
     # Required: false
     # Default: ${{ github.token }}
 
+    fail-on-differences:
+    # Exit non-zero if differences were created
+    #
+    # Required: false
+    # Default: false
+
     committer-email:
     # Email used for Restyled commits
     #
@@ -52,14 +58,15 @@ Run the restyle CLI on changed files in a PR
 
 ## Inputs
 
-| name              | description                                                   | required | default               |
-| ----------------- | ------------------------------------------------------------- | -------- | --------------------- |
-| `github-token`    | <p>Token used to query for PR details</p>                     | `false`  | `${{ github.token }}` |
-| `committer-email` | <p>Email used for Restyled commits</p>                        | `false`  | `commits@restyled.io` |
-| `committer-name`  | <p>Name used for Restyled commits</p>                         | `false`  | `Restyled.io`         |
-| `log-level`       | <p>Set <code>restyle</code>'s <code>LOG_LEVEL</code></p>      | `false`  | `info`                |
-| `log-format`      | <p>Set <code>restyle</code>'s <code>LOG_FORMAT</code></p>     | `false`  | `tty`                 |
-| `log-breakpoint`  | <p>Set <code>restyle</code>'s <code>LOG_BREAKPOINT</code></p> | `false`  | `200`                 |
+| name                  | description                                                   | required | default               |
+| --------------------- | ------------------------------------------------------------- | -------- | --------------------- |
+| `github-token`        | <p>Token used to query for PR details</p>                     | `false`  | `${{ github.token }}` |
+| `fail-on-differences` | <p>Exit non-zero if differences were created</p>              | `false`  | `false`               |
+| `committer-email`     | <p>Email used for Restyled commits</p>                        | `false`  | `commits@restyled.io` |
+| `committer-name`      | <p>Name used for Restyled commits</p>                         | `false`  | `Restyled.io`         |
+| `log-level`           | <p>Set <code>restyle</code>'s <code>LOG_LEVEL</code></p>      | `false`  | `info`                |
+| `log-format`          | <p>Set <code>restyle</code>'s <code>LOG_FORMAT</code></p>     | `false`  | `tty`                 |
+| `log-breakpoint`      | <p>Set <code>restyle</code>'s <code>LOG_BREAKPOINT</code></p> | `false`  | `200`                 |
 
 <!-- action-docs-inputs source="action.yml" -->
 
