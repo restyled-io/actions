@@ -43,14 +43,6 @@ function setOutputs(outputs: Outputs): void {
   core.setOutput("restyledBody", outputs.restyledBody);
 }
 
-type PullRequest = {
-  number: number;
-  title: string;
-  head: {
-    ref: string;
-  };
-};
-
 function pullRequestDescription(number: number): string {
   return `
 Automated style fixes for ##${number}, created by [Restyled][].
@@ -73,7 +65,7 @@ async function run() {
       throw new Error("This action can only be used with pull_request events");
     }
 
-    const pr = github.context.payload as PullRequest;
+    const pr = github.context.payload;
     const inputs = getInputs();
     const client = github.getOctokit(inputs.githubToken);
     const files = await client.paginate(client.rest.pulls.listFiles, {
