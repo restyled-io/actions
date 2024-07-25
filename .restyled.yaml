@@ -1,2 +1,8 @@
 also_exclude:
   - "*/dist/**/*"
+
+restylers:
+  # Disable other json formatters (using prettier-json)
+  - "!clang-format"
+  - "!jq"
+  - "*"
