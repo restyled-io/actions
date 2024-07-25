@@ -60,7 +60,7 @@ Works for forks? **No**.
 ## Push the changes directly to the original PR
 
 ```yaml
-      - run: git push
+- run: git push
 ```
 
 Required permissions: `contents:write`.
@@ -70,10 +70,10 @@ Works for forks? **No**
 ## Emit failing status to the original PR
 
 ```yaml
-      - if: ${{ steps.restyler.outputs.differences == 'true' }}
-        run: |
-          echo "Restyled found differences" >&2
-          exit 1
+- if: ${{ steps.restyler.outputs.differences == 'true' }}
+  run: |
+    echo "Restyled found differences" >&2
+    exit 1
 ```
 
 Required permission: none.
@@ -83,22 +83,22 @@ Works for forks? **Yes**
 ## Record a patch and emit instructions for applying it
 
 ```yaml
-      - if: ${{ steps.restyler.outputs.differences == 'true' }}
-        run: |
-          curl  -d@- -o response.json <some pastebin> <<'EOM'
-          ${{ steps.restyler.outputs.git-patch }}
-          EOM
+- if: ${{ steps.restyler.outputs.differences == 'true' }}
+  run: |
+    curl  -d@- -o response.json <some pastebin> <<'EOM'
+    ${{ steps.restyler.outputs.git-patch }}
+    EOM
 
-          read -r url < <(jq '.url' response.json)
+    read -r url < <(jq '.url' response.json)
 
-          # Alternatively, you could use the build summary, an annotation, or
-          # an add-comment action
-          cat <<EOM
-          To apply these fixes, checkout your branch, run the following, and push:
+    # Alternatively, you could use the build summary, an annotation, or
+    # an add-comment action
+    cat <<EOM
+    To apply these fixes, checkout your branch, run the following, and push:
 
-            % curl "$url" | git am
+      % curl "$url" | git am
 
-          EOM
+    EOM
 ```
 
 See [here](https://github.com/lorien/awesome-pastebins) for a list of pastebin options.
