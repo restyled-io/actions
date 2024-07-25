@@ -45,12 +45,11 @@ things described below, salted to taste.
           branch: ${{ steps.restyler.outputs.restyled-head }}
           title: ${{ steps.restyler.outputs.restyled-title }}
           body: ${{ steps.restyler.outputs.restyled-body }}
+          delete-branch: true
           # If desired:
           # labels: "restyled"
           # reviewers: ${{ github.event.pull_request.user.login }}
           # team-reviewers: "..."
-          delete-branch: true
-          delete-branch: true
 ```
 
 Required permissions: `contents:write`, `pull-requests:write`.
@@ -154,11 +153,11 @@ jobs:
           branch: ${{ steps.restyler.outputs.restyled-head }}
           title: ${{ steps.restyler.outputs.restyled-title }}
           body: ${{ steps.restyler.outputs.restyled-body }}
+          delete-branch: true
           # If desired:
           # labels: "restyled"
           # reviewers: ${{ github.event.pull_request.user.login }}
           # team-reviewers: "..."
-          delete-branch: true
 
       # And fail the original PR on differences
       - if: ${{ steps.restyler.outputs.differences == 'true' }}
