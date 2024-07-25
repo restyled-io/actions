@@ -39,11 +39,11 @@ type Outputs = {
 
 function setOutputs(outputs: Outputs): void {
   core.setOutput("differences", outputs.differences);
-  core.setOutput("gitPatch", outputs.gitPatch);
-  core.setOutput("restyledBase", outputs.restyledBase);
-  core.setOutput("restyledHead", outputs.restyledHead);
-  core.setOutput("restyledTitle", outputs.restyledTitle);
-  core.setOutput("restyledBody", outputs.restyledBody);
+  core.setOutput("git-patch", outputs.gitPatch);
+  core.setOutput("restyled-base", outputs.restyledBase);
+  core.setOutput("restyled-head", outputs.restyledHead);
+  core.setOutput("restyled-title", outputs.restyledTitle);
+  core.setOutput("restyled-body", outputs.restyledBody);
 }
 
 function pullRequestDescription(number: number): string {
