@@ -68,7 +68,12 @@ async function run() {
       throw new Error("This action can only be used with pull_request events");
     }
 
-    const pr = github.context.payload;
+    const pr = github.context.payload.pull_request;
+
+    if (!pr) {
+      throw new Error("Payloads has no pull_request");
+    }
+
     const inputs = getInputs();
     const client = github.getOctokit(inputs.githubToken);
     const files = await client.paginate(client.rest.pulls.listFiles, {
