@@ -91,26 +91,9 @@ Works for forks? **Yes**
 
 ## Record a patch and emit instructions for applying it
 
-```yaml
-      - if: ${{ steps.restyler.outputs.differences == 'true' }}
-        run: |
-          curl  -d@- -o response.json <some pastebin> <<'EOM'
-          ${{ steps.restyler.outputs.git-patch }}
-          EOM
-
-          read -r url < <(jq '.url' response.json)
-
-          # Alternatively, you could use the build summary, an annotation, or
-          # an add-comment action
-          cat <<EOM
-          To apply these fixes, checkout your branch, run the following, and push:
-
-            % curl "$url" | git am
-
-          EOM
-```
-
-See [here](https://github.com/lorien/awesome-pastebins) for a list of pastebin options.
+**TODO**: `restyler.outputs.git-patch` is available, but we don't exactly have a
+good recommendation for where to store it such that a simple `curl|git am`
+instruction can be printed and copy/pasted by users.
 
 Required permission: none.
 
@@ -140,22 +123,6 @@ jobs:
         uses: restyled-io/restyler/run@v2
         with:
           fail-on-differences: true
-
-      # Always make the patch available
-      - if: ${{ !cancelled() && steps.restyler.outputs.differences == 'true' }}
-        run: |
-          curl  -d@- -o response.json <some pastebin> <<'EOM'
-          ${{ steps.restyler.outputs.git-patch }}
-          EOM
-
-          read -r url < <(jq '.url' response.json)
-
-          cat <<EOM
-          To apply these fixes, checkout your branch, run the following, and push:
-
-            % curl $url | git -am
-
-          EOM
 
       # Manage a sibling PR if we're not a fork
       - if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
