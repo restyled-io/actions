@@ -138,9 +138,11 @@ jobs:
       - uses: restyled-io/restyler/setup@v2
       - id: restyler
         uses: restyled-io/restyler/run@v2
+        with:
+          fail-on-differences: true
 
       # Always make the patch available
-      - if: ${{ steps.restyler.outputs.differences == 'true' }}
+      - if: ${{ !cancelled() && steps.restyler.outputs.differences == 'true' }}
         run: |
           curl  -d@- -o response.json <some pastebin> <<'EOM'
           ${{ steps.restyler.outputs.git-patch }}
@@ -156,7 +158,7 @@ jobs:
           EOM
 
       # Manage a sibling PR if we're not a fork
-      - if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+      - if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: peter-evans/create-pull-request@v6
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
@@ -168,10 +170,4 @@ jobs:
           # labels: "restyled"
           # reviewers: ${{ github.event.pull_request.user.login }}
           # team-reviewers: "..."
-
-      # And fail the original PR on differences
-      - if: ${{ steps.restyler.outputs.differences == 'true' }}
-        run: |
-          echo "Restyled found differences" >&2
-          exit 1
 ```
