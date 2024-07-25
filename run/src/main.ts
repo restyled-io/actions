@@ -98,7 +98,7 @@ async function run() {
       .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
       .concat(files.map((f) => f.filename));
 
-    await exec.exec("restyle", args, {
+    const ec = await exec.exec("restyle", args, {
       env: {
         GITHUB_TOKEN: inputs.githubToken,
         GIT_AUTHOR_EMAIL: inputs.committerEmail,
@@ -111,6 +111,7 @@ async function run() {
         LOG_COLOR: "always",
         LOG_CONCURRENCY: "1",
       },
+      ignoreReturnCode: true,
     });
 
     let patch = "";
@@ -140,6 +141,12 @@ async function run() {
       restyledTitle: `Restyled ${pr.title}`,
       restyledBody: pullRequestDescription(pr.number),
     });
+
+    if (ec !== 0) {
+      const message = `Restyler exited non-zero: ${ec}`;
+      core.error(message);
+      core.setFailed(message);
+    }
   } catch (error) {
     if (error instanceof Error) {
       core.error(error);
