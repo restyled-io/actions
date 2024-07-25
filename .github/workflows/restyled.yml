@@ -17,13 +17,13 @@ jobs:
       - uses: ./setup
       - id: restyler
         uses: ./run
-      - uses: peter-evans/create-pull-request@v6
+        with:
+          fail-on-differences: true
+      - if: ${{ !cancelled() }}
+        uses: peter-evans/create-pull-request@v6
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
           branch: ${{ steps.restyler.outputs.restyled-head }}
           title: ${{ steps.restyler.outputs.restyled-title }}
           body: ${{ steps.restyler.outputs.restyled-body }}
           delete-branch: true
-      - if: ${{ steps.restyler.outputs.differences == 'true' }}
-        name: Error due to Restyled differences
-        run: exit 1
