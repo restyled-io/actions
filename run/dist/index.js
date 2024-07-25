@@ -119,6 +119,13 @@ async function run() {
                 },
             },
         });
+        if (patch !== "") {
+            const patch64 = Buffer.from(patch).toString("base64");
+            core.info("Apply this patch locally with the following command:");
+            console.log("");
+            console.log(`  echo '${patch64}' | base64 -d | git am`);
+            console.log("");
+        }
         setOutputs({
             differences: patch !== "",
             gitPatch: patch,
