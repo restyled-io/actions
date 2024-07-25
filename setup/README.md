@@ -16,7 +16,7 @@ Install the restyle CLI.
 ## Inputs
 
 | name  | description                                            | required | default |
-| ------| -------------------------------------------------------| -------- | --------|
+| ----- | ------------------------------------------------------ | -------- | ------- |
 | `tag` | <p>Release tag to install, if empty latest is used</p> | `false`  |         |
 
 ## Outputs
