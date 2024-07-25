@@ -1,3 +1,6 @@
+import * as fs from "fs";
+import * as temp from "temp";
+
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as exec from "@actions/exec";
@@ -77,9 +80,13 @@ async function run() {
       throw new Error("PR has no changes");
     }
 
-    const paths = files.map((f) => f.filename);
+    const pullRequestJson = temp.path({ suffix: ".json" });
+    fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
 
-    await exec.exec("restyle", paths, {
+    const paths = files.map((f) => f.filename);
+    const args = ["--pull-request-json", pullRequestJson].concat(paths);
+
+    await exec.exec("restyle", args, {
       env: {
         GITHUB_TOKEN: inputs.githubToken,
         GIT_AUTHOR_EMAIL: inputs.committerEmail,

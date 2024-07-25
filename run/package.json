@@ -14,7 +14,9 @@
     "@actions/core": "^1.6.0",
     "@actions/exec": "^1.1.0",
     "@actions/github": "^6.0.0",
-    "action-docs": "^2.4.2"
+    "@types/temp": "^0.9.4",
+    "action-docs": "^2.4.2",
+    "temp": "^0.9.4"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",
