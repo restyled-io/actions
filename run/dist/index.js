@@ -37,12 +37,15 @@ const github = __importStar(__nccwpck_require__(5438));
 const exec = __importStar(__nccwpck_require__(1514));
 function getInputs() {
     return {
-        logBreakpoint: parseInt(core.getInput("log-breakpoint", { required: true }), 10),
-        logFormat: core.getInput("log-format", { required: true }),
-        logLevel: core.getInput("log-level", { required: true }),
         githubToken: core.getInput("github-token", { required: true }),
+        failOnDifferences: core.getBooleanInput("fail-on-differences", {
+            required: true,
+        }),
         committerEmail: core.getInput("committer-email", { required: true }),
         committerName: core.getInput("committer-name", { required: true }),
+        logLevel: core.getInput("log-level", { required: true }),
+        logFormat: core.getInput("log-format", { required: true }),
+        logBreakpoint: parseInt(core.getInput("log-breakpoint", { required: true }), 10),
     };
 }
 function setOutputs(outputs) {
@@ -91,8 +94,9 @@ async function run() {
         fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
         const args = ["--pull-request-json", pullRequestJson]
             .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
+            .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
             .concat(files.map((f) => f.filename));
-        await exec.exec("restyle", args, {
+        const ec = await exec.exec("restyle", args, {
             env: {
                 GITHUB_TOKEN: inputs.githubToken,
                 GIT_AUTHOR_EMAIL: inputs.committerEmail,
@@ -105,6 +109,7 @@ async function run() {
                 LOG_COLOR: "always",
                 LOG_CONCURRENCY: "1",
             },
+            ignoreReturnCode: true,
         });
         let patch = "";
         await exec.exec("git", ["format-patch", "--stdout", pr.head.sha], {
@@ -115,6 +120,13 @@ async function run() {
                 },
             },
         });
+        if (patch !== "") {
+            const patch64 = Buffer.from(patch).toString("base64");
+            core.info("Apply this patch locally with the following command:");
+            core.info("  ");
+            core.info(`  echo '${patch64}' | base64 -d | git am`);
+            core.info("  ");
+        }
         setOutputs({
             differences: patch !== "",
             gitPatch: patch,
@@ -123,6 +135,9 @@ async function run() {
             restyledTitle: `Restyled ${pr.title}`,
             restyledBody: pullRequestDescription(pr.number),
         });
+        if (ec !== 0) {
+            core.setFailed(`Restyler exited non-zero: ${ec}`);
+        }
     }
     catch (error) {
         if (error instanceof Error) {
