@@ -1,21 +1,41 @@
 name: Create files for demoing (or testing) Restyled
 author: pbrisbin
+
+inputs:
+  channel:
+    description: restylers.yaml channel to base things on
+    default: stable
+  options:
+    description: Additional options to pass to generation
+    required: false
+
 runs:
   using: composite
   steps:
-    # For now, we copy restyled-io/demo#45, but in the future we could just
-    # produce files directly from the manifest (i.e. the same process that maintaines
-    # the demo PR itself).
-    - uses: actions/checkout@v4
-      with:
-        repository: restyled-io/demo
-        ref: testing/all
-        path: demo
-    - name: Commit demo files
-      shell: bash
+    - shell: bash
       run: |
-        rm -rf demo/.git
+        curl -sSf -L -o "$MANIFEST" "$MANIFEST_URL"
+      env:
+        MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
+        MANIFEST_URL: "https://docs.restyled.io/data-files/restylers/manifests/${{ inputs.channel }}/restylers.yaml"
+
+    - shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH"/bin/generate-test-files \
+          --manifest "$MANIFEST" $OPTIONS
+      env:
+        MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
+        OPTIONS: ${{ inputs.options }}
+
+    - shell: bash
+      run: |
+        # Add test files to git
         git config --global user.email "commits@restyled.io"
-        git config --global user.name "Restyled"
-        git add demo
+        git config --global user.name "Restyled.io"
+
+        if [[ ! -d ".git" ]]; then
+          git init .
+        fi
+
+        git add .
         git commit -m "Add demo files"

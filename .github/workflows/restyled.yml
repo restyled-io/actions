@@ -32,11 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
       - uses: ./setup-demo
-      - uses: ./setup
-      - id: restyler
-        uses: ./run
         with:
-          paths: demo
+          options: --limit 5
+      - uses: ./setup
+      - uses: ./run
+        with:
+          paths: .
