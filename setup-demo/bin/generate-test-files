@@ -1,15 +1,14 @@
 #!/usr/bin/env ruby
 require "yaml"
 
+MANIFEST = ARGV[0]
+CHANNEL = ENV["CHANNEL"] || MANIFEST.sub(/^(.*\/)?restylers-([^\.]+).yaml$/, '\2')
 LIMIT = ENV["LIMIT"]&.to_i
 
-def limit_restylers(restylers)
-  if LIMIT
-    restylers.shuffle.take(LIMIT)
-  else
-    restylers
-  end
-end
+puts "Generating Restyled test files"
+puts "  Manifest: #{MANIFEST}"
+puts "  Channel :  #{CHANNEL}"
+puts "  Limit   :  #{LIMIT}"
 
 def generate(restyler)
   name = restyler.fetch("name")
@@ -48,18 +47,23 @@ end
 
 def write_file(path, contents)
   puts "WRITE #{path}"
-  File.write(path, contents)
+
+  if ENV["DRY_RUN"].empty?
+    File.write(path, contents)
+  end
 end
 
-MANIFEST = ARGV[0]
-CHANNEL = ENV["CHANNEL"] || MANIFEST.sub(/^(.*\/)?restylers-([^\.]+).yaml$/, '\2')
+all_restylers = YAML.safe_load_file(MANIFEST)
+puts "Manifest contains #{all_restylers.length} Restylers"
 
-puts "Manifest: #{MANIFEST}"
-puts "Channel:  #{CHANNEL}"
+restylers = all_restylers.shuffle.take(LIMIT || all_restylers.length)
+puts "Limited to #{restylers.length} Restyler(s)"
 
-restylers = limit_restylers(YAML.safe_load_file(MANIFEST)).map(&method(:generate))
+config_restylers = restylers.map do |restyler|
+  generate(restyler)
+end
 
 write_file(".restyled.yaml", YAML.dump({
   "restylers_version" => CHANNEL,
-  "restylers" => restylers
+  "restylers" => config_restylers
 }))
