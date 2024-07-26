@@ -3,12 +3,15 @@ require "yaml"
 
 MANIFEST = ARGV[0]
 CHANNEL = ENV["CHANNEL"] || MANIFEST.sub(/^(.*\/)?restylers-([^\.]+).yaml$/, '\2')
-LIMIT = ENV["LIMIT"]&.to_i
+LIMIT = ENV["LIMIT"] || ""
+LIMIT = LIMIT.empty? ? nil : LIMIT.to_i
+DRY_RUN = !(ENV["DRY_RUN"] || "").empty?
 
 puts "Generating Restyled test files"
 puts "  Manifest: #{MANIFEST}"
-puts "  Channel :  #{CHANNEL}"
-puts "  Limit   :  #{LIMIT}"
+puts "  Channel : #{CHANNEL}"
+puts "  Limit   : #{LIMIT}"
+puts "  Dry run?: #{DRY_RUN}"
 
 def generate(restyler)
   name = restyler.fetch("name")
@@ -48,7 +51,7 @@ end
 def write_file(path, contents)
   puts "WRITE #{path}"
 
-  if ENV["DRY_RUN"].empty?
+  unless DRY_RUN
     File.write(path, contents)
   end
 end
