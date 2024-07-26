@@ -131,8 +131,9 @@ async function run() {
     const base = await readProcess("git", ["rev-parse", "HEAD"]);
 
     if (base !== pr.head.sha) {
-      core.warning("The checked out commit does not match the event PR's head");
-      core.warning(`${base} != ${pr.head.sha}. Weird things may happen.`);
+      core.warning(
+        `The checked out commit does not match the event PR's head. ${base} != ${pr.head.sha}. Weird things may happen.`,
+      );
     }
 
     const pullRequestJson = temp.path({ suffix: ".json" });
