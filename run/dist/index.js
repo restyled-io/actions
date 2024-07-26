@@ -39,6 +39,12 @@ function getInputs() {
     return {
         paths: core.getMultilineInput("paths", { required: false }),
         githubToken: core.getInput("github-token", { required: true }),
+        showPatch: core.getBooleanInput("show-patch", {
+            required: true,
+        }),
+        showPatchCommand: core.getBooleanInput("show-patch-command", {
+            required: true,
+        }),
         failOnDifferences: core.getBooleanInput("fail-on-differences", {
             required: true,
         }),
@@ -56,6 +62,30 @@ function setOutputs(outputs) {
     core.setOutput("restyled-head", outputs.restyledHead);
     core.setOutput("restyled-title", outputs.restyledTitle);
     core.setOutput("restyled-body", outputs.restyledBody);
+}
+async function readProcess(cmd, args) {
+    let stdout = "";
+    let stderr = "";
+    try {
+        await exec.exec(cmd, args, {
+            silent: true,
+            listeners: {
+                stdout: (data) => {
+                    stdout += data.toString();
+                },
+                stderr: (data) => {
+                    stderr += data.toString();
+                },
+            },
+        });
+    }
+    catch (ex) {
+        console.error("Crashing due to exec failure");
+        console.error(`Captured stdout: ${stdout}`);
+        console.error(`Captured stderr: ${stderr}`);
+        throw ex;
+    }
+    return stdout.replace(/\n$/, "");
 }
 function pullRequestDescription(number) {
     return `
@@ -101,6 +131,10 @@ async function run() {
         if (paths.length === 0) {
             throw new Error("inputs.paths empty and PR has no changed files");
         }
+        const base = await readProcess("git", ["rev-parse", "HEAD"]);
+        if (base !== pr.head.sha) {
+            core.warning(`The checked out commit does not match the event PR's head. ${base} != ${pr.head.sha}. Weird things may happen.`);
+        }
         const pullRequestJson = temp.path({ suffix: ".json" });
         fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
         const args = ["--pull-request-json", pullRequestJson]
@@ -122,29 +156,20 @@ async function run() {
             },
             ignoreReturnCode: true,
         });
-        let patch = "";
-        await exec.exec("git", ["format-patch", "--stdout", pr.head.sha], {
-            silent: true,
-            listeners: {
-                stdout: (data) => {
-                    patch += data.toString();
-                },
-            },
-        });
-        if (patch !== "") {
-            await core.group("Expand here to see the style fixes in git-am patch format", async () => {
-                core.info("  ");
-                core.info(patch);
-                core.info("  ");
-            });
-            await core.group("Expand here for a copy/paste-able command to apply them locally", async () => {
-                core.info("Apply this patch locally with the following command:");
-                core.info("  ");
-                core.info("{ base64 -d - | git am; } <<'EOM'");
-                core.info(formatBase64(patch));
-                core.info("EOM");
-                core.info("  ");
-            });
+        const patch = await readProcess("git", ["format-patch", "--stdout", base]);
+        if (inputs.showPatch) {
+            core.info("Restyled made the following fixes:");
+            core.info("  ");
+            core.info(patch);
+            core.info("  ");
+        }
+        if (inputs.showPatchCommand) {
+            core.info("To apply these commits locally, run the following:");
+            core.info("  ");
+            core.info("{ base64 -d - | git am; } <<'EOM'");
+            core.info(formatBase64(patch));
+            core.info("EOM");
+            core.info("  ");
         }
         setOutputs({
             differences: patch !== "",
