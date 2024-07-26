@@ -68,6 +68,13 @@ no fixes to make), this Pull Request will be closed automatically.
 `;
 }
 
+// Outputs as multiple lines of 76 characters, like `base64`
+function formatBase64(x: string): string {
+  const b64 = Buffer.from(x).toString("base64");
+  const lines = b64.match(/(.{1,76})/g); // https://stackoverflow.com/a/10475071
+  return lines ? lines.join("\n") : b64; // as-is
+}
+
 async function run() {
   try {
     if (github.context.eventName !== "pull_request") {
@@ -136,10 +143,11 @@ async function run() {
     });
 
     if (patch !== "") {
-      const patch64 = Buffer.from(patch).toString("base64");
       core.info("Apply this patch locally with the following command:");
       core.info("  ");
-      core.info(`  echo '${patch64}' | base64 -d | git am`);
+      core.info("{ base64 -d - | git am; } <<'EOM'");
+      core.info(formatBase64(patch));
+      core.info("EOM");
       core.info("  ");
     }
 
