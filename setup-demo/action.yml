@@ -28,14 +28,13 @@ runs:
 
     - shell: bash
       run: |
-        # Create git repository
-        if [[ -d .git ]]; then
-          echo "actions/setup-demo cannot be used in an existing checkout" >&2
-          exit 1
+        # Add test files to git
+        git config --global user.email "commits@restyled.io"
+        git config --global user.name "Restyled.io"
+
+        if [[ ! -d ".git" ]]; then
+          git init .
         fi
 
-        git init .
-        git config user.email "commits@restyled.io"
-        git config user.name "Restyled"
         git add .
         git commit -m "Add demo files"
