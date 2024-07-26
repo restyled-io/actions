@@ -12,6 +12,7 @@ runs:
         ref: testing/all
         path: demo
     - name: Commit demo files
+      shell: bash
       run: |
         rm -rf demo/.git
         git config --global user.email "commits@restyled.io"
