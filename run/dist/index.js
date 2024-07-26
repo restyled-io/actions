@@ -37,6 +37,7 @@ const github = __importStar(__nccwpck_require__(5438));
 const exec = __importStar(__nccwpck_require__(1514));
 function getInputs() {
     return {
+        paths: core.getMultilineInput("paths", { required: false }),
         githubToken: core.getInput("github-token", { required: true }),
         failOnDifferences: core.getBooleanInput("fail-on-differences", {
             required: true,
@@ -71,31 +72,41 @@ necessary. If the style is fixed manually at any point (i.e. this process finds
 no fixes to make), this Pull Request will be closed automatically.
 `;
 }
+function formatBase64(x) {
+    const b64 = Buffer.from(x).toString("base64");
+    const lines = b64.match(/(.{1,76})/g);
+    return lines ? lines.join("\n") : b64;
+}
 async function run() {
     try {
         if (github.context.eventName !== "pull_request") {
             throw new Error("This action can only be used with pull_request events");
         }
         const pr = github.context.payload.pull_request;
-        core.debug(JSON.stringify(pr));
+        core.debug(`PullRequest: ${JSON.stringify(pr)}`);
         if (!pr) {
             throw new Error("Payloads has no pull_request");
         }
         const inputs = getInputs();
         const client = github.getOctokit(inputs.githubToken);
-        const files = await client.paginate(client.rest.pulls.listFiles, {
-            ...github.context.repo,
-            pull_number: pr.number,
-        });
-        if (files.length === 0) {
-            throw new Error("PR has no changes");
+        let paths = inputs.paths;
+        if (paths.length === 0) {
+            core.debug("inputs.paths empty, fetching files changed in PR");
+            const files = await client.paginate(client.rest.pulls.listFiles, {
+                ...github.context.repo,
+                pull_number: pr.number,
+            });
+            paths = files.map((f) => f.filename);
+        }
+        if (paths.length === 0) {
+            throw new Error("inputs.paths empty and PR has no changed files");
         }
         const pullRequestJson = temp.path({ suffix: ".json" });
         fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
         const args = ["--pull-request-json", pullRequestJson]
             .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
             .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-            .concat(files.map((f) => f.filename));
+            .concat(paths);
         const ec = await exec.exec("restyle", args, {
             env: {
                 GITHUB_TOKEN: inputs.githubToken,
@@ -121,11 +132,19 @@ async function run() {
             },
         });
         if (patch !== "") {
-            const patch64 = Buffer.from(patch).toString("base64");
-            core.info("Apply this patch locally with the following command:");
-            core.info("  ");
-            core.info(`  echo '${patch64}' | base64 -d | git am`);
-            core.info("  ");
+            await core.group("Expand here to see the style fixes in git-am patch format", async () => {
+                core.info("  ");
+                core.info(patch);
+                core.info("  ");
+            });
+            await core.group("Expand here for a copy/paste-able command to apply them locally", async () => {
+                core.info("Apply this patch locally with the following command:");
+                core.info("  ");
+                core.info("{ base64 -d - | git am; } <<'EOM'");
+                core.info(formatBase64(patch));
+                core.info("EOM");
+                core.info("  ");
+            });
         }
         setOutputs({
             differences: patch !== "",
