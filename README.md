@@ -7,7 +7,15 @@
 > configuring it for specific repositories and excluding the one where you plan
 > to use GitHub Actions.
 
-Create the file `.github/workflows/restyled.yml`:
+## Usage
+
+Features:
+
+1. Restyle a Pull Request
+2. Print instructions to apply locally with `git am`
+3. Maintain a sibling PR, if the original was not a Fork
+4. Apply the `restyled` label and request review from the author
+5. Fail the PR if differences were found
 
 ```yaml
 name: Restyled
@@ -26,110 +34,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-      - uses: restyled-io/actions/setup@v2
-      - id: restyler
-        uses: restyled-io/actions/run@v2
 
-      # See below
-```
-
-Then, to determine what happens when style has been corrected, add some of the
-things described below, salted to taste.
-
-## Manage a sibling "Restyled PR"
-
-```yaml
-      - uses: peter-evans/create-pull-request@v6
-        with:
-          base: ${{ steps.restyler.outputs.restyled-base }}
-          branch: ${{ steps.restyler.outputs.restyled-head }}
-          title: ${{ steps.restyler.outputs.restyled-title }}
-          body: ${{ steps.restyler.outputs.restyled-body }}
-          delete-branch: true
-          # If desired:
-          # labels: "restyled"
-          # reviewers: ${{ github.event.pull_request.user.login }}
-          # team-reviewers: "..."
-```
-
-Required permissions: `contents:write`, `pull-requests:write`.
-
-Works for forks? **No**.
-
-## Push the changes directly to the original PR
-
-```yaml
-      - run: git push
-```
-
-Required permissions: `contents:write`.
-
-Works for forks? **No**
-
-## Emit failing status to the original PR
-
-```yaml
-      - if: ${{ steps.restyler.outputs.differences == 'true' }}
-        run: |
-          echo "Restyled found differences" >&2
-          exit 1
-```
-
-Or, if you don't need additional steps to run after this (or you configure them
-to always run), you can change the `run` invocation to:
-
-```yaml
-      - id: restyler
-        uses: restyled-io/actions/run@v2
-        with:
-          fail-on-differences: true
-```
-
-Required permission: none.
-
-Works for forks? **Yes**
-
-## Record a patch and emit instructions for applying it
-
-This happens by default and appears in the output of the `run` step:
-
-```console
-Apply this patch locally with the following command:
-
-  echo '...' | base64 -d | git am
-
-```
-
-Required permission: none.
-
-Works for forks? **Yes**
-
-## Complete reference example
-
-```yaml
-name: Restyled
-
-on:
-  pull_request:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-jobs:
-  restyled:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
       - uses: restyled-io/restyler/setup@v2
       - id: restyler
         uses: restyled-io/restyler/run@v2
         with:
           fail-on-differences: true
 
-      # Manage a sibling PR if we're not a fork
       - if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: peter-evans/create-pull-request@v6
         with:
@@ -137,9 +48,7 @@ jobs:
           branch: ${{ steps.restyler.outputs.restyled-head }}
           title: ${{ steps.restyler.outputs.restyled-title }}
           body: ${{ steps.restyler.outputs.restyled-body }}
+          labels: "restyled"
+          reviewers: ${{ github.event.pull_request.user.login }}
           delete-branch: true
-          # If desired:
-          # labels: "restyled"
-          # reviewers: ${{ github.event.pull_request.user.login }}
-          # team-reviewers: "..."
 ```
