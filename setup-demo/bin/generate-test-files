@@ -67,7 +67,7 @@ config_restylers = restylers.map do |restyler|
 end
 
 write_file(".restyled.yaml", YAML.dump({
-  "also_exclude" .= ["./.git/**/*"],
+  "also_exclude" => ["./.git/**/*"],
   "restylers_version" => CHANNEL,
   "restylers" => config_restylers
 }))
