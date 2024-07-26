@@ -13,19 +13,21 @@ runs:
   using: composite
   steps:
     - shell: bash
-      run: curl -sSf -L -o "$MANIFEST" "$MANIFEST_URL"
+      run: |
+        curl -sSf -L -o "$MANIFEST" "$MANIFEST_URL"
       env:
-        MANIFEST: /tmp/restylers-${{ inputs.channel }}.yaml
-        MANIFEST_URL: https://docs.restyled.io/data-files/restylers/manifests/${{ inputs.channel }}/restylers.yaml
+        MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
+        MANIFEST_URL: "https://docs.restyled.io/data-files/restylers/manifests/${{ inputs.channel }}/restylers.yaml"
 
     - shell: bash
-      run: "$GITHUB_ACTION_PATH"/bin/generate-test-files "MANIFEST"
+      run: |
+        "$GITHUB_ACTION_PATH"/bin/generate-test-files "MANIFEST"
       env:
         LIMIT: ${{ inputs.limit }}
-        MANIFEST: /tmp/restylers-${{ inputs.channel }}.yaml
+        MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
 
     - shell: bash
-      run:
+      run: |
         # Create git repository
         if [[ -d .git ]]; then
           echo "actions/setup-demo cannot be used in an existing checkout" >&2
