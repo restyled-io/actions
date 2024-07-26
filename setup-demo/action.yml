@@ -21,7 +21,7 @@ runs:
 
     - shell: bash
       run: |
-        "$GITHUB_ACTION_PATH"/bin/generate-test-files "MANIFEST"
+        "$GITHUB_ACTION_PATH"/bin/generate-test-files "$MANIFEST"
       env:
         LIMIT: ${{ inputs.limit }}
         MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
