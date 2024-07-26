@@ -39,10 +39,10 @@ def test_file_name(number, name, includes, extension)
 end
 
 def guess_extension(includes)
-  includes.
-    filter { |x| !x.start_with?("!") }.
-    filter { |x| x.include?(".") }.
-    first&.sub(/.*\.([^.]+)$/, '\1')
+  includes
+    .filter { |x| !x.start_with?("!") }
+    .filter { |x| x.include?(".") }
+    .first&.sub(/.*\.([^.]+)$/, '\1')
 end
 
 def write_file(path, contents)
