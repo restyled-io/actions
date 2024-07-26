@@ -143,12 +143,26 @@ async function run() {
     });
 
     if (patch !== "") {
-      core.info("Apply this patch locally with the following command:");
-      core.info("  ");
-      core.info("{ base64 -d - | git am; } <<'EOM'");
-      core.info(formatBase64(patch));
-      core.info("EOM");
-      core.info("  ");
+      await core.group(
+        "Expand here to see the style fixes in git-am patch format",
+        async () => {
+          core.info("  ");
+          core.info(patch);
+          core.info("  ");
+        },
+      );
+
+      await core.group(
+        "Expand here for a copy/paste-able command to apply them locally",
+        async () => {
+          core.info("Apply this patch locally with the following command:");
+          core.info("  ");
+          core.info("{ base64 -d - | git am; } <<'EOM'");
+          core.info(formatBase64(patch));
+          core.info("EOM");
+          core.info("  ");
+        },
+      );
     }
 
     setOutputs({
