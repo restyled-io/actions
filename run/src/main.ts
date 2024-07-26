@@ -70,7 +70,7 @@ async function readProcess(cmd: string, args: string[]): Promise<string> {
     throw ex;
   }
 
-  return output;
+  return output.replace(/\n$/, "");
 }
 
 function pullRequestDescription(number: number): string {
