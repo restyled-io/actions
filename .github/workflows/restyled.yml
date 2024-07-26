@@ -27,3 +27,28 @@ jobs:
           title: ${{ steps.restyler.outputs.restyled-title }}
           body: ${{ steps.restyler.outputs.restyled-body }}
           delete-branch: true
+
+  restyled-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/checkout@v4
+        with:
+          repository: restyled-io/demo
+          ref: testing/all
+          path: demo
+      - name: Commit demo files
+        run: |
+          rm -rf demo/.git
+          git config --global user.email "commits@restyled.io"
+          git config --global user.name "Restyled"
+          git add demo
+          git commit -m "Add demo files"
+
+      - uses: ./setup
+      - id: restyler
+        uses: ./run
+        with:
+          paths: demo
