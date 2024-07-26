@@ -1,21 +1,39 @@
 name: Create files for demoing (or testing) Restyled
 author: pbrisbin
+
+inputs:
+  channel:
+    description: restylers.yaml channel to base things on
+    default: stable
+  limit:
+    description: only generate for a random number of Restylers
+    required: false
+
 runs:
   using: composite
   steps:
-    # For now, we copy restyled-io/demo#45, but in the future we could just
-    # produce files directly from the manifest (i.e. the same process that maintaines
-    # the demo PR itself).
-    - uses: actions/checkout@v4
-      with:
-        repository: restyled-io/demo
-        ref: testing/all
-        path: demo
-    - name: Commit demo files
-      shell: bash
-      run: |
-        rm -rf demo/.git
-        git config --global user.email "commits@restyled.io"
-        git config --global user.name "Restyled"
-        git add demo
+    - shell: bash
+      run: curl -sSf -L -o "$MANIFEST" "$MANIFEST_URL"
+      env:
+        MANIFEST: /tmp/restylers-${{ inputs.channel }}.yaml
+        MANIFEST_URL: https://docs.restyled.io/data-files/restylers/manifests/${{ inputs.channel }}/restylers.yaml
+
+    - shell: bash
+      run: "$GITHUB_ACTION_PATH"/bin/generate-test-files "MANIFEST"
+      env:
+        LIMIT: ${{ inputs.limit }}
+        MANIFEST: /tmp/restylers-${{ inputs.channel }}.yaml
+
+    - shell: bash
+      run:
+        # Create git repository
+        if [[ -d .git ]]; then
+          echo "actions/setup-demo cannot be used in an existing checkout" >&2
+          exit 1
+        fi
+
+        git init .
+        git config user.email "commits@restyled.io"
+        git config user.name "Restyled"
+        git add .
         git commit -m "Add demo files"

@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+require "yaml"
+
+LIMIT = ENV["LIMIT"]&.to_i
+
+def limit_restylers(restylers)
+  if LIMIT
+    restylers.shuffle.take(LIMIT)
+  else
+    restylers
+  end
+end
+
+def generate(restyler)
+  name = restyler.fetch("name")
+
+  restyler.fetch("metadata").fetch("tests").each.with_index do |test, idx|
+    generate_test(idx, name, restyler.fetch("include"), test)
+
+    if support = test["support"]
+      write_file(support.fetch("path"), support.fetch("contents"))
+    end
+  end
+
+  {
+    "name" => name,
+    "enabled" => true,
+    "include" => ["#{name}-test-*"]
+  }
+end
+
+def generate_test(number, name, includes, test)
+  path = test_file_name(number, name, includes, test["extension"])
+  write_file(path, test.fetch("contents"))
+end
+
+def test_file_name(number, name, includes, extension)
+  "#{name}-test-#{number}.#{extension || guess_extension(includes) || "tmp"}"
+end
+
+def guess_extension(includes)
+  includes.
+    filter { |x| !x.start_with?("!") }.
+    filter { |x| x.include?(".") }.
+    first&.sub(/.*\.([^.]+)$/, '\1')
+end
+
+def write_file(path, contents)
+  puts "WRITE #{path}"
+  File.write(path, contents)
+end
+
+MANIFEST = ARGV[0]
+CHANNEL = ENV["CHANNEL"] || MANIFEST.sub(/^(.*\/)?restylers-([^\.]+).yaml$/, '\2')
+
+puts "Manifest: #{MANIFEST}"
+puts "Channel:  #{CHANNEL}"
+
+restylers = limit_restylers(YAML.safe_load_file(MANIFEST)).map(&method(:generate))
+
+write_file(".restyled.yaml", YAML.dump({
+  "restylers_version" => CHANNEL,
+  "restylers" => restylers
+}))
