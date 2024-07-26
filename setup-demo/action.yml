@@ -1,0 +1,20 @@
+name: Create files for demoing (or testing) Restyled
+author: pbrisbin
+runs:
+  using: composite
+  steps:
+    # For now, we copy restyled-io/demo#45, but in the future we could just
+    # produce files directly from the manifest (i.e. the same process that maintaines
+    # the demo PR itself).
+    - uses: actions/checkout@v4
+      with:
+        repository: restyled-io/demo
+        ref: testing/all
+        path: demo
+    - name: Commit demo files
+      run: |
+        rm -rf demo/.git
+        git config --global user.email "commits@restyled.io"
+        git config --global user.name "Restyled"
+        git add demo
+        git commit -m "Add demo files"
