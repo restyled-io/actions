@@ -31,10 +31,6 @@ jobs:
   restyled-demo:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
       - uses: ./setup-demo
       - uses: ./setup
-      - id: restyler
-        uses: ./run
+      - uses: ./run
