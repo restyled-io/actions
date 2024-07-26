@@ -37,3 +37,4 @@ jobs:
       - uses: ./run
         with:
           paths: .
+          log-level: debug
