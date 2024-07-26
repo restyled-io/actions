@@ -6,6 +6,7 @@ import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
 type Inputs = {
+  paths: string[];
   githubToken: string;
   failOnDifferences: boolean;
   committerEmail: string;
@@ -17,6 +18,7 @@ type Inputs = {
 
 function getInputs(): Inputs {
   return {
+    paths: core.getMultilineInput("paths", { required: false }),
     githubToken: core.getInput("github-token", { required: true }),
     failOnDifferences: core.getBooleanInput("fail-on-differences", {
       required: true,
@@ -81,13 +83,21 @@ async function run() {
 
     const inputs = getInputs();
     const client = github.getOctokit(inputs.githubToken);
-    const files = await client.paginate(client.rest.pulls.listFiles, {
-      ...github.context.repo,
-      pull_number: pr.number,
-    });
 
-    if (files.length === 0) {
-      throw new Error("PR has no changes");
+    let paths = inputs.paths;
+
+    if (paths.length === 0) {
+      core.debug("inputs.paths empty, fetching files changed in PR");
+      const files = await client.paginate(client.rest.pulls.listFiles, {
+        ...github.context.repo,
+        pull_number: pr.number,
+      });
+
+      paths = files.map((f) => f.filename);
+    }
+
+    if (paths.length === 0) {
+      throw new Error("inputs.paths empty and PR has no changed files");
     }
 
     const pullRequestJson = temp.path({ suffix: ".json" });
@@ -96,7 +106,7 @@ async function run() {
     const args = ["--pull-request-json", pullRequestJson]
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
       .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-      .concat(files.map((f) => f.filename));
+      .concat(paths);
 
     const ec = await exec.exec("restyle", args, {
       env: {

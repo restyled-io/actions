@@ -3,6 +3,10 @@ description: Run the restyle CLI on changed files in a PR
 author: pbrisbin
 
 inputs:
+  paths:
+    description: |
+      New-line separated paths to restyle, default is paths changed in the PR
+    required: false
   github-token:
     description: "Token used to query for PR details"
     default: ${{ github.token }}
