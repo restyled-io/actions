@@ -35,3 +35,5 @@ jobs:
       - uses: ./setup-demo
       - uses: ./setup
       - uses: ./run
+        with:
+          paths: .
