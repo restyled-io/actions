@@ -38,5 +38,3 @@ jobs:
       - uses: ./setup
       - id: restyler
         uses: ./run
-        with:
-          paths: demo
