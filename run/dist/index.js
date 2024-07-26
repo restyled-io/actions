@@ -74,7 +74,7 @@ async function readProcess(cmd, args) {
         console.error(`Captured output: ${output}`);
         throw ex;
     }
-    return output;
+    return output.replace(/\n$/, "");
 }
 function pullRequestDescription(number) {
     return `
