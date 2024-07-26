@@ -59,14 +59,21 @@ function setOutputs(outputs) {
 }
 async function readProcess(cmd, args) {
     let output = "";
-    await exec.exec(cmd, args, {
-        silent: true,
-        listeners: {
-            stdout: (data) => {
-                output += data.toString();
+    try {
+        await exec.exec(cmd, args, {
+            silent: true,
+            listeners: {
+                stdout: (data) => {
+                    output += data.toString();
+                },
             },
-        },
-    });
+        });
+    }
+    catch (ex) {
+        console.error("Crashing due to exec failure");
+        console.error(`Captured output: ${output}`);
+        throw ex;
+    }
     return output;
 }
 function pullRequestDescription(number) {
@@ -115,7 +122,8 @@ async function run() {
         }
         const base = await readProcess("git", ["rev-parse", "HEAD"]);
         if (base !== pr.head.sha) {
-            core.warning(`The checked out commit does not match the event PR's head: ${base} != ${pr.head.sha}. Weird things may happen.`);
+            core.warning("The checked out commit does not match the event PR's head");
+            core.warning(`${base} != ${pr.head.sha}. Weird things may happen.`);
         }
         const pullRequestJson = temp.path({ suffix: ".json" });
         fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
