@@ -52,6 +52,27 @@ function setOutputs(outputs: Outputs): void {
   core.setOutput("restyled-body", outputs.restyledBody);
 }
 
+async function readProcess(cmd: string, args: string[]): Promise<string> {
+  let output = "";
+
+  try {
+    await exec.exec(cmd, args, {
+      silent: true,
+      listeners: {
+        stdout: (data: Buffer) => {
+          output += data.toString();
+        },
+      },
+    });
+  } catch (ex) {
+    console.error("Crashing due to exec failure");
+    console.error(`Captured output: ${output}`);
+    throw ex;
+  }
+
+  return output.replace(/\n$/, "");
+}
+
 function pullRequestDescription(number: number): string {
   return `
 Automated style fixes for #${number}, created by Restyled.
@@ -107,6 +128,14 @@ async function run() {
       throw new Error("inputs.paths empty and PR has no changed files");
     }
 
+    const base = await readProcess("git", ["rev-parse", "HEAD"]);
+
+    if (base !== pr.head.sha) {
+      core.warning(
+        `The checked out commit does not match the event PR's head. ${base} != ${pr.head.sha}. Weird things may happen.`,
+      );
+    }
+
     const pullRequestJson = temp.path({ suffix: ".json" });
     fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
 
@@ -131,16 +160,7 @@ async function run() {
       ignoreReturnCode: true,
     });
 
-    let patch = "";
-
-    await exec.exec("git", ["format-patch", "--stdout", pr.head.sha], {
-      silent: true,
-      listeners: {
-        stdout: (data: Buffer) => {
-          patch += data.toString();
-        },
-      },
-    });
+    const patch = await readProcess("git", ["format-patch", "--stdout", base]);
 
     if (patch !== "") {
       await core.group(
