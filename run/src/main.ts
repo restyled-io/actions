@@ -73,7 +73,7 @@ async function run() {
     }
 
     const pr = github.context.payload.pull_request;
-    core.debug(JSON.stringify(pr));
+    core.debug(`PullRequest: ${JSON.stringify(pr)}`);
 
     if (!pr) {
       throw new Error("Payloads has no pull_request");
