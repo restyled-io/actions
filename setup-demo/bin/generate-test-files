@@ -175,7 +175,7 @@ module Generate
         end
 
         opts.on("-d", "--[no-]dry-run", "Don't actually write files") do |d|
-          options.dry_run
+          options.dry_run = d
         end
       end
 
