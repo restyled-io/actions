@@ -21,11 +21,11 @@ runs:
 
     - shell: bash
       run: |
-        "$GITHUB_ACTION_PATH"/bin/generate-test-files $OPTIONS
-
+        "$GITHUB_ACTION_PATH"/bin/generate-test-files \
+          --manifest "$MANIFEST" $OPTIONS
       env:
-        OPTIONS: |
-          --manifest "/tmp/restylers-${{ inputs.channel }}.yaml" ${{ inputs.options }}
+        MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
+        OPTIONS: ${{ inputs.options }}
 
     - shell: bash
       run: |
