@@ -1,73 +1,189 @@
 #!/usr/bin/env ruby
+require "optparse"
 require "yaml"
 
-MANIFEST = ARGV[0]
-CHANNEL = ENV["CHANNEL"] || MANIFEST.sub(/^(.*\/)?restylers-([^\.]+).yaml$/, '\2')
-LIMIT = ENV["LIMIT"] || ""
-LIMIT = LIMIT.empty? ? nil : LIMIT.to_i
-DRY_RUN = !(ENV["DRY_RUN"] || "").empty?
+module Generate
+  class RestylersYaml
+    attr_reader :restylers
 
-puts "Generating Restyled test files"
-puts "  Manifest: #{MANIFEST}"
-puts "  Channel : #{CHANNEL}"
-puts "  Limit   : #{LIMIT}"
-puts "  Dry run?: #{DRY_RUN}"
+    def self.load(file)
+      new(YAML.safe_load_file(file))
+    end
 
-def generate(restyler)
-  name = restyler.fetch("name")
+    def initialize(yaml)
+      @restylers = yaml.map { Restyler.new(_1) }
+    end
 
-  restyler.fetch("metadata").fetch("tests").each.with_index do |test, idx|
-    generate_test(idx, name, restyler.fetch("include"), test)
+    def limit!(n)
+      @restylers = restylers.shuffle.take(n)
+    end
 
-    if (support = test["support"])
-      write_file(support.fetch("path"), support.fetch("contents"))
+    def filter!(names)
+      @restylers = restylers.select { names.include?(_1.name) }
     end
   end
 
-  {
-    "name" => name,
-    "enabled" => true,
-    "include" => ["#{name}-test-*"]
-  }
-end
+  class Restyler
+    attr_reader :name
 
-def generate_test(number, name, includes, test)
-  path = test_file_name(number, name, includes, test["extension"])
-  write_file(path, test.fetch("contents"))
-end
+    def initialize(yaml)
+      @name = yaml.fetch("name")
+      @includes = yaml.fetch("include")
+      @tests = yaml.fetch("metadata").fetch("tests").map { Test.new(_1) }
+    end
 
-def test_file_name(number, name, includes, extension)
-  "#{name}-test-#{number}.#{extension || guess_extension(includes) || "tmp"}"
-end
+    def test_files
+      tests.flat_map.with_index do |test, idx|
+        [ test_file(test, idx), test.support ].compact
+      end
+    end
 
-def guess_extension(includes)
-  include = includes.find do |x|
-    !x.start_with?("!") && x.include?(".")
+    def config_restyler_yaml
+      {
+        "name" => name,
+        "enabled" => true,
+        "include" => ["#{name}-test-*"]
+      }
+    end
+
+    private
+
+    attr_reader :includes, :tests
+
+    def test_file(test, idx)
+      ext = test.extension || infer_extension || "tmp"
+      TestFile.new("#{name}-test-#{idx}.#{ext}", test.contents)
+    end
+
+    def infer_extension
+      include = includes.find do |x|
+        !x.start_with?("!") && x.include?(".")
+      end
+
+      include&.sub(/.*\.([^.]+)$/, '\1')
+    end
   end
 
-  include&.sub(/.*\.([^.]+)$/, '\1')
-end
+  class Test
+    attr_reader :contents, :extension, :support
 
-def write_file(path, contents)
-  puts "WRITE #{path}"
+    def initialize(yaml)
+      @contents = yaml.fetch("contents")
+      @extension = yaml.fetch("extension")
 
-  unless DRY_RUN
-    File.write(path, contents)
+      if (support = yaml["support"])
+        @support = TestFile.new(
+          support.fetch("path"),
+          support.fetch("contents"),
+        )
+      end
+    end
+  end
+
+  class TestFile
+    @@written = 0
+
+    def self.written
+      @@written
+    end
+
+    def initialize(path, contents)
+      @path = path
+      @contents = contents
+    end
+
+    def write(dry_run = false)
+      puts path
+
+      unless dry_run
+        File.write(path, contents)
+      end
+
+      @@written += 1
+    end
+
+    private
+
+    attr_reader :path, :contents
+  end
+
+  class Main
+    def self.run
+      options = Options.parse!
+      yaml = RestylersYaml.load(options.manifest)
+
+      options.limit && yaml.limit!(options.limit)
+      options.filter && yaml.filter!(options.filter)
+
+      yaml.restylers.each do |restyler|
+        restyler.test_files.each do |test_file|
+          test_file.write(options.dry_run)
+        end
+      end
+
+      restyled_yaml = TestFile.new(
+        ".restyled.yaml",
+        YAML.dump({
+          "also_exclude" => ["./.git/**/*"],
+          "restylers_version" => options.channel,
+          "restylers" => yaml.restylers.map(&:config_restyler_yaml)
+        })
+      )
+
+      restyled_yaml.write(options.dry_run)
+
+      puts "#{TestFile.written} test file(s) written"
+    end
+  end
+
+  class Options
+    CHANNEL_REGEX = /(^.*\/)?restylers-([^.]+)\.ya?ml$/
+
+    attr_accessor :manifest, :channel, :limit, :filter, :dry_run
+
+    def initialize
+      @manifest = "/tmp/restylers-dev.yaml"
+      @channel = "dev"
+      @limit = nil
+      @filter = nil
+      @dry_run = false
+    end
+
+    def self.parse!
+      options = new
+      parser = OptionParser.new do |opts|
+        opts.banner = "Usage: generate-test-files [options]"
+
+        opts.on("-m", "--manifest PATH", "Run verbosely") do |m|
+          options.manifest = m
+
+          if m =~ CHANNEL_REGEX
+            options.channel = m.sub(CHANNEL_REGEX, '\2')
+          end
+        end
+
+        opts.on("-c", "--channel NAME", "Use the given channel name in .restyled.yaml") do |c|
+          options.channel = c
+        end
+
+        opts.on("-l", "--limit N", Integer, "Generate for N (random) Restylers") do |l|
+          options.limit = l
+        end
+
+        opts.on("-f", "--filter name,name", Array, "Filter to the given (comma-separated) Restylers") do |f|
+          options.filter = f
+        end
+
+        opts.on("-d", "--[no-]dry-run", "Don't actually write files") do |d|
+          options.dry_run
+        end
+      end
+
+      parser.parse!
+
+      options
+    end
   end
 end
 
-all_restylers = YAML.safe_load_file(MANIFEST)
-puts "Manifest contains #{all_restylers.length} Restylers"
-
-restylers = all_restylers.shuffle.take(LIMIT || all_restylers.length)
-puts "Limited to #{restylers.length} Restyler(s)"
-
-config_restylers = restylers.map do |restyler|
-  generate(restyler)
-end
-
-write_file(".restyled.yaml", YAML.dump({
-  "also_exclude" => ["./.git/**/*"],
-  "restylers_version" => CHANNEL,
-  "restylers" => config_restylers
-}))
+Generate::Main.run

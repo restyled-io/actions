@@ -5,8 +5,8 @@ inputs:
   channel:
     description: restylers.yaml channel to base things on
     default: stable
-  limit:
-    description: only generate for a random number of Restylers
+  options:
+    description: Additional options to pass to generation
     required: false
 
 runs:
@@ -21,10 +21,11 @@ runs:
 
     - shell: bash
       run: |
-        "$GITHUB_ACTION_PATH"/bin/generate-test-files "$MANIFEST"
+        "$GITHUB_ACTION_PATH"/bin/generate-test-files $OPTIONS
+
       env:
-        LIMIT: ${{ inputs.limit }}
-        MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
+        OPTIONS: |
+          --manifest "/tmp/restylers-${{ inputs.channel }}.yaml" ${{ inputs.options }}
 
     - shell: bash
       run: |
