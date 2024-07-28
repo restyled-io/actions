@@ -34,7 +34,7 @@ module Generate
 
     def test_files
       tests.flat_map.with_index do |test, idx|
-        [ test_file(test, idx), test.support ].compact
+        [test_file(test, idx), test.support].compact
       end
     end
 
@@ -74,7 +74,7 @@ module Generate
       if (support = yaml["support"])
         @support = TestFile.new(
           support.fetch("path"),
-          support.fetch("contents"),
+          support.fetch("contents")
         )
       end
     end
@@ -157,7 +157,7 @@ module Generate
         opts.on("-m", "--manifest PATH", "Run verbosely") do |m|
           options.manifest = m
 
-          if m =~ CHANNEL_REGEX
+          if CHANNEL_REGEX.match?(m)
             options.channel = m.sub(CHANNEL_REGEX, '\2')
           end
         end
