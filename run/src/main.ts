@@ -53,24 +53,29 @@ function setOutputs(outputs: Outputs): void {
 }
 
 async function readProcess(cmd: string, args: string[]): Promise<string> {
-  let output = "";
+  let stdout = "";
+  let stderr = "";
 
   try {
     await exec.exec(cmd, args, {
       silent: true,
       listeners: {
         stdout: (data: Buffer) => {
-          output += data.toString();
+          stdout += data.toString();
+        },
+        stderr: (data: Buffer) => {
+          stderr += data.toString();
         },
       },
     });
   } catch (ex) {
     console.error("Crashing due to exec failure");
-    console.error(`Captured output: ${output}`);
+    console.error(`Captured stdout: ${stdout}`);
+    console.error(`Captured stderr: ${stderr}`);
     throw ex;
   }
 
-  return output.replace(/\n$/, "");
+  return stdout.replace(/\n$/, "");
 }
 
 function pullRequestDescription(number: number): string {
