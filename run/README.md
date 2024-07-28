@@ -9,11 +9,30 @@ Run the restyle CLI on changed files in a PR
 ```yaml
 - uses: restyled-io/actions/run@v2
   with:
+    paths:
+    # New-line separated paths to restyle, default is paths changed in the PR
+    #
+    # Required: false
+    # Default: ""
+
     github-token:
     # Token used to query for PR details
     #
     # Required: false
     # Default: ${{ github.token }}
+
+    show-patch:
+    # Log the patch produced by Restyled with git format-patch
+    #
+    # Required: false
+    # Default: true
+
+    show-patch-command:
+    # Log a copy/paste-able command to apply the patch produced by Restyled with
+    # git-am
+    #
+    # Required: false
+    # Default: true
 
     fail-on-differences:
     # Exit non-zero if differences were created
@@ -58,15 +77,18 @@ Run the restyle CLI on changed files in a PR
 
 ## Inputs
 
-| name                  | description                                                   | required | default               |
-| --------------------- | ------------------------------------------------------------- | -------- | --------------------- |
-| `github-token`        | <p>Token used to query for PR details</p>                     | `false`  | `${{ github.token }}` |
-| `fail-on-differences` | <p>Exit non-zero if differences were created</p>              | `false`  | `false`               |
-| `committer-email`     | <p>Email used for Restyled commits</p>                        | `false`  | `commits@restyled.io` |
-| `committer-name`      | <p>Name used for Restyled commits</p>                         | `false`  | `Restyled.io`         |
-| `log-level`           | <p>Set <code>restyle</code>'s <code>LOG_LEVEL</code></p>      | `false`  | `info`                |
-| `log-format`          | <p>Set <code>restyle</code>'s <code>LOG_FORMAT</code></p>     | `false`  | `tty`                 |
-| `log-breakpoint`      | <p>Set <code>restyle</code>'s <code>LOG_BREAKPOINT</code></p> | `false`  | `200`                 |
+| name                  | description                                                                              | required | default               |
+| --------------------- | ---------------------------------------------------------------------------------------- | -------- | --------------------- |
+| `paths`               | <p>New-line separated paths to restyle, default is paths changed in the PR</p>           | `false`  | `""`                  |
+| `github-token`        | <p>Token used to query for PR details</p>                                                | `false`  | `${{ github.token }}` |
+| `show-patch`          | <p>Log the patch produced by Restyled with git format-patch</p>                          | `false`  | `true`                |
+| `show-patch-command`  | <p>Log a copy/paste-able command to apply the patch produced by Restyled with git-am</p> | `false`  | `true`                |
+| `fail-on-differences` | <p>Exit non-zero if differences were created</p>                                         | `false`  | `false`               |
+| `committer-email`     | <p>Email used for Restyled commits</p>                                                   | `false`  | `commits@restyled.io` |
+| `committer-name`      | <p>Name used for Restyled commits</p>                                                    | `false`  | `Restyled.io`         |
+| `log-level`           | <p>Set <code>restyle</code>'s <code>LOG_LEVEL</code></p>                                 | `false`  | `info`                |
+| `log-format`          | <p>Set <code>restyle</code>'s <code>LOG_FORMAT</code></p>                                | `false`  | `tty`                 |
+| `log-breakpoint`      | <p>Set <code>restyle</code>'s <code>LOG_BREAKPOINT</code></p>                            | `false`  | `200`                 |
 
 <!-- action-docs-inputs source="action.yml" -->
 

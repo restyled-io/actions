@@ -8,6 +8,8 @@ import * as exec from "@actions/exec";
 type Inputs = {
   paths: string[];
   githubToken: string;
+  showPatch: boolean;
+  showPatchCommand: boolean;
   failOnDifferences: boolean;
   committerEmail: string;
   committerName: string;
@@ -20,6 +22,12 @@ function getInputs(): Inputs {
   return {
     paths: core.getMultilineInput("paths", { required: false }),
     githubToken: core.getInput("github-token", { required: true }),
+    showPatch: core.getBooleanInput("show-patch", {
+      required: true,
+    }),
+    showPatchCommand: core.getBooleanInput("show-patch-command", {
+      required: true,
+    }),
     failOnDifferences: core.getBooleanInput("fail-on-differences", {
       required: true,
     }),
@@ -167,27 +175,20 @@ async function run() {
 
     const patch = await readProcess("git", ["format-patch", "--stdout", base]);
 
-    if (patch !== "") {
-      await core.group(
-        "Expand here to see the style fixes in git-am patch format",
-        async () => {
-          core.info("  ");
-          core.info(patch);
-          core.info("  ");
-        },
-      );
+    if (inputs.showPatch) {
+      core.info("Restyled made the following fixes:");
+      core.info("  ");
+      core.info(patch);
+      core.info("  ");
+    }
 
-      await core.group(
-        "Expand here for a copy/paste-able command to apply them locally",
-        async () => {
-          core.info("Apply this patch locally with the following command:");
-          core.info("  ");
-          core.info("{ base64 -d - | git am; } <<'EOM'");
-          core.info(formatBase64(patch));
-          core.info("EOM");
-          core.info("  ");
-        },
-      );
+    if (inputs.showPatchCommand) {
+      core.info("To apply these commits locally, run the following:");
+      core.info("  ");
+      core.info("{ base64 -d - | git am; } <<'EOM'");
+      core.info(formatBase64(patch));
+      core.info("EOM");
+      core.info("  ");
     }
 
     setOutputs({
