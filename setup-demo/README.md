@@ -21,7 +21,7 @@ be run on them as a form of demo or integration test.
 ## Inputs
 
 | name      | description                                     | required | default  |
-| --------- | ------------------------------------------------| -------- | -------- |
+| --------- | ----------------------------------------------- | -------- | -------- |
 | `channel` | <p>restylers.yaml channel to base things on</p> | `false`  | `stable` |
 | `options` | <p>Additional options to pass to generation</p> | `false`  |          |
 
