@@ -10,6 +10,14 @@ inputs:
   github-token:
     description: "Token used to query for PR details"
     default: ${{ github.token }}
+  show-patch:
+    description: "Log the patch produced by Restyled with git format-patch"
+    default: true
+  show-patch-command:
+    description: |
+      Log a copy/paste-able command to apply the patch produced by Restyled with
+      git-am
+    default: true
   fail-on-differences:
     description: "Exit non-zero if differences were created"
     default: false
