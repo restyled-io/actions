@@ -14,6 +14,7 @@ runs:
   steps:
     - shell: bash
       run: |
+        # Download manifest
         curl -sSf -L -o "$MANIFEST" "$MANIFEST_URL"
       env:
         MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
@@ -21,6 +22,7 @@ runs:
 
     - shell: bash
       run: |
+        # Generate test files
         "$GITHUB_ACTION_PATH"/bin/generate-test-files \
           --manifest "$MANIFEST" $OPTIONS
       env:
