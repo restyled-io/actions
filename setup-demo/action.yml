@@ -27,7 +27,8 @@ runs:
           --manifest "$MANIFEST" $OPTIONS
       env:
         MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
-        OPTIONS: ${{ inputs.options }}
+        OPTIONS: |
+          ${{ env.RUNNER_DEBUG && "--verbose "}}${{ inputs.options }}
 
     - shell: bash
       run: |
