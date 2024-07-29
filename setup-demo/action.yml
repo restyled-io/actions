@@ -36,6 +36,7 @@ runs:
         git config --global user.name "Restyled.io"
 
         if [[ ! -d ".git" ]]; then
+          git config --global init.defaultBranch main
           git init .
         fi
 
