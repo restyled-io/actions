@@ -3,8 +3,8 @@ require "optparse"
 require "yaml"
 require "logger"
 
-$logger = Logger.new(STDOUT)
-$logger.level = Logger::INFO
+LOGGER = Logger.new($stdout)
+LOGGER.level = Logger::INFO
 
 module Generate
   class RestylersYaml
@@ -97,7 +97,7 @@ module Generate
     end
 
     def write(dry_run = false)
-      $logger.info(path)
+      LOGGER.info(path)
 
       unless dry_run
         File.write(path, contents)
@@ -136,7 +136,7 @@ module Generate
 
       restyled_yaml.write(options.dry_run)
 
-      $logger.info("#{TestFile.written} test file(s) written")
+      LOGGER.info("#{TestFile.written} test file(s) written")
     end
   end
 
@@ -183,13 +183,13 @@ module Generate
         end
 
         opts.on("-v", "--[no-]verbose", "Log verbosely") do |d|
-          $logger.level = Logger::DEBUG
+          LOGGER.level = Logger::DEBUG
         end
       end
 
       parser.parse!
 
-      $logger.debug(options)
+      LOGGER.debug(options)
 
       options
     end
