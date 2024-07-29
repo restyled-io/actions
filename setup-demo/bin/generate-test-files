@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 require "optparse"
 require "yaml"
+require "logger"
+
+$logger = Logger.new(STDOUT)
+$logger.level = Logger::INFO
 
 module Generate
   class RestylersYaml
@@ -93,7 +97,7 @@ module Generate
     end
 
     def write(dry_run = false)
-      puts path
+      $logger.info(path)
 
       unless dry_run
         File.write(path, contents)
@@ -132,12 +136,12 @@ module Generate
 
       restyled_yaml.write(options.dry_run)
 
-      puts "#{TestFile.written} test file(s) written"
+      $logger.info("#{TestFile.written} test file(s) written")
     end
   end
 
   class Options
-    CHANNEL_REGEX = /(^.*\/)?restylers-([^.]+)\.ya?ml$/
+    CHANNEL_REGEX = /^(.*\/)?restylers-([^.]+)\.ya?ml$/
 
     attr_accessor :manifest, :channel, :limit, :filter, :dry_run
 
@@ -177,9 +181,15 @@ module Generate
         opts.on("-d", "--[no-]dry-run", "Don't actually write files") do |d|
           options.dry_run = d
         end
+
+        opts.on("-v", "--[no-]verbose", "Log verbosely") do |d|
+          $logger.level = Logger::DEBUG
+        end
       end
 
       parser.parse!
+
+      $logger.debug(options)
 
       options
     end
