@@ -12,4 +12,9 @@ restylers:
         - "**/*.md"
         - "!README.md"
 
+  # This is a bug in the manifest, I'd say
+  - prettier:
+      include:
+        - "run/src/**/*.ts"
+
   - "*"
