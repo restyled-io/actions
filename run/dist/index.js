@@ -1,6 +1,70 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 6180:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInputs = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+function getInputs() {
+    const paths = core.getMultilineInput("paths", { required: false });
+    if (github.context.eventName !== "pull_request") {
+        core.warning("Running for non-PR event. Weird things may happen.");
+        if (paths.length === 0) {
+            throw new Error("paths input is required for non-PR events");
+        }
+    }
+    return {
+        paths,
+        githubToken: core.getInput("github-token", { required: true }),
+        showPatch: core.getBooleanInput("show-patch", {
+            required: true,
+        }),
+        showPatchCommand: core.getBooleanInput("show-patch-command", {
+            required: true,
+        }),
+        failOnDifferences: core.getBooleanInput("fail-on-differences", {
+            required: true,
+        }),
+        committerEmail: core.getInput("committer-email", { required: true }),
+        committerName: core.getInput("committer-name", { required: true }),
+        logLevel: core.getInput("log-level", { required: true }),
+        logFormat: core.getInput("log-format", { required: true }),
+        logBreakpoint: parseInt(core.getInput("log-breakpoint", { required: true }), 10),
+    };
+}
+exports.getInputs = getInputs;
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -30,31 +94,139 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const fs = __importStar(__nccwpck_require__(7147));
-const temp = __importStar(__nccwpck_require__(8023));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const exec = __importStar(__nccwpck_require__(1514));
-function getInputs() {
-    return {
-        paths: core.getMultilineInput("paths", { required: false }),
-        githubToken: core.getInput("github-token", { required: true }),
-        showPatch: core.getBooleanInput("show-patch", {
-            required: true,
-        }),
-        showPatchCommand: core.getBooleanInput("show-patch-command", {
-            required: true,
-        }),
-        failOnDifferences: core.getBooleanInput("fail-on-differences", {
-            required: true,
-        }),
-        committerEmail: core.getInput("committer-email", { required: true }),
-        committerName: core.getInput("committer-name", { required: true }),
-        logLevel: core.getInput("log-level", { required: true }),
-        logFormat: core.getInput("log-format", { required: true }),
-        logBreakpoint: parseInt(core.getInput("log-breakpoint", { required: true }), 10),
-    };
+const inputs_1 = __nccwpck_require__(6180);
+const pull_request_1 = __nccwpck_require__(1843);
+const process_1 = __nccwpck_require__(1647);
+const outputs_1 = __nccwpck_require__(5314);
+function pullRequestDescription(number) {
+    return `
+Automated style fixes for #${number}, created by Restyled.
+
+To see which restylers made changes, view the Commits tab.
+
+To incorporate these changes, merge this Pull Request into the original. We
+recommend using the Squash or Rebase strategies.
+
+**NOTE**: As work continues on the original Pull Request, this process will
+re-run and update (force-push) this Pull Request with updated style fixes as
+necessary. If the style is fixed manually at any point (i.e. this process finds
+no fixes to make), this Pull Request will be closed automatically.
+`;
 }
+function formatBase64(x) {
+    const b64 = Buffer.from(x).toString("base64");
+    const lines = b64.match(/(.{1,76})/g);
+    return lines ? lines.join("\n") : b64;
+}
+async function run() {
+    try {
+        const inputs = (0, inputs_1.getInputs)();
+        const client = github.getOctokit(inputs.githubToken);
+        const pr = await (0, pull_request_1.getPullRequest)(client, inputs.paths);
+        const args = pr.restyleArgs
+            .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
+            .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : []);
+        const ec = await exec.exec("restyle", args, {
+            env: {
+                GITHUB_TOKEN: inputs.githubToken,
+                GIT_AUTHOR_EMAIL: inputs.committerEmail,
+                GIT_AUTHOR_NAME: inputs.committerName,
+                GIT_COMMITTER_EMAIL: inputs.committerEmail,
+                GIT_COMMITTER_NAME: inputs.committerName,
+                LOG_BREAKPOINT: `${inputs.logBreakpoint}`,
+                LOG_FORMAT: inputs.logFormat,
+                LOG_LEVEL: inputs.logLevel,
+                LOG_COLOR: "always",
+                LOG_CONCURRENCY: "1",
+            },
+            ignoreReturnCode: true,
+        });
+        let patch = "";
+        if (pr.restyleDiffBase.tag === "known") {
+            const base = pr.restyleDiffBase.sha;
+            patch = await (0, process_1.readProcess)("git", ["format-patch", "--stdout", base]);
+        }
+        const differences = patch !== "";
+        if (inputs.showPatch && differences) {
+            core.info("Restyled made the following fixes:");
+            core.info("  ");
+            core.info(patch);
+            core.info("  ");
+        }
+        if (inputs.showPatchCommand && differences) {
+            core.info("To apply these commits locally, run the following:");
+            core.info("  ");
+            core.info("{ base64 -d - | git am; } <<'EOM'");
+            core.info(formatBase64(patch));
+            core.info("EOM");
+            core.info("  ");
+        }
+        (0, outputs_1.setOutputs)({
+            differences,
+            gitPatch: patch,
+            restyledBase: pr.headRef,
+            restyledHead: `restyled/${pr.headRef}`,
+            restyledTitle: `Restyled ${pr.title}`,
+            restyledBody: pullRequestDescription(pr.number),
+        });
+        if (ec !== 0) {
+            core.setFailed(`Restyler exited non-zero: ${ec}`);
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.error(error);
+            core.setFailed(error.message);
+        }
+        else if (typeof error === "string") {
+            core.error(error);
+            core.setFailed(error);
+        }
+        else {
+            core.error("Non-Error exception");
+            core.setFailed("Non-Error exception");
+        }
+    }
+}
+run();
+
+
+/***/ }),
+
+/***/ 5314:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.setOutputs = void 0;
+const core = __importStar(__nccwpck_require__(2186));
 function setOutputs(outputs) {
     core.setOutput("differences", outputs.differences ? "true" : "false");
     core.setOutput("git-patch", outputs.gitPatch);
@@ -63,6 +235,46 @@ function setOutputs(outputs) {
     core.setOutput("restyled-title", outputs.restyledTitle);
     core.setOutput("restyled-body", outputs.restyledBody);
 }
+exports.setOutputs = setOutputs;
+
+
+/***/ }),
+
+/***/ 1647:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.readProcess = exports.runProcess = void 0;
+const exec = __importStar(__nccwpck_require__(1514));
+async function runProcess(cmd, args) {
+    return await exec.exec(cmd, args, { ignoreReturnCode: true });
+}
+exports.runProcess = runProcess;
 async function readProcess(cmd, args) {
     let stdout = "";
     let stderr = "";
@@ -87,118 +299,95 @@ async function readProcess(cmd, args) {
     }
     return stdout.replace(/\n$/, "");
 }
-function pullRequestDescription(number) {
-    return `
-Automated style fixes for #${number}, created by Restyled.
+exports.readProcess = readProcess;
 
-To see which restylers made changes, view the Commits tab.
 
-To incorporate these changes, merge this Pull Request into the original. We
-recommend using the Squash or Rebase strategies.
+/***/ }),
 
-**NOTE**: As work continues on the original Pull Request, this process will
-re-run and update (force-push) this Pull Request with updated style fixes as
-necessary. If the style is fixed manually at any point (i.e. this process finds
-no fixes to make), this Pull Request will be closed automatically.
-`;
+/***/ 1843:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPullRequest = void 0;
+const fs = __importStar(__nccwpck_require__(7147));
+const temp = __importStar(__nccwpck_require__(8023));
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const process_1 = __nccwpck_require__(1647);
+async function getPullRequest(client, paths) {
+    const base = await getDiffBase();
+    const pr = github.context.payload.pull_request;
+    core.debug(`payload.pull_request: ${JSON.stringify(pr)}`);
+    if (!pr) {
+        return fakePullRequest(base, paths);
+    }
+    if (base.tag === "known" && base.sha !== pr.head.sha) {
+        core.warning(`The checked out commit does not match the event PR's head. ${base.sha} != ${pr.head.sha}. Weird things may happen.`);
+    }
+    const pullRequestJson = temp.path({ suffix: ".json" });
+    fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
+    const restylePaths = paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
+    return {
+        number: pr.number,
+        title: pr.title,
+        headRef: pr.head.ref,
+        headSha: pr.head.sha,
+        restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
+        restyleDiffBase: base,
+    };
 }
-function formatBase64(x) {
-    const b64 = Buffer.from(x).toString("base64");
-    const lines = b64.match(/(.{1,76})/g);
-    return lines ? lines.join("\n") : b64;
+exports.getPullRequest = getPullRequest;
+function fakePullRequest(base, paths) {
+    return {
+        number: 0,
+        title: "Unknown",
+        headRef: "unknown",
+        headSha: "unknown",
+        restyleArgs: paths,
+        restyleDiffBase: base,
+    };
 }
-async function run() {
+async function getPullRequestPaths(client, number) {
+    const files = await client.paginate(client.rest.pulls.listFiles, {
+        ...github.context.repo,
+        pull_number: number,
+    });
+    return files.map((f) => f.filename);
+}
+async function getDiffBase() {
     try {
-        if (github.context.eventName !== "pull_request") {
-            throw new Error("This action can only be used with pull_request events");
-        }
-        const pr = github.context.payload.pull_request;
-        core.debug(`PullRequest: ${JSON.stringify(pr)}`);
-        if (!pr) {
-            throw new Error("Payloads has no pull_request");
-        }
-        const inputs = getInputs();
-        const client = github.getOctokit(inputs.githubToken);
-        let paths = inputs.paths;
-        if (paths.length === 0) {
-            core.debug("inputs.paths empty, fetching files changed in PR");
-            const files = await client.paginate(client.rest.pulls.listFiles, {
-                ...github.context.repo,
-                pull_number: pr.number,
-            });
-            paths = files.map((f) => f.filename);
-        }
-        if (paths.length === 0) {
-            throw new Error("inputs.paths empty and PR has no changed files");
-        }
-        const base = await readProcess("git", ["rev-parse", "HEAD"]);
-        if (base !== pr.head.sha) {
-            core.warning(`The checked out commit does not match the event PR's head. ${base} != ${pr.head.sha}. Weird things may happen.`);
-        }
-        const pullRequestJson = temp.path({ suffix: ".json" });
-        fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
-        const args = ["--pull-request-json", pullRequestJson]
-            .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
-            .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-            .concat(paths);
-        const ec = await exec.exec("restyle", args, {
-            env: {
-                GITHUB_TOKEN: inputs.githubToken,
-                GIT_AUTHOR_EMAIL: inputs.committerEmail,
-                GIT_AUTHOR_NAME: inputs.committerName,
-                GIT_COMMITTER_EMAIL: inputs.committerEmail,
-                GIT_COMMITTER_NAME: inputs.committerName,
-                LOG_BREAKPOINT: `${inputs.logBreakpoint}`,
-                LOG_FORMAT: inputs.logFormat,
-                LOG_LEVEL: inputs.logLevel,
-                LOG_COLOR: "always",
-                LOG_CONCURRENCY: "1",
-            },
-            ignoreReturnCode: true,
-        });
-        const patch = await readProcess("git", ["format-patch", "--stdout", base]);
-        if (inputs.showPatch) {
-            core.info("Restyled made the following fixes:");
-            core.info("  ");
-            core.info(patch);
-            core.info("  ");
-        }
-        if (inputs.showPatchCommand) {
-            core.info("To apply these commits locally, run the following:");
-            core.info("  ");
-            core.info("{ base64 -d - | git am; } <<'EOM'");
-            core.info(formatBase64(patch));
-            core.info("EOM");
-            core.info("  ");
-        }
-        setOutputs({
-            differences: patch !== "",
-            gitPatch: patch,
-            restyledBase: pr.head.ref,
-            restyledHead: `restyled/${pr.head.ref}`,
-            restyledTitle: `Restyled ${pr.title}`,
-            restyledBody: pullRequestDescription(pr.number),
-        });
-        if (ec !== 0) {
-            core.setFailed(`Restyler exited non-zero: ${ec}`);
-        }
+        const sha = await (0, process_1.readProcess)("git", ["rev-parse", "HEAD"]);
+        return { tag: "known", sha };
     }
-    catch (error) {
-        if (error instanceof Error) {
-            core.error(error);
-            core.setFailed(error.message);
-        }
-        else if (typeof error === "string") {
-            core.error(error);
-            core.setFailed(error);
-        }
-        else {
-            core.error("Non-Error exception");
-            core.setFailed("Non-Error exception");
-        }
+    catch {
+        return { tag: "unknown" };
     }
 }
-run();
 
 
 /***/ }),
