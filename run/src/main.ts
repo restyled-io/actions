@@ -1,90 +1,11 @@
-import * as fs from "fs";
-import * as temp from "temp";
-
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
-type Inputs = {
-  paths: string[];
-  githubToken: string;
-  showPatch: boolean;
-  showPatchCommand: boolean;
-  failOnDifferences: boolean;
-  committerEmail: string;
-  committerName: string;
-  logLevel: string;
-  logFormat: string;
-  logBreakpoint: number;
-};
-
-function getInputs(): Inputs {
-  return {
-    paths: core.getMultilineInput("paths", { required: false }),
-    githubToken: core.getInput("github-token", { required: true }),
-    showPatch: core.getBooleanInput("show-patch", {
-      required: true,
-    }),
-    showPatchCommand: core.getBooleanInput("show-patch-command", {
-      required: true,
-    }),
-    failOnDifferences: core.getBooleanInput("fail-on-differences", {
-      required: true,
-    }),
-    committerEmail: core.getInput("committer-email", { required: true }),
-    committerName: core.getInput("committer-name", { required: true }),
-    logLevel: core.getInput("log-level", { required: true }),
-    logFormat: core.getInput("log-format", { required: true }),
-    logBreakpoint: parseInt(
-      core.getInput("log-breakpoint", { required: true }),
-      10,
-    ),
-  };
-}
-
-type Outputs = {
-  differences: boolean;
-  gitPatch: string;
-  restyledBase: string;
-  restyledHead: string;
-  restyledTitle: string;
-  restyledBody: string;
-};
-
-function setOutputs(outputs: Outputs): void {
-  core.setOutput("differences", outputs.differences ? "true" : "false");
-  core.setOutput("git-patch", outputs.gitPatch);
-  core.setOutput("restyled-base", outputs.restyledBase);
-  core.setOutput("restyled-head", outputs.restyledHead);
-  core.setOutput("restyled-title", outputs.restyledTitle);
-  core.setOutput("restyled-body", outputs.restyledBody);
-}
-
-async function readProcess(cmd: string, args: string[]): Promise<string> {
-  let stdout = "";
-  let stderr = "";
-
-  try {
-    await exec.exec(cmd, args, {
-      silent: true,
-      listeners: {
-        stdout: (data: Buffer) => {
-          stdout += data.toString();
-        },
-        stderr: (data: Buffer) => {
-          stderr += data.toString();
-        },
-      },
-    });
-  } catch (ex) {
-    console.error("Crashing due to exec failure");
-    console.error(`Captured stdout: ${stdout}`);
-    console.error(`Captured stderr: ${stderr}`);
-    throw ex;
-  }
-
-  return stdout.replace(/\n$/, "");
-}
+import { getInputs } from "./inputs";
+import { getPullRequest } from "./pull-request";
+import { readProcess, runProcess } from "./process";
+import { setOutputs } from "./outputs";
 
 function pullRequestDescription(number: number): string {
   return `
@@ -111,51 +32,12 @@ function formatBase64(x: string): string {
 
 async function run() {
   try {
-    if (github.context.eventName !== "pull_request") {
-      throw new Error("This action can only be used with pull_request events");
-    }
-
-    const pr = github.context.payload.pull_request;
-    core.debug(`PullRequest: ${JSON.stringify(pr)}`);
-
-    if (!pr) {
-      throw new Error("Payloads has no pull_request");
-    }
-
     const inputs = getInputs();
     const client = github.getOctokit(inputs.githubToken);
-
-    let paths = inputs.paths;
-
-    if (paths.length === 0) {
-      core.debug("inputs.paths empty, fetching files changed in PR");
-      const files = await client.paginate(client.rest.pulls.listFiles, {
-        ...github.context.repo,
-        pull_number: pr.number,
-      });
-
-      paths = files.map((f) => f.filename);
-    }
-
-    if (paths.length === 0) {
-      throw new Error("inputs.paths empty and PR has no changed files");
-    }
-
-    const base = await readProcess("git", ["rev-parse", "HEAD"]);
-
-    if (base !== pr.head.sha) {
-      core.warning(
-        `The checked out commit does not match the event PR's head. ${base} != ${pr.head.sha}. Weird things may happen.`,
-      );
-    }
-
-    const pullRequestJson = temp.path({ suffix: ".json" });
-    fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
-
-    const args = ["--pull-request-json", pullRequestJson]
+    const pr = await getPullRequest(client, inputs.paths);
+    const args = pr.restyleArgs
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
-      .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-      .concat(paths);
+      .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : []);
 
     const ec = await exec.exec("restyle", args, {
       env: {
@@ -173,16 +55,23 @@ async function run() {
       ignoreReturnCode: true,
     });
 
-    const patch = await readProcess("git", ["format-patch", "--stdout", base]);
+    let patch = "";
 
-    if (inputs.showPatch) {
+    if (pr.restyleDiffBase.tag === "known") {
+      const base = pr.restyleDiffBase.sha;
+      patch = await readProcess("git", ["format-patch", "--stdout", base]);
+    }
+
+    const differences = patch !== "";
+
+    if (inputs.showPatch && differences) {
       core.info("Restyled made the following fixes:");
       core.info("  ");
       core.info(patch);
       core.info("  ");
     }
 
-    if (inputs.showPatchCommand) {
+    if (inputs.showPatchCommand && differences) {
       core.info("To apply these commits locally, run the following:");
       core.info("  ");
       core.info("{ base64 -d - | git am; } <<'EOM'");
@@ -192,10 +81,10 @@ async function run() {
     }
 
     setOutputs({
-      differences: patch !== "",
+      differences,
       gitPatch: patch,
-      restyledBase: pr.head.ref,
-      restyledHead: `restyled/${pr.head.ref}`,
+      restyledBase: pr.headRef,
+      restyledHead: `restyled/${pr.headRef}`,
       restyledTitle: `Restyled ${pr.title}`,
       restyledBody: pullRequestDescription(pr.number),
     });
