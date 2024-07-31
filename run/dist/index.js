@@ -59,6 +59,7 @@ function getInputs() {
         logFormat: core.getInput("log-format", { required: true }),
         logBreakpoint: parseInt(core.getInput("log-breakpoint", { required: true }), 10),
         manifest: core.getInput("manifest", { required: false }),
+        dryRun: core.getBooleanInput("dry-run", { required: true }),
     };
 }
 exports.getInputs = getInputs;
@@ -130,7 +131,8 @@ async function run() {
         const args = pr.restyleArgs
             .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
             .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-            .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : []);
+            .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
+            .concat(inputs.dryRun ? ["--dry-run"] : []);
         const ec = await exec.exec("restyle", args, {
             env: {
                 GITHUB_TOKEN: inputs.githubToken,
