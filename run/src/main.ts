@@ -64,7 +64,9 @@ async function run() {
       patch = await readProcess("git", ["format-patch", "--stdout", base]);
     }
 
-    const differences = patch !== "";
+    const differences = inputs.failOnDifferences
+      ? ec == 228
+      : ec == 0 && patch !== "";
 
     if (inputs.showPatch && differences) {
       core.info("Restyled made the following fixes:");
