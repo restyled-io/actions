@@ -38,7 +38,8 @@ async function run() {
     const args = pr.restyleArgs
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
       .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-      .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : []);
+      .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
+      .concat(inputs.dryRun ? ["--dry-run"] : []);
 
     const ec = await exec.exec("restyle", args, {
       env: {

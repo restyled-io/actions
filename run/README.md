@@ -75,6 +75,12 @@ Run the restyle CLI on changed files in a PR
     #
     # Required: false
     # Default: ""
+
+    dry-run:
+    # Pass `--dry-run` to `restyle`
+    #
+    # Required: false
+    # Default: false
 ```
 
 <!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v2" -->
@@ -96,6 +102,7 @@ Run the restyle CLI on changed files in a PR
 | `log-format`          | <p>Set <code>restyle</code>'s <code>LOG_FORMAT</code></p>                                | `false`  | `tty`                 |
 | `log-breakpoint`      | <p>Set <code>restyle</code>'s <code>LOG_BREAKPOINT</code></p>                            | `false`  | `200`                 |
 | `manifest`            | <p>Path to pass as <code>--manifest</code> to <code>restyle</code></p>                   | `false`  | `""`                  |
+| `dry-run`             | <p>Pass <code>--dry-run</code> to <code>restyle</code></p>                               | `false`  | `false`               |
 
 <!-- action-docs-inputs source="action.yml" -->
 

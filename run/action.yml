@@ -39,6 +39,9 @@ inputs:
   manifest:
     description: "Path to pass as `--manifest` to `restyle`"
     required: false
+  dry-run:
+    description: "Pass `--dry-run` to `restyle`"
+    default: false
 
 outputs:
   differences:
