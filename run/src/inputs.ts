@@ -13,6 +13,7 @@ export type Inputs = {
   logFormat: string;
   logBreakpoint: number;
   manifest: string;
+  dryRun: boolean;
 };
 
 export function getInputs(): Inputs {
@@ -47,5 +48,6 @@ export function getInputs(): Inputs {
       10,
     ),
     manifest: core.getInput("manifest", { required: false }),
+    dryRun: core.getBooleanInput("dry-run", { required: true }),
   };
 }
