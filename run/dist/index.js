@@ -58,6 +58,7 @@ function getInputs() {
         logLevel: core.getInput("log-level", { required: true }),
         logFormat: core.getInput("log-format", { required: true }),
         logBreakpoint: parseInt(core.getInput("log-breakpoint", { required: true }), 10),
+        manifest: core.getInput("manifest", { required: false }),
     };
 }
 exports.getInputs = getInputs;
@@ -128,7 +129,8 @@ async function run() {
         const pr = await (0, pull_request_1.getPullRequest)(client, inputs.paths);
         const args = pr.restyleArgs
             .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
-            .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : []);
+            .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
+            .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : []);
         const ec = await exec.exec("restyle", args, {
             env: {
                 GITHUB_TOKEN: inputs.githubToken,
