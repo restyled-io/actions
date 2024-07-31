@@ -12,6 +12,7 @@ export type Inputs = {
   logLevel: string;
   logFormat: string;
   logBreakpoint: number;
+  manifest: string;
 };
 
 export function getInputs(): Inputs {
@@ -45,5 +46,6 @@ export function getInputs(): Inputs {
       core.getInput("log-breakpoint", { required: true }),
       10,
     ),
+    manifest: core.getInput("manifest", { required: false }),
   };
 }

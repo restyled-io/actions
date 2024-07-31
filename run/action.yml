@@ -36,6 +36,9 @@ inputs:
   log-breakpoint:
     description: "Set `restyle`'s `LOG_BREAKPOINT`"
     default: 200
+  manifest:
+    description: "Path to pass as `--manifest` to `restyle`"
+    required: false
 
 outputs:
   differences:

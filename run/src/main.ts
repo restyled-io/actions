@@ -37,7 +37,8 @@ async function run() {
     const pr = await getPullRequest(client, inputs.paths);
     const args = pr.restyleArgs
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
-      .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : []);
+      .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
+      .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : []);
 
     const ec = await exec.exec("restyle", args, {
       env: {
