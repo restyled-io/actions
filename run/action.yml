@@ -30,12 +30,6 @@ inputs:
   log-level:
     description: "Set `restyle`'s `LOG_LEVEL`"
     default: "info"
-  log-format:
-    description: "Set `restyle`'s `LOG_FORMAT`"
-    default: tty
-  log-breakpoint:
-    description: "Set `restyle`'s `LOG_BREAKPOINT`"
-    default: 200
   manifest:
     description: "Path to pass as `--manifest` to `restyle`"
     required: false
