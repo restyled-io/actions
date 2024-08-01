@@ -27,4 +27,6 @@ be run on them as a form of demo or integration test.
 
 ## Outputs
 
-None.
+| name       | description                                            |
+| ---------- | ------------------------------------------------------ |
+| `manifest` | <p>Location the channel manifest was downloaded to</p> |

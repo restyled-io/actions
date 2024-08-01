@@ -9,13 +9,20 @@ inputs:
     description: Additional options to pass to generation
     required: false
 
+outputs:
+  manifest:
+    description: "Location the channel manifest was downloaded to"
+    value: ${{ steps.download.outputs.manifest }}
+
 runs:
   using: composite
   steps:
     - shell: bash
+      id: download
       run: |
         # Download manifest
         curl -sSf -L -o "$MANIFEST" "$MANIFEST_URL"
+        echo "manifest=$MANIFEST" >>"$GITHUB_OUTPUT"
       env:
         MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
         MANIFEST_URL: "https://docs.restyled.io/data-files/restylers/manifests/${{ inputs.channel }}/restylers.yaml"
@@ -26,7 +33,7 @@ runs:
         "$GITHUB_ACTION_PATH"/bin/generate-test-files \
           --manifest "$MANIFEST" $OPTIONS
       env:
-        MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
+        MANIFEST: ${{ steps.download.outputs.manifest }}
         OPTIONS: |
           ${{ env.RUNNER_DEBUG && '--verbose ' }}${{ inputs.options }}
 
