@@ -39,8 +39,11 @@ async function run() {
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
       .concat(inputs.debug ? ["--debug"] : [])
       .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
+      .concat(inputs.imageCleanup ? ["--image-cleanup"] : [])
       .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
-      .concat(inputs.dryRun ? ["--dry-run"] : []);
+      .concat(inputs.dryRun ? ["--dry-run"] : [])
+      .concat(inputs.noCommit ? ["--no-commit"] : [])
+      .concat(inputs.noPull ? ["--no-pull"] : []);
 
     const ec = await exec.exec("restyle", args, {
       env: {

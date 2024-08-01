@@ -11,7 +11,10 @@ export type Inputs = {
   debug: boolean;
   dryRun: boolean;
   failOnDifferences: boolean;
+  imageCleanup: boolean;
   manifest: string;
+  noCommit: boolean;
+  noPull: boolean;
 };
 
 export function getInputs(): Inputs {
@@ -41,6 +44,9 @@ export function getInputs(): Inputs {
     failOnDifferences: core.getBooleanInput("fail-on-differences", {
       required: true,
     }),
+    imageCleanup: core.getBooleanInput("image-cleanup", { required: true }),
     manifest: core.getInput("manifest", { required: false }),
+    noCommit: core.getBooleanInput("no-commit", { required: true }),
+    noPull: core.getBooleanInput("no-pull", { required: true }),
   };
 }
