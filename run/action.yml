@@ -33,9 +33,15 @@ inputs:
   fail-on-differences:
     description: "Pass `--fail-on-differences` to `restyle`"
     default: false
+  image-cleanup:
+    description: "Pass `--image-cleanup` to `restyle`"
   manifest:
     description: "Path to pass as `--manifest` to `restyle`"
     required: false
+  no-commit:
+    description: "Pass `--no-commit` to `restyle`"
+  no-pull:
+    description: "Pass `--no-pull` to `restyle`"
 
 outputs:
   differences:
