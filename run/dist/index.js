@@ -30,7 +30,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getInputs = void 0;
+exports.cliArguments = exports.getInputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 function getInputs() {
@@ -50,19 +50,31 @@ function getInputs() {
         showPatchCommand: core.getBooleanInput("show-patch-command", {
             required: true,
         }),
+        committerEmail: core.getInput("committer-email", { required: true }),
+        committerName: core.getInput("committer-name", { required: true }),
+        debug: core.getBooleanInput("debug", { required: true }),
+        dryRun: core.getBooleanInput("dry-run", { required: true }),
         failOnDifferences: core.getBooleanInput("fail-on-differences", {
             required: true,
         }),
-        committerEmail: core.getInput("committer-email", { required: true }),
-        committerName: core.getInput("committer-name", { required: true }),
-        logLevel: core.getInput("log-level", { required: true }),
-        logFormat: core.getInput("log-format", { required: true }),
-        logBreakpoint: parseInt(core.getInput("log-breakpoint", { required: true }), 10),
+        imageCleanup: core.getBooleanInput("image-cleanup", { required: true }),
         manifest: core.getInput("manifest", { required: false }),
-        dryRun: core.getBooleanInput("dry-run", { required: true }),
+        noCommit: core.getBooleanInput("no-commit", { required: true }),
+        noPull: core.getBooleanInput("no-pull", { required: true }),
     };
 }
 exports.getInputs = getInputs;
+function cliArguments(inputs) {
+    return []
+        .concat(inputs.debug ? ["--debug"] : [])
+        .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
+        .concat(inputs.imageCleanup ? ["--image-cleanup"] : [])
+        .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
+        .concat(inputs.dryRun ? ["--dry-run"] : [])
+        .concat(inputs.noCommit ? ["--no-commit"] : [])
+        .concat(inputs.noPull ? ["--no-pull"] : []);
+}
+exports.cliArguments = cliArguments;
 
 
 /***/ }),
@@ -130,9 +142,7 @@ async function run() {
         const pr = await (0, pull_request_1.getPullRequest)(client, inputs.paths);
         const args = pr.restyleArgs
             .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
-            .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-            .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
-            .concat(inputs.dryRun ? ["--dry-run"] : []);
+            .concat((0, inputs_1.cliArguments)(inputs));
         const ec = await exec.exec("restyle", args, {
             env: {
                 GITHUB_TOKEN: inputs.githubToken,
@@ -140,9 +150,7 @@ async function run() {
                 GIT_AUTHOR_NAME: inputs.committerName,
                 GIT_COMMITTER_EMAIL: inputs.committerEmail,
                 GIT_COMMITTER_NAME: inputs.committerName,
-                LOG_BREAKPOINT: `${inputs.logBreakpoint}`,
-                LOG_FORMAT: inputs.logFormat,
-                LOG_LEVEL: inputs.logLevel,
+                LOG_BREAKPOINT: "200",
                 LOG_COLOR: "always",
                 LOG_CONCURRENCY: "1",
             },
