@@ -5,7 +5,7 @@ Install the restyle CLI.
 ## Usage
 
 ```yaml
-- uses: restyled-io/actions/setup@v2
+- uses: restyled-io/actions/setup@v3
   with:
     tag:
     # Release tag to install, if empty latest is used
