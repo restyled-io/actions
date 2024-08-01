@@ -4,7 +4,7 @@ import * as exec from "@actions/exec";
 
 import { getInputs } from "./inputs";
 import { getPullRequest } from "./pull-request";
-import { readProcess, runProcess } from "./process";
+import { readProcess } from "./process";
 import { setOutputs } from "./outputs";
 
 function pullRequestDescription(number: number): string {
