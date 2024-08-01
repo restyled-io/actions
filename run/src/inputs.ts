@@ -10,8 +10,6 @@ export type Inputs = {
   committerEmail: string;
   committerName: string;
   logLevel: string;
-  logFormat: string;
-  logBreakpoint: number;
   manifest: string;
   dryRun: boolean;
 };
@@ -42,11 +40,6 @@ export function getInputs(): Inputs {
     committerEmail: core.getInput("committer-email", { required: true }),
     committerName: core.getInput("committer-name", { required: true }),
     logLevel: core.getInput("log-level", { required: true }),
-    logFormat: core.getInput("log-format", { required: true }),
-    logBreakpoint: parseInt(
-      core.getInput("log-breakpoint", { required: true }),
-      10,
-    ),
     manifest: core.getInput("manifest", { required: false }),
     dryRun: core.getBooleanInput("dry-run", { required: true }),
   };
