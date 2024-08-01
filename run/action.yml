@@ -18,9 +18,6 @@ inputs:
       Log a copy/paste-able command to apply the patch produced by Restyled with
       git-am
     default: true
-  fail-on-differences:
-    description: "Exit non-zero if differences were created"
-    default: false
   committer-email:
     description: "Email used for Restyled commits"
     default: "commits@restyled.io"
@@ -30,12 +27,15 @@ inputs:
   debug:
     description: "Past `--debug` to `restyle`"
     default: false
-  manifest:
-    description: "Path to pass as `--manifest` to `restyle`"
-    required: false
   dry-run:
     description: "Pass `--dry-run` to `restyle`"
     default: false
+  fail-on-differences:
+    description: "Pass `--fail-on-differences` to `restyle`"
+    default: false
+  manifest:
+    description: "Path to pass as `--manifest` to `restyle`"
+    required: false
 
 outputs:
   differences:
