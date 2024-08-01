@@ -35,13 +35,16 @@ inputs:
     default: false
   image-cleanup:
     description: "Pass `--image-cleanup` to `restyle`"
+    default: false
   manifest:
     description: "Path to pass as `--manifest` to `restyle`"
     required: false
   no-commit:
     description: "Pass `--no-commit` to `restyle`"
+    default: false
   no-pull:
     description: "Pass `--no-pull` to `restyle`"
+    default: false
 
 outputs:
   differences:

@@ -68,7 +68,7 @@ Run the restyle CLI on changed files in a PR
     # Pass `--image-cleanup` to `restyle`
     #
     # Required: false
-    # Default: ""
+    # Default: false
 
     manifest:
     # Path to pass as `--manifest` to `restyle`
@@ -80,13 +80,13 @@ Run the restyle CLI on changed files in a PR
     # Pass `--no-commit` to `restyle`
     #
     # Required: false
-    # Default: ""
+    # Default: false
 
     no-pull:
     # Pass `--no-pull` to `restyle`
     #
     # Required: false
-    # Default: ""
+    # Default: false
 ```
 
 <!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v3" -->
@@ -106,10 +106,10 @@ Run the restyle CLI on changed files in a PR
 | `debug`               | <p>Past <code>--debug</code> to <code>restyle</code></p>                                 | `false`  | `false`               |
 | `dry-run`             | <p>Pass <code>--dry-run</code> to <code>restyle</code></p>                               | `false`  | `false`               |
 | `fail-on-differences` | <p>Pass <code>--fail-on-differences</code> to <code>restyle</code></p>                   | `false`  | `false`               |
-| `image-cleanup`       | <p>Pass <code>--image-cleanup</code> to <code>restyle</code></p>                         | `false`  | `""`                  |
+| `image-cleanup`       | <p>Pass <code>--image-cleanup</code> to <code>restyle</code></p>                         | `false`  | `false`               |
 | `manifest`            | <p>Path to pass as <code>--manifest</code> to <code>restyle</code></p>                   | `false`  | `""`                  |
-| `no-commit`           | <p>Pass <code>--no-commit</code> to <code>restyle</code></p>                             | `false`  | `""`                  |
-| `no-pull`             | <p>Pass <code>--no-pull</code> to <code>restyle</code></p>                               | `false`  | `""`                  |
+| `no-commit`           | <p>Pass <code>--no-commit</code> to <code>restyle</code></p>                             | `false`  | `false`               |
+| `no-pull`             | <p>Pass <code>--no-pull</code> to <code>restyle</code></p>                               | `false`  | `false`               |
 
 <!-- action-docs-inputs source="action.yml" -->
 
