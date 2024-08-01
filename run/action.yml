@@ -27,9 +27,9 @@ inputs:
   committer-name:
     description: "Name used for Restyled commits"
     default: "Restyled.io"
-  log-level:
-    description: "Set `restyle`'s `LOG_LEVEL`"
-    default: "info"
+  debug:
+    description: "Past `--debug` to `restyle`"
+    default: false
   manifest:
     description: "Path to pass as `--manifest` to `restyle`"
     required: false

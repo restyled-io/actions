@@ -9,7 +9,7 @@ export type Inputs = {
   failOnDifferences: boolean;
   committerEmail: string;
   committerName: string;
-  logLevel: string;
+  debug: boolean;
   manifest: string;
   dryRun: boolean;
 };
@@ -39,7 +39,7 @@ export function getInputs(): Inputs {
     }),
     committerEmail: core.getInput("committer-email", { required: true }),
     committerName: core.getInput("committer-name", { required: true }),
-    logLevel: core.getInput("log-level", { required: true }),
+    debug: core.getBooleanInput("debug", { required: true }),
     manifest: core.getInput("manifest", { required: false }),
     dryRun: core.getBooleanInput("dry-run", { required: true }),
   };

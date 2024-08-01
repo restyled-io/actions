@@ -37,6 +37,7 @@ async function run() {
     const pr = await getPullRequest(client, inputs.paths);
     const args = pr.restyleArgs
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
+      .concat(inputs.debug ? ["--debug"] : [])
       .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
       .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
       .concat(inputs.dryRun ? ["--dry-run"] : []);
@@ -48,7 +49,6 @@ async function run() {
         GIT_AUTHOR_NAME: inputs.committerName,
         GIT_COMMITTER_EMAIL: inputs.committerEmail,
         GIT_COMMITTER_NAME: inputs.committerName,
-        LOG_LEVEL: inputs.logLevel,
         LOG_BREAKPOINT: "200",
         LOG_COLOR: "always",
         LOG_CONCURRENCY: "1",
