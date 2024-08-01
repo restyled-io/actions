@@ -161,9 +161,10 @@ async function run() {
             const base = pr.restyleDiffBase.sha;
             patch = await (0, process_1.readProcess)("git", ["format-patch", "--stdout", base]);
         }
+        const success = ec === 0 || (inputs.failOnDifferences && ec === 228);
         const differences = inputs.failOnDifferences
-            ? ec == 228
-            : ec == 0 && patch !== "";
+            ? ec === 228
+            : ec === 0 && patch !== "";
         if (inputs.showPatch && differences) {
             core.info("Restyled made the following fixes:");
             core.info("  ");
@@ -179,6 +180,7 @@ async function run() {
             core.info("  ");
         }
         (0, outputs_1.setOutputs)({
+            success,
             differences,
             gitPatch: patch,
             restyledBase: pr.headRef,
@@ -242,6 +244,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setOutputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 function setOutputs(outputs) {
+    core.setOutput("success", outputs.success ? "true" : "false");
     core.setOutput("differences", outputs.differences ? "true" : "false");
     core.setOutput("git-patch", outputs.gitPatch);
     core.setOutput("restyled-base", outputs.restyledBase);
