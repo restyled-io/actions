@@ -117,13 +117,14 @@ Run the restyle CLI on changed files in a PR
 
 ## Outputs
 
-| name             | description                                                            |
-| ---------------- | ---------------------------------------------------------------------- |
-| `differences`    | <p><code>true</code> if differences were created by restyling</p>      |
-| `git-patch`      | <p>The restyle commits, formatted for use with <code>git am</code></p> |
-| `restyled-base`  | <p>The base branch to use if opening fixes as a new PR</p>             |
-| `restyled-head`  | <p>The head branch to use if opening fixes as a new PR </p>            |
-| `restyled-title` | <p>The title to use if opening fixes as a new PR</p>                   |
-| `restyled-body`  | <p>The body to use if opening fixes as a new PR</p>                    |
+| name             | description                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| `success`        | <p><code>true</code> if <code>restyle</code> ran successfully (differences or not)</p> |
+| `differences`    | <p><code>true</code> if differences were created by restyling</p>                      |
+| `git-patch`      | <p>The restyle commits, formatted for use with <code>git am</code></p>                 |
+| `restyled-base`  | <p>The base branch to use if opening fixes as a new PR</p>                             |
+| `restyled-head`  | <p>The head branch to use if opening fixes as a new PR </p>                            |
+| `restyled-title` | <p>The title to use if opening fixes as a new PR</p>                                   |
+| `restyled-body`  | <p>The body to use if opening fixes as a new PR</p>                                    |
 
 <!-- action-docs-outputs source="action.yml" -->
