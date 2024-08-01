@@ -6,12 +6,12 @@ export type Inputs = {
   githubToken: string;
   showPatch: boolean;
   showPatchCommand: boolean;
-  failOnDifferences: boolean;
   committerEmail: string;
   committerName: string;
   debug: boolean;
-  manifest: string;
   dryRun: boolean;
+  failOnDifferences: boolean;
+  manifest: string;
 };
 
 export function getInputs(): Inputs {
@@ -34,13 +34,13 @@ export function getInputs(): Inputs {
     showPatchCommand: core.getBooleanInput("show-patch-command", {
       required: true,
     }),
-    failOnDifferences: core.getBooleanInput("fail-on-differences", {
-      required: true,
-    }),
     committerEmail: core.getInput("committer-email", { required: true }),
     committerName: core.getInput("committer-name", { required: true }),
     debug: core.getBooleanInput("debug", { required: true }),
-    manifest: core.getInput("manifest", { required: false }),
     dryRun: core.getBooleanInput("dry-run", { required: true }),
+    failOnDifferences: core.getBooleanInput("fail-on-differences", {
+      required: true,
+    }),
+    manifest: core.getInput("manifest", { required: false }),
   };
 }
