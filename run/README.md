@@ -2,12 +2,12 @@
 
 Run the restyle CLI on changed files in a PR
 
-<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v2" -->
+<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v3" -->
 
 ## Usage
 
 ```yaml
-- uses: restyled-io/actions/run@v2
+- uses: restyled-io/actions/run@v3
   with:
     paths:
     # New-line separated paths to restyle, default is paths changed in the PR
@@ -34,12 +34,6 @@ Run the restyle CLI on changed files in a PR
     # Required: false
     # Default: true
 
-    fail-on-differences:
-    # Exit non-zero if differences were created
-    #
-    # Required: false
-    # Default: false
-
     committer-email:
     # Email used for Restyled commits
     #
@@ -52,23 +46,29 @@ Run the restyle CLI on changed files in a PR
     # Required: false
     # Default: Restyled.io
 
-    log-level:
-    # Set `restyle`'s `LOG_LEVEL`
+    debug:
+    # Past `--debug` to `restyle`
     #
     # Required: false
-    # Default: info
+    # Default: false
 
-    log-format:
-    # Set `restyle`'s `LOG_FORMAT`
+    dry-run:
+    # Pass `--dry-run` to `restyle`
     #
     # Required: false
-    # Default: tty
+    # Default: false
 
-    log-breakpoint:
-    # Set `restyle`'s `LOG_BREAKPOINT`
+    fail-on-differences:
+    # Pass `--fail-on-differences` to `restyle`
     #
     # Required: false
-    # Default: 200
+    # Default: false
+
+    image-cleanup:
+    # Pass `--image-cleanup` to `restyle`
+    #
+    # Required: false
+    # Default: ""
 
     manifest:
     # Path to pass as `--manifest` to `restyle`
@@ -76,14 +76,20 @@ Run the restyle CLI on changed files in a PR
     # Required: false
     # Default: ""
 
-    dry-run:
-    # Pass `--dry-run` to `restyle`
+    no-commit:
+    # Pass `--no-commit` to `restyle`
     #
     # Required: false
-    # Default: false
+    # Default: ""
+
+    no-pull:
+    # Pass `--no-pull` to `restyle`
+    #
+    # Required: false
+    # Default: ""
 ```
 
-<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v2" -->
+<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v3" -->
 
 <!-- action-docs-inputs source="action.yml" -->
 
@@ -95,14 +101,15 @@ Run the restyle CLI on changed files in a PR
 | `github-token`        | <p>Token used to query for PR details</p>                                                | `false`  | `${{ github.token }}` |
 | `show-patch`          | <p>Log the patch produced by Restyled with git format-patch</p>                          | `false`  | `true`                |
 | `show-patch-command`  | <p>Log a copy/paste-able command to apply the patch produced by Restyled with git-am</p> | `false`  | `true`                |
-| `fail-on-differences` | <p>Exit non-zero if differences were created</p>                                         | `false`  | `false`               |
 | `committer-email`     | <p>Email used for Restyled commits</p>                                                   | `false`  | `commits@restyled.io` |
 | `committer-name`      | <p>Name used for Restyled commits</p>                                                    | `false`  | `Restyled.io`         |
-| `log-level`           | <p>Set <code>restyle</code>'s <code>LOG_LEVEL</code></p>                                 | `false`  | `info`                |
-| `log-format`          | <p>Set <code>restyle</code>'s <code>LOG_FORMAT</code></p>                                | `false`  | `tty`                 |
-| `log-breakpoint`      | <p>Set <code>restyle</code>'s <code>LOG_BREAKPOINT</code></p>                            | `false`  | `200`                 |
-| `manifest`            | <p>Path to pass as <code>--manifest</code> to <code>restyle</code></p>                   | `false`  | `""`                  |
+| `debug`               | <p>Past <code>--debug</code> to <code>restyle</code></p>                                 | `false`  | `false`               |
 | `dry-run`             | <p>Pass <code>--dry-run</code> to <code>restyle</code></p>                               | `false`  | `false`               |
+| `fail-on-differences` | <p>Pass <code>--fail-on-differences</code> to <code>restyle</code></p>                   | `false`  | `false`               |
+| `image-cleanup`       | <p>Pass <code>--image-cleanup</code> to <code>restyle</code></p>                         | `false`  | `""`                  |
+| `manifest`            | <p>Path to pass as <code>--manifest</code> to <code>restyle</code></p>                   | `false`  | `""`                  |
+| `no-commit`           | <p>Pass <code>--no-commit</code> to <code>restyle</code></p>                             | `false`  | `""`                  |
+| `no-pull`             | <p>Pass <code>--no-pull</code> to <code>restyle</code></p>                               | `false`  | `""`                  |
 
 <!-- action-docs-inputs source="action.yml" -->
 
