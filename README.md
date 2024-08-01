@@ -41,7 +41,10 @@ jobs:
         with:
           fail-on-differences: true
 
-      - if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
+      - if: |
+          !cancelled() &&
+          steps.restyler.outputs.success &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: peter-evans/create-pull-request@v6
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
