@@ -60,6 +60,7 @@ async function run() {
       patch = await readProcess("git", ["format-patch", "--stdout", base]);
     }
 
+    const success = ec === 0 || (inputs.failOnDifferences && ec === 228);
     const differences = inputs.failOnDifferences
       ? ec === 228
       : ec === 0 && patch !== "";
@@ -81,6 +82,7 @@ async function run() {
     }
 
     setOutputs({
+      success,
       differences,
       gitPatch: patch,
       restyledBase: pr.headRef,

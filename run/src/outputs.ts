@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 
 export type Outputs = {
+  success: boolean;
   differences: boolean;
   gitPatch: string;
   restyledBase: string;
@@ -10,6 +11,7 @@ export type Outputs = {
 };
 
 export function setOutputs(outputs: Outputs): void {
+  core.setOutput("success", outputs.success ? "true" : "false");
   core.setOutput("differences", outputs.differences ? "true" : "false");
   core.setOutput("git-patch", outputs.gitPatch);
   core.setOutput("restyled-base", outputs.restyledBase);

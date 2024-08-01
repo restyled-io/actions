@@ -47,6 +47,8 @@ inputs:
     default: false
 
 outputs:
+  success:
+    description: "`true` if `restyle` ran successfully (differences or not)"
   differences:
     description: "`true` if differences were created by restyling"
   git-patch:
