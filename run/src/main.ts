@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
-import { getInputs } from "./inputs";
+import { cliArguments, getInputs } from "./inputs";
 import { getPullRequest } from "./pull-request";
 import { readProcess } from "./process";
 import { setOutputs } from "./outputs";
@@ -37,13 +37,7 @@ async function run() {
     const pr = await getPullRequest(client, inputs.paths);
     const args = pr.restyleArgs
       .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
-      .concat(inputs.debug ? ["--debug"] : [])
-      .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-      .concat(inputs.imageCleanup ? ["--image-cleanup"] : [])
-      .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
-      .concat(inputs.dryRun ? ["--dry-run"] : [])
-      .concat(inputs.noCommit ? ["--no-commit"] : [])
-      .concat(inputs.noPull ? ["--no-pull"] : []);
+      .concat(cliArguments(inputs));
 
     const ec = await exec.exec("restyle", args, {
       env: {

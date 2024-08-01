@@ -50,3 +50,14 @@ export function getInputs(): Inputs {
     noPull: core.getBooleanInput("no-pull", { required: true }),
   };
 }
+
+export function cliArguments(inputs: Inputs): string[] {
+  return ([] as string[])
+    .concat(inputs.debug ? ["--debug"] : [])
+    .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
+    .concat(inputs.imageCleanup ? ["--image-cleanup"] : [])
+    .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
+    .concat(inputs.dryRun ? ["--dry-run"] : [])
+    .concat(inputs.noCommit ? ["--no-commit"] : [])
+    .concat(inputs.noPull ? ["--no-pull"] : []);
+}
