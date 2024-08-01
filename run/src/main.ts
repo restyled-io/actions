@@ -61,8 +61,8 @@ async function run() {
     }
 
     const differences = inputs.failOnDifferences
-      ? ec == 228
-      : ec == 0 && patch !== "";
+      ? ec === 228
+      : ec === 0 && patch !== "";
 
     if (inputs.showPatch && differences) {
       core.info("Restyled made the following fixes:");
