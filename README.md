@@ -43,7 +43,7 @@ jobs:
 
       - if: |
           !cancelled() &&
-          steps.restyler.outputs.success &&
+          steps.restyler.outputs.success == 'true' &&
           github.event.pull_request.head.repo.full_name == github.repository
         uses: peter-evans/create-pull-request@v6
         with:
