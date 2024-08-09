@@ -6,7 +6,7 @@ be run on them as a form of demo or integration test.
 ## Usage
 
 ```yaml
-- uses: restyled-io/actions/setup-demo@v3
+- uses: restyled-io/actions/setup-demo@v4
   with:
     channel: stable
     # restylers.yaml channel to base things on

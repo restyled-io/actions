@@ -35,9 +35,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - uses: restyled-io/actions/setup@v3
+      - uses: restyled-io/actions/setup@v4
       - id: restyler
-        uses: restyled-io/actions/run@v3
+        uses: restyled-io/actions/run@v4
         with:
           fail-on-differences: true
 

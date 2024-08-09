@@ -2,12 +2,12 @@
 
 Run the restyle CLI on changed files in a PR
 
-<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v3" -->
+<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v4" -->
 
 ## Usage
 
 ```yaml
-- uses: restyled-io/actions/run@v3
+- uses: restyled-io/actions/run@v4
   with:
     paths:
     # New-line separated paths to restyle, default is paths changed in the PR
@@ -89,7 +89,7 @@ Run the restyle CLI on changed files in a PR
     # Default: false
 ```
 
-<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v3" -->
+<!-- action-docs-usage source="action.yml" project="restyled-io/actions/run" version="v4" -->
 
 <!-- action-docs-inputs source="action.yml" -->
 
