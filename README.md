@@ -55,3 +55,7 @@ jobs:
           reviewers: ${{ github.event.pull_request.user.login }}
           delete-branch: true
 ```
+
+## License
+
+This software is licensed AGPLv3. See [COPYING](./COPYING).
