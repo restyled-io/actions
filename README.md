@@ -8,8 +8,9 @@
 > to use GitHub Actions.
 
 > [!TIP]
-> The Restyled Action requires workflows to have pull request creation permission in the repository to function \
-> Such permissions can be found under Settings > Actions > General > Workflow Permissions
+> The Restyled Action requires workflows with the `create-pull-request` step to have relevant permissions in the repository to function \
+> Such permissions can be found under Settings > Actions > General > Workflow Permissions \
+> (You can learn more about managing permissions [here](https://docs.github.com/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token))
 
 ## Usage
 
