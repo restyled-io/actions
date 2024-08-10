@@ -7,6 +7,10 @@
 > configuring it for specific repositories and excluding the one where you plan
 > to use GitHub Actions.
 
+> [!TIP]
+> The Restyled Action requires workflows to have pull request creation permission in the repository to function \
+> Such permissions can be found under Settings > Actions > General > Workflow Permissions
+
 ## Usage
 
 Features:
