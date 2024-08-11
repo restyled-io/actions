@@ -7,11 +7,6 @@
 > configuring it for specific repositories and excluding the one where you plan
 > to use GitHub Actions.
 
-> [!TIP]
-> The Restyled Action requires workflows with the `create-pull-request` step to have relevant permissions in the repository to function \
-> Such permissions can be found under Settings > Actions > General > Workflow Permissions \
-> (You can learn more about managing permissions [here](https://docs.github.com/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token))
-
 ## Usage
 
 Features:
@@ -60,6 +55,18 @@ jobs:
           reviewers: ${{ github.event.pull_request.user.login }}
           delete-branch: true
 ```
+
+## Workflow Permissions
+
+The Restyled actions themselves require no permissions. However, `contents:read`
+is required for `actions/checkout` and `pull-requests:write` is required for
+`peter-evans/create-pull-request`, which are both used in the example above.
+
+Default permissions for workflows can be adjusted in your repository settings,
+or a `permissions` key can be used in the workflow itself. For more details, see
+the [documentation][permissions-docs].
+
+[permissions-docs]: https://docs.github.com/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token
 
 ## License
 
