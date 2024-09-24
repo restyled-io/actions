@@ -22,11 +22,6 @@ name: Restyled
 
 on:
   pull_request:
-    types:
-      - opened
-      - closed
-      - reopened
-      - synchronize
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -72,6 +67,44 @@ or a `permissions` key can be used in the workflow itself. For more details, see
 the [documentation][permissions-docs].
 
 [permissions-docs]: https://docs.github.com/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token
+
+## Cleaning up Closed PRs
+
+If you close a PR without incorporating Restyled's fixes, the Restyled PR will
+remain open. To address this, you can update the above workflow to also run on
+the `closed` event:
+
+```diff
+ on:
+   pull_request:
++    types:
++      - opened
++      - closed
++      - reopened
++      - synchronize
+```
+
+When the workflow runs, Restyler will skip (producing no differences) and the
+`create-pull-request-action` will delete the Restyled branch (because of
+`delete-branch: true`), and that will trigger GitHub closing the PR.
+
+> [!NOTE]
+> if you also enable "Automatically delete head branches" on PRs merge, then the
+> above will only work if you close the PR as abandoned, not if you merge it.
+> When you merge it, and the head branch is automatically deleted, the above
+> workflow fails on the checkout step.
+>
+> In this case, the simplest thing is to avoid it:
+>
+> ```diff
+>  jobs:
+>    restyled:
+> +    if: ${{ github.event.pull_request.merged != true }}
+>      runs-on: ubuntu-latest
+> ```
+>
+> However, this leaves Restyled PRs around in the merged case. We're not sure of
+> the best workaround for this case yet. Suggestions welcome.
 
 ## License
 
