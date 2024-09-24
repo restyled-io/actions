@@ -89,12 +89,12 @@ When the workflow runs, Restyler will skip (producing no differences) and the
 `delete-branch: true`), and that will trigger GitHub closing the PR.
 
 > [!NOTE]
-> if you also enable "Automatically delete head branches" on PRs merge, then the
-> above will only work if you close the PR as abandoned, not if you merge it.
-> When you merge it, and the head branch is automatically deleted, the above
-> workflow fails on the checkout step.
+> If you enable "Automatically delete head branches" on PR merges, then the
+> above will error when you merge PRs, because we're unable to checkout the
+> now-deleted head branch.
 >
-> In this case, the simplest thing is to avoid it:
+> You could continue to clean up PRs that were closed-but-not-merged by skipping
+> it in this case:
 >
 > ```diff
 >  jobs:
@@ -103,8 +103,8 @@ When the workflow runs, Restyler will skip (producing no differences) and the
 >      runs-on: ubuntu-latest
 > ```
 >
-> However, this leaves Restyled PRs around in the merged case. We're not sure of
-> the best workaround for this case yet. Suggestions welcome.
+> We're not sure of the best way to clean up in all cases, while automatically
+> deleting head branches is enabled. Suggestions welcome.
 
 ## License
 
