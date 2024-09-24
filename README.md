@@ -22,6 +22,11 @@ name: Restyled
 
 on:
   pull_request:
+    types:
+      - opened
+      - closed
+      - reopened
+      - synchronize
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
