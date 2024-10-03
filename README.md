@@ -71,8 +71,10 @@ the [documentation][permissions-docs].
 ## Cleaning up Closed PRs
 
 If you close a PR without incorporating Restyled's fixes, the Restyled PR will
-remain open. To address this, you can update the above workflow to also run on
-the `closed` event:
+remain open. To address this, you can do the following:
+
+First, set an explicit `types` key for which events are handled, so you can
+include `closed`:
 
 ```diff
  on:
@@ -84,27 +86,34 @@ the `closed` event:
 +      - synchronize
 ```
 
-When the workflow runs, Restyler will skip (producing no differences) and the
-`create-pull-request-action` will delete the Restyled branch (because of
-`delete-branch: true`), and that will trigger GitHub closing the PR.
+Second, make your normal `restyled` job _not_ run for that event:
 
-> [!NOTE]
-> If you enable "Automatically delete head branches" on PR merges, then the
-> above will error when you merge PRs, because we're unable to checkout the
-> now-deleted head branch.
->
-> You could continue to clean up PRs that were closed-but-not-merged by skipping
-> it in this case:
->
-> ```diff
->  jobs:
->    restyled:
-> +    if: ${{ github.event.pull_request.merged != true }}
->      runs-on: ubuntu-latest
-> ```
->
-> We're not sure of the best way to clean up in all cases, while automatically
-> deleting head branches is enabled. Suggestions welcome.
+```diff
+ jobs:
+   restyled:
++    if: ${{ github.event_name != 'closed' }}
+     runs-on: ubuntu-latest
+```
+
+Finally, add a new job that does.
+
+It sets up and runs the CLI, which will skip the PR because it's closed, but it
+will provide the necessary `restyled-head` output, which you can use to close
+the PR with `gh`:
+
+```yaml
+restyled-cleanup:
+  if: ${{ github.event_name == 'closed' }}
+  runs-on: ubuntu-latest
+  steps:
+    - uses: restyled-io/actions/setup@v4
+    - id: restyler
+      uses: restyled-io/actions/run@v4
+    - run: gh pr close "$BRANCH" --delete-branch || true
+      env:
+        BRANCH: ${{ steps.restyler.outputs.restyled-head }}
+        GH_TOKEN: ${{ github.token }}
+```
 
 ## License
 
