@@ -6,12 +6,6 @@ restylers:
   - "!clang-format"
   - "!jq"
 
-  # It's important to align the yaml examples in the README nonstandardly
-  - prettier-markdown:
-      include:
-        - "**/*.md"
-        - "!README.md"
-
   # This is a bug in the manifest, I'd say
   - prettier:
       include:
