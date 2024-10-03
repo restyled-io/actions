@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   restyled:
-    if: ${{ github.event.pull_request.merged != true }}
+    if: ${{ github.event_name != 'closed' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,20 @@ jobs:
           title: ${{ steps.restyler.outputs.restyled-title }}
           body: ${{ steps.restyler.outputs.restyled-body }}
           delete-branch: true
+
+  restyled-cleanup:
+    if: ${{ github.event_name == 'closed' }}
+    runs-on: ubuntu-latest
+    steps:
+      # Don't use local actions since we can't checkout on a closed PR, in case
+      # the branch has been deleted.
+      - uses: restyled-io/actions/setup@v4
+      - id: restyler
+        uses: restyled-io/actions/run@v4
+      - run: gh pr close "$BRANCH" --delete-branch || true
+        env:
+          BRANCH: ${{ steps.restyler.outputs.restyled-head }}
+          GH_TOKEN: ${{ github.token }}
 
   restyled-demo:
     runs-on: ubuntu-latest
