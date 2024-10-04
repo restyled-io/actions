@@ -46,8 +46,9 @@ jobs:
       - uses: restyled-io/actions/setup@v4
       - id: restyler
         uses: restyled-io/actions/run@v4
-      - run: gh pr close "$BRANCH" --delete-branch || true
+      - run: gh --repo "$REPO" pr close "$BRANCH" --delete-branch || true
         env:
+          REPO: ${{ github.repository }}
           BRANCH: ${{ steps.restyler.outputs.restyled-head }}
           GH_TOKEN: ${{ github.token }}
 
