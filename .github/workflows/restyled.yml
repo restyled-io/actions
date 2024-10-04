@@ -17,6 +17,10 @@ jobs:
     if: ${{ github.event_name != 'closed' }}
     runs-on: ubuntu-latest
     steps:
+      # DEBUGGING
+      - run: |
+          echo ${{ github.event_name }}
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
@@ -41,6 +45,10 @@ jobs:
     if: ${{ github.event_name == 'closed' }}
     runs-on: ubuntu-latest
     steps:
+      # DEBUGGING
+      - run: |
+          echo ${{ github.event_name }}
+
       # Don't use local actions since we can't checkout on a closed PR, in case
       # the branch has been deleted.
       - uses: restyled-io/actions/setup@v4
