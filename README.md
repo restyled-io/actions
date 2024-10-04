@@ -91,7 +91,7 @@ Second, make your normal `restyled` job _not_ run for that event:
 ```diff
  jobs:
    restyled:
-+    if: ${{ github.event_name != 'closed' }}
++    if: ${{ github.event.action != 'closed' }}
      runs-on: ubuntu-latest
 ```
 
@@ -103,14 +103,15 @@ the PR with `gh`:
 
 ```yaml
 restyled-cleanup:
-  if: ${{ github.event_name == 'closed' }}
+  if: ${{ github.event.action == 'closed' }}
   runs-on: ubuntu-latest
   steps:
     - uses: restyled-io/actions/setup@v4
     - id: restyler
       uses: restyled-io/actions/run@v4
-    - run: gh pr close "$BRANCH" --delete-branch || true
+    - run: gh --repo "$REPO" pr close "$BRANCH" --delete-branch || true
       env:
+        REPO: ${{ github.repository }}
         BRANCH: ${{ steps.restyler.outputs.restyled-head }}
         GH_TOKEN: ${{ github.token }}
 ```
