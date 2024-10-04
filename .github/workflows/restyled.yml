@@ -14,12 +14,13 @@ concurrency:
 
 jobs:
   restyled:
-    if: ${{ github.event_name != 'closed' }}
+    if: ${{ github.event.action != 'closed' }}
     runs-on: ubuntu-latest
     steps:
       # DEBUGGING
       - run: |
           echo ${{ github.event_name }}
+          echo ${{ github.event.action }}
 
       - uses: actions/checkout@v4
         with:
@@ -42,12 +43,13 @@ jobs:
           delete-branch: true
 
   restyled-cleanup:
-    if: ${{ github.event_name == 'closed' }}
+    if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
     steps:
       # DEBUGGING
       - run: |
           echo ${{ github.event_name }}
+          echo ${{ github.event.action }}
 
       # Don't use local actions since we can't checkout on a closed PR, in case
       # the branch has been deleted.
