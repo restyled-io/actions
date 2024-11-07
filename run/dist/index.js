@@ -314,12 +314,7 @@ function build(x, ...xs) {
 }
 exports.build = build;
 function nonEmpty(xs) {
-    return xs.length === 0
-        ? null
-        : {
-            _head: xs[0],
-            _tail: xs.slice(1),
-        };
+    return xs.length === 0 ? null : build(xs[0], ...xs.slice(1));
 }
 exports.nonEmpty = nonEmpty;
 function append(a, b) {
