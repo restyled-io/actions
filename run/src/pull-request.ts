@@ -41,6 +41,7 @@ export async function getPullRequest(
 ): Promise<PullRequest> {
   const base = await getDiffBase();
   const pr = github.context.payload.pull_request;
+  core.debug(`repo: ${JSON.stringify(github.context.repo)}`);
   core.debug(`payload.pull_request: ${JSON.stringify(pr)}`);
 
   if (!pr) {

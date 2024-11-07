@@ -1,6 +1,44 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 2248:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.queryReviewThreads = void 0;
+async function queryReviewThreads(client, owner, repo, number) {
+    const response = await client.graphql(`{
+    repository(owner: "${owner}", name: "${repo}") {
+      pullRequest(number: ${number}) {
+        reviewThreads(last: 100) {
+          nodes() {
+            resolvedBy {
+              id
+            }
+            comments(last: 100) {
+              nodes {
+                body
+                fullDatabaseId
+                isMinimized
+                line
+                minimizedReason
+                path
+                startLine
+              }
+            }
+          }
+        }
+      }
+    }`);
+    return response.data.pullRequest.reviewThreads.nodes;
+}
+exports.queryReviewThreads = queryReviewThreads;
+
+
+/***/ }),
+
 /***/ 515:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -261,9 +299,9 @@ async function run() {
             core.info("  ");
         }
         if (inputs.suggestions) {
-            await (0, review_comments_1.clearPriorSuggestions)(client, pr);
+            const resolved = await (0, review_comments_1.clearPriorSuggestions)(client, pr);
             if (pr.diff && differences) {
-                await (0, review_comments_1.commentSuggestions)(client, pr, (0, suggestions_1.getSuggestions)(pr.diff, patch));
+                await (0, review_comments_1.commentSuggestions)(client, pr, (0, suggestions_1.getSuggestions)(pr.diff, patch, resolved));
             }
         }
         (0, outputs_1.setOutputs)({
@@ -598,28 +636,43 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.commentSuggestions = exports.clearPriorSuggestions = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
+const github_graphql_1 = __nccwpck_require__(2248);
 const COMMENT_TOKEN = "<!-- added by Restyled -->";
 async function clearPriorSuggestions(client, pullRequest) {
-    const comments = await client.paginate(client.rest.pulls.listReviewComments, {
-        ...github.context.repo,
-        pull_number: pullRequest.number,
+    const { owner, repo } = github.context.repo;
+    const threads = await (0, github_graphql_1.queryReviewThreads)(client, owner, repo, pullRequest.number);
+    const ps = [];
+    const resolved = [];
+    threads.forEach((thread) => {
+        thread.comments.nodes.forEach((comment) => {
+            if (comment.body.includes(COMMENT_TOKEN)) {
+                if (comment.isMinimized || thread.resolvedBy) {
+                    core.info(`Found resolved suggestion at ${comment.path}:${comment.line}`);
+                    resolved.push({
+                        path: comment.path,
+                        description: "",
+                        startLine: comment.startLine ? comment.startLine : comment.line,
+                        endLine: comment.line,
+                        code: [],
+                    });
+                }
+                else {
+                    ps.push(client.rest.pulls
+                        .deleteReviewComment({
+                        ...github.context.repo,
+                        pull_number: pullRequest.number,
+                        comment_id: parseInt(comment.fullDatabaseId, 10),
+                    })
+                        .then(() => {
+                        return;
+                    }));
+                }
+            }
+        });
     });
-    core.debug(`Found ${comments.length} existing comment(s)`);
-    const ps = comments.map((comment) => {
-        if (comment.body.includes(COMMENT_TOKEN)) {
-            core.debug(`Will suggestion comment ${comment.id}`);
-            return client.rest.pulls.deleteReviewComment({
-                ...github.context.repo,
-                pull_number: pullRequest.number,
-                comment_id: comment.id,
-            });
-        }
-        else {
-            return Promise.resolve();
-        }
-    });
-    core.debug("Deleting comment(s)");
+    core.debug(`Deleting ${ps.length} old suggestions(s)`);
     await Promise.all(ps);
+    return resolved;
 }
 exports.clearPriorSuggestions = clearPriorSuggestions;
 async function commentSuggestions(client, pullRequest, suggestions) {
@@ -698,7 +751,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const parse_git_patch_1 = __importDefault(__nccwpck_require__(3167));
 const hunk_1 = __nccwpck_require__(515);
 const NE = __importStar(__nccwpck_require__(2620));
-function getSuggestions(baseStr, patchStr) {
+function getSuggestions(baseStr, patchStr, resolved) {
     const suggestions = [];
     const base = (0, parse_git_patch_1.default)(baseStr);
     const patch = (0, parse_git_patch_1.default)(patchStr);
@@ -721,19 +774,25 @@ function getSuggestions(baseStr, patchStr) {
         dels.forEach((del) => {
             const add = adds.get(NE.head(del).lineNumber);
             if (baseAdds.contain(del) && add) {
-                suggestions.push({
+                const suggestion = {
                     path: file.afterName,
                     description: (patch.message || "").replace(/^\[PATCH] /, ""),
                     startLine: NE.head(del).lineNumber - 1,
                     endLine: NE.last(del).lineNumber - 1,
                     code: NE.toList(add).map((x) => x.line),
-                });
+                };
+                if (!resolved.some((r) => isSameLocation(r, suggestion))) {
+                    suggestions.push(suggestion);
+                }
             }
         });
     });
     return suggestions;
 }
 exports.getSuggestions = getSuggestions;
+function isSameLocation(a, b) {
+    return (a.path === b.path && a.startLine == b.startLine && a.endLine == b.endLine);
+}
 
 
 /***/ }),

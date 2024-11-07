@@ -99,10 +99,14 @@ async function run() {
     }
 
     if (inputs.suggestions) {
-      await clearPriorSuggestions(client, pr);
+      const resolved = await clearPriorSuggestions(client, pr);
 
       if (pr.diff && differences) {
-        await commentSuggestions(client, pr, getSuggestions(pr.diff, patch));
+        await commentSuggestions(
+          client,
+          pr,
+          getSuggestions(pr.diff, patch, resolved),
+        );
       }
     }
 

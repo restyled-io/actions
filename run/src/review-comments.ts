@@ -18,6 +18,7 @@ import * as github from "@actions/github";
 
 import { type Suggestion } from "./suggestions";
 import { type PullRequest } from "./pull-request";
+import { queryReviewThreads } from "./github-graphql";
 
 type GitHubClient = ReturnType<typeof github.getOctokit>;
 
@@ -26,29 +27,52 @@ const COMMENT_TOKEN = "<!-- added by Restyled -->";
 export async function clearPriorSuggestions(
   client: GitHubClient,
   pullRequest: PullRequest,
-) {
-  const comments = await client.paginate(client.rest.pulls.listReviewComments, {
-    ...github.context.repo,
-    pull_number: pullRequest.number,
+): Promise<Suggestion[]> {
+  const { owner, repo } = github.context.repo;
+  const threads = await queryReviewThreads(
+    client,
+    owner,
+    repo,
+    pullRequest.number,
+  );
+
+  const ps: Promise<void>[] = [];
+  const resolved: Suggestion[] = [];
+
+  threads.forEach((thread) => {
+    thread.comments.nodes.forEach((comment) => {
+      if (comment.body.includes(COMMENT_TOKEN)) {
+        if (comment.isMinimized || thread.resolvedBy) {
+          core.info(
+            `Found resolved suggestion at ${comment.path}:${comment.line}`,
+          );
+          resolved.push({
+            path: comment.path,
+            description: "",
+            startLine: comment.startLine ? comment.startLine : comment.line,
+            endLine: comment.line,
+            code: [],
+          });
+        } else {
+          ps.push(
+            client.rest.pulls
+              .deleteReviewComment({
+                ...github.context.repo,
+                pull_number: pullRequest.number,
+                comment_id: parseInt(comment.fullDatabaseId, 10),
+              })
+              .then(() => {
+                return;
+              }),
+          );
+        }
+      }
+    });
   });
 
-  core.debug(`Found ${comments.length} existing comment(s)`);
-
-  const ps = comments.map((comment) => {
-    if (comment.body.includes(COMMENT_TOKEN)) {
-      core.debug(`Will suggestion comment ${comment.id}`);
-      return client.rest.pulls.deleteReviewComment({
-        ...github.context.repo,
-        pull_number: pullRequest.number,
-        comment_id: comment.id,
-      });
-    } else {
-      return Promise.resolve();
-    }
-  });
-
-  core.debug("Deleting comment(s)");
+  core.debug(`Deleting ${ps.length} old suggestions(s)`);
   await Promise.all(ps);
+  return resolved;
 }
 
 export async function commentSuggestions(

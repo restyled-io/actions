@@ -41,9 +41,7 @@ export class Hunks<T> {
     return this.map.get(lineNumber) || null;
   }
 
-  forEach(f: (hunk: Hunk<T>) => void): void {
-    this.hunks().forEach(f);
-  }
+  forEach(f: (hunk: Hunk<T>) => void): void { this.hunks().forEach(f); }
 
   contain(hunk: Hunk<T>): boolean {
     return this.hunks().some((x) => {
