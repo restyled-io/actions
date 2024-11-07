@@ -5,12 +5,16 @@ export interface HasLineNumber {
   lineNumber: number;
 }
 
+export type HunkLine<T> = T & HasLineNumber;
+
+export type Hunk<T> = NonEmpty<HunkLine<T>>;
+
 export class Hunks<T> {
-  private map: Map<number, NonEmpty<T & HasLineNumber>>;
+  private map: Map<number, Hunk<T>>;
   private lastHunk: number;
   private lastLine: number;
 
-  constructor(lines: (T & HasLineNumber)[]) {
+  constructor(lines: HunkLine<T>[]) {
     this.map = new Map();
     this.lastHunk = -99;
     this.lastLine = -99;
@@ -18,15 +22,15 @@ export class Hunks<T> {
     lines.forEach((line) => this.add(line));
   }
 
-  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null {
+  get(lineNumber: number): Hunk<T> | null {
     return this.map.get(lineNumber) || null;
   }
 
-  forEach(f: (hunk: NonEmpty<T & HasLineNumber>) => void): void {
+  forEach(f: (hunk: Hunk<T>) => void): void {
     this.hunks().forEach(f);
   }
 
-  contain(hunk: NonEmpty<T & HasLineNumber>): boolean {
+  contain(hunk: Hunk<T>): boolean {
     return this.hunks().some((x) => {
       return (
         NE.head(hunk).lineNumber >= NE.head(x).lineNumber &&
@@ -35,7 +39,7 @@ export class Hunks<T> {
     });
   }
 
-  private add(line: T & HasLineNumber) {
+  private add(line: HunkLine<T>) {
     const current = this.get(this.lastHunk);
     const isSameLine = line.lineNumber === this.lastLine;
     const isNextLine = line.lineNumber === this.lastLine + 1;
@@ -51,7 +55,7 @@ export class Hunks<T> {
     this.lastLine = line.lineNumber;
   }
 
-  private hunks(): NonEmpty<T & HasLineNumber>[] {
+  private hunks(): Hunk<T>[] {
     return Array.from(this.map.values());
   }
 }
