@@ -208,7 +208,7 @@ on:
 jobs:
   restyled:
     if: |
-      github.event.action != 'closed' &&
+      github.event.action != 'closed' && # <-- same as above besides this
       github.event.pull_request.head.repo.full_name == github.repository
 
     runs-on: ubuntu-latest
@@ -237,7 +237,7 @@ jobs:
 
   restyled-fork:
     if: |
-      github.event.action != 'closed' &&
+      github.event.action != 'closed' && # <-- same as above besides this
       github.event.pull_request.head.repo.full_name != github.repository
 
     runs-on: ubuntu-latest
