@@ -13,7 +13,7 @@ The [`restyle` CLI][restyler] is meant to one thing and do it well: re-format
 files according to configuration and commit any changes. The actions in this
 repository are for installing the CLI, running it, and exposing its results such
 that other, non-restyled actions can be used to do useful things. Below are
-examples workflows for doing such things.
+example workflows for doing such things.
 
 [restyler]: https://github.com/restyled-io/restyler#readme
 
@@ -47,6 +47,29 @@ jobs:
           fail-on-differences: true
 ```
 
+### Code Suggestion Comments
+
+> [!WARNING]
+> This is a relatively new feature. There may be cases where not all fixes
+> appear as comments.
+
+```yaml
+on:
+  pull_request:
+
+jobs:
+  restyled:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: restyled-io/actions/setup@v4
+      - uses: restyled-io/actions/run@v4
+        with:
+          suggestions: true
+          show-patch: false
+          show-patch-command: false
+```
+
 ### Upload Patch Artifact
 
 > [!WARNING]
@@ -64,15 +87,22 @@ jobs:
       - uses: restyled-io/actions/setup@v4
       - id: restyler
         uses: restyled-io/actions/run@v4
-      - run: |
+
+      - if: ${{ steps.restyler.outputs.patch }}
+        run: |
           cat >>/tmp/restyled.diff <<'EOM'
           ${{ steps.restyler.outputs.patch }}
           EOM
+
       - id: upload
         uses: actions/upload-artifact@v4
         with:
           path: /tmp/restyled.diff
-      - run: |
+          if-no-files-found: ignore
+          overwrite: true
+
+      - if: ${{ steps.upload.outputs.artifact-url }}
+        run: |
           cat >>"$GITHUB_STEP_SUMMARY" <<'EOM'
           ## Restyled
 
@@ -81,29 +111,6 @@ jobs:
               curl '${{ steps.upload.outputs.artifact-url }}' | unzip -p - restyled.diff | git am
 
           EOM
-```
-
-### Code Suggestion Comments
-
-> [!WARNING]
-> This is a relatively new feature. A very messy diff, or restyle fixes not on
-> added lines may cause some style fixes from not appearing as comments.
-
-```yaml
-on:
-  pull_request:
-
-jobs:
-  restyled:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: restyled-io/actions/setup@v4
-      - uses: restyled-io/actions/run@v4
-        with:
-          suggestions: true
-          show-patch: false
-          show-patch-command: false
 ```
 
 ### Sibling PRs (no forks, no cleanup)
