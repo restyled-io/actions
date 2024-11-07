@@ -7,33 +7,113 @@
 > configuring it for specific repositories and excluding the one where you plan
 > to use GitHub Actions.
 
-## Usage
+## Usage Examples
 
-Include one or all of the following `job`s in a GitHub Workflow:
+The [`restyle` CLI][restyler] is meant to one thing and do it well: re-format
+files according to configuration and commit any changes. The actions in this
+repository are for installing the CLI, running it, and exposing its results such
+that other, non-restyled actions can be used to do useful things. Below are
+examples workflows for doing such things.
+
+[restyler]: https://github.com/restyled-io/restyler#readme
+
+In all cases, we recommend creating the workflow as `restyled.yml`, naming it
+`Restyled`, and using `concurrency` to cancel redundant jobs:
 
 ```yaml
 # .github/workflows/restyled.yml
 
 name: Restyled
 
-on:
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - closed
-      - synchronize
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+```
+
+### Status Check
+
+```yaml
+on:
+  pull_request:
 
 jobs:
-  # For non-forks, we will maintain a sibling PR
   restyled:
-    if: |
-      github.event.action != 'closed' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: restyled-io/actions/setup@v4
+      - uses: restyled-io/actions/run@v4
+        with:
+          fail-on-differences: true
+```
+
+### Upload Patch Artifact
+
+> [!WARNING]
+> This has not been tested yet, but should work in theory.
+
+```yaml
+on:
+  pull_request:
+
+jobs:
+  restyled:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: restyled-io/actions/setup@v4
+      - id: restyler
+        uses: restyled-io/actions/run@v4
+      - run: |
+          cat >>/tmp/restyled.diff <<'EOM'
+          ${{ steps.restyler.outputs.patch }}
+          EOM
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: /tmp/restyled.diff
+      - run: |
+          cat >>"$GITHUB_STEP_SUMMARY" <<'EOM'
+          ## Restyled
+
+          To apply these fixes locally, run:
+
+              curl '${{ steps.upload.outputs.artifact-url }}' | unzip -p - restyled.diff | git am
+
+          EOM
+```
+
+### Code Suggestion Comments
+
+> [!WARNING]
+> This is a relatively new feature. A very messy diff, or restyle fixes not on
+> added lines may cause some style fixes from not appearing as comments.
+
+```yaml
+on:
+  pull_request:
+
+jobs:
+  restyled:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: restyled-io/actions/setup@v4
+      - uses: restyled-io/actions/run@v4
+        with:
+          suggestions: true
+          show-patch: false
+          show-patch-command: false
+```
+
+### Sibling PRs (no forks, no cleanup)
+
+```yaml
+on:
+  pull_request:
+
+jobs:
+  restyled:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +121,43 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: restyled-io/actions/setup@v4
+
+      - id: restyler
+        uses: restyled-io/actions/run@v4
+        with:
+          fail-on-differences: true
+
+      - if: ${{ !cancelled() && steps.restyler.outputs.success == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: ${{ steps.restyler.outputs.restyled-base }}
+          branch: ${{ steps.restyler.outputs.restyled-head }}
+          title: ${{ steps.restyler.outputs.restyled-title }}
+          body: ${{ steps.restyler.outputs.restyled-body }}
+          labels: "restyled"
+          reviewers: ${{ github.event.pull_request.user.login }}
+          delete-branch: true
+```
+
+### Sibling PRs (forks, no cleanup)
+
+```yaml
+on:
+  pull_request:
+
+jobs:
+  restyled:
+    # Same as above for non-fork PRs
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: restyled-io/actions/setup@v4
+
       - id: restyler
         uses: restyled-io/actions/run@v4
         with:
@@ -57,11 +174,65 @@ jobs:
           reviewers: ${{ github.event.pull_request.user.login }}
           delete-branch: true
 
-  # For forks, we will only run (and print git-am instructions)
+  restyled-fork:
+    # For forks we don't create the PR or operate on the head ref
+    if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: restyled-io/actions/setup@v4
+      - uses: restyled-io/actions/run@v4
+        with:
+          fail-on-differences: true
+```
+
+### Sibling PRs (forks and cleanup)
+
+```yaml
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+jobs:
+  restyled:
+    if: |
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: restyled-io/actions/setup@v4
+
+      - id: restyler
+        uses: restyled-io/actions/run@v4
+        with:
+          fail-on-differences: true
+
+      - if: ${{ !cancelled() && steps.restyler.outputs.success == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: ${{ steps.restyler.outputs.restyled-base }}
+          branch: ${{ steps.restyler.outputs.restyled-head }}
+          title: ${{ steps.restyler.outputs.restyled-title }}
+          body: ${{ steps.restyler.outputs.restyled-body }}
+          labels: "restyled"
+          reviewers: ${{ github.event.pull_request.user.login }}
+          delete-branch: true
+
   restyled-fork:
     if: |
       github.event.action != 'closed' &&
       github.event.pull_request.head.repo.full_name != github.repository
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +241,6 @@ jobs:
         with:
           fail-on-differences: true
 
-  # On closed events clean up any leftover Restyled PRs
   restyled-cleanup:
     if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
@@ -78,9 +248,8 @@ jobs:
       - uses: restyled-io/actions/setup@v4
       - id: restyler
         uses: restyled-io/actions/run@v4
-      - run: gh --repo "$REPO" pr close "$BRANCH" --delete-branch || true
+      - run: gh pr close "$BRANCH" --delete-branch || true
         env:
-          REPO: ${{ github.repository }}
           BRANCH: ${{ steps.restyler.outputs.restyled-head }}
           GH_TOKEN: ${{ github.token }}
 ```
@@ -89,7 +258,7 @@ jobs:
 
 The Restyled actions themselves require no permissions. However, `contents:read`
 is required for `actions/checkout` and `pull-requests:write` is required for
-`peter-evans/create-pull-request`, which are both used in the example above.
+`peter-evans/create-pull-request`, which are both used above.
 
 Default permissions for workflows can be adjusted in your repository settings,
 or a `permissions` key can be used in the workflow itself. For more details, see
