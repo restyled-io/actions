@@ -1,6 +1,82 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 515:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Hunks = void 0;
+const NE = __importStar(__nccwpck_require__(2620));
+class Hunks {
+    map;
+    lastHunk;
+    lastLine;
+    constructor(lines) {
+        this.map = new Map();
+        this.lastHunk = -99;
+        this.lastLine = -99;
+        lines.forEach((line) => this.add(line));
+    }
+    get(lineNumber) {
+        return this.map.get(lineNumber) || null;
+    }
+    forEach(f) {
+        this.hunks().forEach(f);
+    }
+    contain(hunk) {
+        return this.hunks().some((x) => {
+            return (NE.head(hunk).lineNumber >= NE.head(x).lineNumber &&
+                NE.last(hunk).lineNumber <= NE.last(x).lineNumber);
+        });
+    }
+    add(line) {
+        const current = this.get(this.lastHunk);
+        const isSameLine = line.lineNumber === this.lastLine;
+        const isNextLine = line.lineNumber === this.lastLine + 1;
+        if (current && (isSameLine || isNextLine)) {
+            const updated = NE.append(current, NE.singleton(line));
+            this.map.set(this.lastHunk, updated);
+        }
+        else {
+            this.map.set(line.lineNumber, NE.singleton(line));
+            this.lastHunk = line.lineNumber;
+        }
+        this.lastLine = line.lineNumber;
+    }
+    hunks() {
+        return Array.from(this.map.values());
+    }
+}
+exports.Hunks = Hunks;
+
+
+/***/ }),
+
 /***/ 6180:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -44,6 +120,9 @@ function getInputs() {
     return {
         paths,
         githubToken: core.getInput("github-token", { required: true }),
+        suggestions: core.getBooleanInput("suggestions", {
+            required: true,
+        }),
         showPatch: core.getBooleanInput("show-patch", {
             required: true,
         }),
@@ -111,8 +190,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const exec = __importStar(__nccwpck_require__(1514));
+const review_comments_1 = __nccwpck_require__(3972);
 const inputs_1 = __nccwpck_require__(6180);
 const pull_request_1 = __nccwpck_require__(1843);
+const suggestions_1 = __nccwpck_require__(4476);
 const process_1 = __nccwpck_require__(1647);
 const outputs_1 = __nccwpck_require__(5314);
 function pullRequestDescription(number) {
@@ -179,6 +260,12 @@ async function run() {
             core.info("EOM");
             core.info("  ");
         }
+        if (inputs.suggestions) {
+            await (0, review_comments_1.clearPriorSuggestions)(client, pr);
+            if (pr.diff && differences) {
+                await (0, review_comments_1.commentSuggestions)(client, pr, (0, suggestions_1.getSuggestions)(pr.diff, patch));
+            }
+        }
         (0, outputs_1.setOutputs)({
             success,
             differences,
@@ -208,6 +295,68 @@ async function run() {
     }
 }
 run();
+
+
+/***/ }),
+
+/***/ 2620:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.toList = exports.init = exports.last = exports.tail = exports.head = exports.singleton = exports.append = exports.nonEmpty = exports.build = void 0;
+function build(x, ...xs) {
+    return {
+        _head: x,
+        _tail: xs,
+    };
+}
+exports.build = build;
+function nonEmpty(xs) {
+    return xs.length === 0
+        ? null
+        : {
+            _head: xs[0],
+            _tail: xs.slice(1),
+        };
+}
+exports.nonEmpty = nonEmpty;
+function append(a, b) {
+    return {
+        _head: head(a),
+        _tail: tail(a).concat(toList(b)),
+    };
+}
+exports.append = append;
+function singleton(t) {
+    return {
+        _head: t,
+        _tail: [],
+    };
+}
+exports.singleton = singleton;
+function head(ne) {
+    return ne._head;
+}
+exports.head = head;
+function tail(ne) {
+    return ne._tail;
+}
+exports.tail = tail;
+function last(ne) {
+    const t = ne._tail;
+    return t.length == 0 ? head(ne) : t.slice(-1)[0];
+}
+exports.last = last;
+function init(ne) {
+    return [head(ne)].concat(tail(ne).slice(-1));
+}
+exports.init = init;
+function toList(ne) {
+    return [head(ne)].concat(tail(ne));
+}
+exports.toList = toList;
 
 
 /***/ }),
@@ -369,6 +518,7 @@ async function getPullRequest(client, paths) {
     const pullRequestJson = temp.path({ suffix: ".json" });
     fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
     const restylePaths = paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
+    const diff = await getPullRequestDiff(client, pr.number);
     return {
         number: pr.number,
         title: pr.title,
@@ -376,6 +526,7 @@ async function getPullRequest(client, paths) {
         headSha: pr.head.sha,
         restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
         restyleDiffBase: base,
+        diff,
     };
 }
 exports.getPullRequest = getPullRequest;
@@ -387,6 +538,7 @@ function fakePullRequest(base, paths) {
         headSha: "unknown",
         restyleArgs: paths,
         restyleDiffBase: base,
+        diff: null,
     };
 }
 async function getPullRequestPaths(client, number) {
@@ -395,6 +547,16 @@ async function getPullRequestPaths(client, number) {
         pull_number: number,
     });
     return files.map((f) => f.filename);
+}
+async function getPullRequestDiff(client, number) {
+    const response = await client.rest.pulls.get({
+        ...github.context.repo,
+        pull_number: number,
+        mediaType: {
+            format: "patch",
+        },
+    });
+    return response.data;
 }
 async function getDiffBase() {
     try {
@@ -405,6 +567,178 @@ async function getDiffBase() {
         return { tag: "unknown" };
     }
 }
+
+
+/***/ }),
+
+/***/ 3972:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.commentSuggestions = exports.clearPriorSuggestions = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const COMMENT_TOKEN = "<!-- added by Restyled -->";
+async function clearPriorSuggestions(client, pullRequest) {
+    const comments = await client.paginate(client.rest.pulls.listReviewComments, {
+        ...github.context.repo,
+        pull_number: pullRequest.number,
+    });
+    core.debug(`Found ${comments.length} existing comment(s)`);
+    const ps = comments.map((comment) => {
+        if (comment.body.includes(COMMENT_TOKEN)) {
+            core.debug(`Will suggestion comment ${comment.id}`);
+            return client.rest.pulls.deleteReviewComment({
+                ...github.context.repo,
+                pull_number: pullRequest.number,
+                comment_id: comment.id,
+            });
+        }
+        else {
+            return Promise.resolve();
+        }
+    });
+    core.debug("Deleting comment(s)");
+    await Promise.all(ps);
+}
+exports.clearPriorSuggestions = clearPriorSuggestions;
+async function commentSuggestions(client, pullRequest, suggestions) {
+    const ps = suggestions.map((suggestion) => {
+        return commentSuggestion(client, pullRequest, suggestion);
+    });
+    core.info(`Leaving ${ps.length} suggestion(s)`);
+    Promise.all(ps);
+}
+exports.commentSuggestions = commentSuggestions;
+async function commentSuggestion(client, pullRequest, suggestion) {
+    const path = suggestion.path;
+    const line = suggestion.endLine;
+    const start_line = suggestion.startLine == suggestion.endLine
+        ? undefined
+        : suggestion.startLine;
+    const body = [
+        suggestion.description,
+        "",
+        "```suggestion",
+        suggestion.code.join("\n"),
+        "```",
+        "",
+        COMMENT_TOKEN,
+    ];
+    core.debug(`Leaving review comment on ${path}:${start_line}:${line}`);
+    client.rest.pulls.createReviewComment({
+        ...github.context.repo,
+        pull_number: pullRequest.number,
+        body: body.join("\n"),
+        commit_id: pullRequest.headSha,
+        path,
+        start_line,
+        line,
+        side: "RIGHT",
+    });
+}
+
+
+/***/ }),
+
+/***/ 4476:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getSuggestions = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const parse_git_patch_1 = __importDefault(__nccwpck_require__(3167));
+const hunk_1 = __nccwpck_require__(515);
+const NE = __importStar(__nccwpck_require__(2620));
+function getSuggestions(baseStr, patchStr) {
+    const suggestions = [];
+    const base = (0, parse_git_patch_1.default)(baseStr);
+    const patch = (0, parse_git_patch_1.default)(patchStr);
+    if (!base) {
+        core.error("Unable to parse Pull Request patch");
+        return [];
+    }
+    if (!patch) {
+        core.error("Unable to parse Restyled patch");
+        return [];
+    }
+    patch.files.forEach((file) => {
+        const baseFile = base.files.find((x) => x.afterName === file.afterName);
+        if (!baseFile) {
+            return;
+        }
+        const baseAdds = new hunk_1.Hunks(baseFile.modifiedLines.filter((x) => x.added));
+        const dels = new hunk_1.Hunks(file.modifiedLines.filter((x) => !x.added));
+        const adds = new hunk_1.Hunks(file.modifiedLines.filter((x) => x.added));
+        dels.forEach((del) => {
+            const add = adds.get(NE.head(del).lineNumber);
+            if (baseAdds.contain(del) && add) {
+                suggestions.push({
+                    path: file.afterName,
+                    description: (patch.message || "").replace(/^\[PATCH] /, ""),
+                    startLine: NE.head(del).lineNumber - 1,
+                    endLine: NE.last(del).lineNumber - 1,
+                    code: NE.toList(add).map((x) => x.line),
+                });
+            }
+        });
+    });
+    return suggestions;
+}
+exports.getSuggestions = getSuggestions;
 
 
 /***/ }),
@@ -11061,6 +11395,155 @@ function onceStrict (fn) {
   f.called = false
   return f
 }
+
+
+/***/ }),
+
+/***/ 3167:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const hashRegex = /^From (\S*)/;
+const authorRegex = /^From:\s?([^<].*[^>])?\s+(<(.*)>)?/;
+const fileNameRegex = /^diff --git "?a\/(.*)"?\s*"?b\/(.*)"?/;
+const fileLinesRegex = /^@@ -([0-9]*),?\S* \+([0-9]*),?/;
+const similarityIndexRegex = /^similarity index /;
+const addedFileModeRegex = /^new file mode /;
+const deletedFileModeRegex = /^deleted file mode /;
+function parseGitPatch(patch) {
+    if (typeof patch !== 'string') {
+        throw new Error('Expected first argument (patch) to be a string');
+    }
+    const lines = patch.split('\n');
+    const gitPatchMetaInfo = splitMetaInfo(patch, lines);
+    if (!gitPatchMetaInfo)
+        return null;
+    const parsedPatch = {
+        ...gitPatchMetaInfo,
+        files: [],
+    };
+    splitIntoParts(lines, 'diff --git').forEach(diff => {
+        const fileNameLine = diff.shift();
+        if (!fileNameLine)
+            return;
+        const match3 = fileNameLine.match(fileNameRegex);
+        if (!match3)
+            return;
+        const [, a, b] = match3;
+        const metaLine = diff.shift();
+        if (!metaLine)
+            return;
+        const fileData = {
+            added: false,
+            deleted: false,
+            beforeName: a.trim(),
+            afterName: b.trim(),
+            modifiedLines: [],
+        };
+        parsedPatch.files.push(fileData);
+        if (addedFileModeRegex.test(metaLine)) {
+            fileData.added = true;
+        }
+        if (deletedFileModeRegex.test(metaLine)) {
+            fileData.deleted = true;
+        }
+        if (similarityIndexRegex.test(metaLine)) {
+            return;
+        }
+        splitIntoParts(diff, '@@ ').forEach(lines => {
+            const fileLinesLine = lines.shift();
+            if (!fileLinesLine)
+                return;
+            const match4 = fileLinesLine.match(fileLinesRegex);
+            if (!match4)
+                return;
+            const [, a, b] = match4;
+            let nA = parseInt(a);
+            let nB = parseInt(b);
+            lines.forEach(line => {
+                nA++;
+                nB++;
+                if (line.startsWith('-- ')) {
+                    return;
+                }
+                if (line.startsWith('+')) {
+                    nA--;
+                    fileData.modifiedLines.push({
+                        added: true,
+                        lineNumber: nB,
+                        line: line.substr(1),
+                    });
+                }
+                else if (line.startsWith('-')) {
+                    nB--;
+                    fileData.modifiedLines.push({
+                        added: false,
+                        lineNumber: nA,
+                        line: line.substr(1),
+                    });
+                }
+            });
+        });
+    });
+    return parsedPatch;
+}
+function splitMetaInfo(patch, lines) {
+    // Compatible with git output
+    if (!/^From/g.test(patch)) {
+        return {};
+    }
+    const hashLine = lines.shift();
+    if (!hashLine)
+        return null;
+    const match1 = hashLine.match(hashRegex);
+    if (!match1)
+        return null;
+    const [, hash] = match1;
+    const authorLine = lines.shift();
+    if (!authorLine)
+        return null;
+    const match2 = authorLine.match(authorRegex);
+    if (!match2)
+        return null;
+    const [, authorName, , authorEmail] = match2;
+    const dateLine = lines.shift();
+    if (!dateLine)
+        return null;
+    const [, date] = dateLine.split('Date: ');
+    const messageLine = lines.shift();
+    if (!messageLine)
+        return null;
+    const [, message] = messageLine.split('Subject: ');
+    return {
+        hash,
+        authorName,
+        authorEmail,
+        date,
+        message,
+    };
+}
+function splitIntoParts(lines, separator) {
+    const parts = [];
+    let currentPart;
+    lines.forEach(line => {
+        if (line.startsWith(separator)) {
+            if (currentPart) {
+                parts.push(currentPart);
+            }
+            currentPart = [line];
+        }
+        else if (currentPart) {
+            currentPart.push(line);
+        }
+    });
+    if (currentPart) {
+        parts.push(currentPart);
+    }
+    return parts;
+}
+exports["default"] = parseGitPatch;
 
 
 /***/ }),
