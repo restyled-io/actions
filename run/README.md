@@ -21,6 +21,12 @@ Run the restyle CLI on changed files in a PR
     # Required: false
     # Default: ${{ github.token }}
 
+    suggestions:
+    # Add suggestion comments of restyled changes
+    #
+    # Required: false
+    # Default: false
+
     show-patch:
     # Log the patch produced by Restyled with git format-patch
     #
@@ -99,6 +105,7 @@ Run the restyle CLI on changed files in a PR
 | --------------------- | ---------------------------------------------------------------------------------------- | -------- | --------------------- |
 | `paths`               | <p>New-line separated paths to restyle, default is paths changed in the PR</p>           | `false`  | `""`                  |
 | `github-token`        | <p>Token used to query for PR details</p>                                                | `false`  | `${{ github.token }}` |
+| `suggestions`         | <p>Add suggestion comments of restyled changes</p>                                       | `false`  | `false`               |
 | `show-patch`          | <p>Log the patch produced by Restyled with git format-patch</p>                          | `false`  | `true`                |
 | `show-patch-command`  | <p>Log a copy/paste-able command to apply the patch produced by Restyled with git-am</p> | `false`  | `true`                |
 | `committer-email`     | <p>Email used for Restyled commits</p>                                                   | `false`  | `commits@restyled.io` |

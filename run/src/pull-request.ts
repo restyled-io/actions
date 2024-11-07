@@ -30,6 +30,7 @@ export type PullRequest = {
   headSha: string;
   restyleArgs: string[];
   restyleDiffBase: DiffBase;
+  diff: string | null;
 };
 
 export type DiffBase = { tag: "unknown" } | { tag: "known"; sha: string };
@@ -62,6 +63,8 @@ export async function getPullRequest(
   const restylePaths =
     paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
 
+  const diff = await getPullRequestDiff(client, pr.number);
+
   return {
     number: pr.number,
     title: pr.title,
@@ -69,6 +72,7 @@ export async function getPullRequest(
     headSha: pr.head.sha,
     restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
     restyleDiffBase: base,
+    diff,
   };
 }
 
@@ -80,6 +84,7 @@ function fakePullRequest(base: DiffBase, paths: string[]): PullRequest {
     headSha: "unknown",
     restyleArgs: paths,
     restyleDiffBase: base,
+    diff: null,
   };
 }
 
@@ -93,6 +98,22 @@ async function getPullRequestPaths(
   });
 
   return files.map((f) => f.filename);
+}
+
+async function getPullRequestDiff(
+  client: GitHubClient,
+  number: number,
+): Promise<string> {
+  const response = await client.rest.pulls.get({
+    ...github.context.repo,
+    pull_number: number,
+    mediaType: {
+      format: "patch",
+    },
+  });
+
+  // Custom mediatype is not expected by octokit types
+  return response.data as unknown as string;
 }
 
 async function getDiffBase(): Promise<DiffBase> {
