@@ -19,6 +19,7 @@ import * as github from "@actions/github";
 export type Inputs = {
   paths: string[];
   githubToken: string;
+  suggestions: boolean;
   showPatch: boolean;
   showPatchCommand: boolean;
   committerEmail: string;
@@ -46,6 +47,9 @@ export function getInputs(): Inputs {
   return {
     paths,
     githubToken: core.getInput("github-token", { required: true }),
+    suggestions: core.getBooleanInput("suggestions", {
+      required: true,
+    }),
     showPatch: core.getBooleanInput("show-patch", {
       required: true,
     }),

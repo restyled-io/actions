@@ -17,8 +17,10 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
+import { clearPriorSuggestions, commentSuggestions } from "./review-comments";
 import { cliArguments, getInputs } from "./inputs";
 import { getPullRequest } from "./pull-request";
+import { getSuggestions } from "./suggestions";
 import { readProcess } from "./process";
 import { setOutputs } from "./outputs";
 
@@ -94,6 +96,12 @@ async function run() {
       core.info(formatBase64(patch));
       core.info("EOM");
       core.info("  ");
+    }
+
+    if (inputs.suggestions) {
+      await clearPriorSuggestions(client, pr);
+
+      if (pr.diff && differences) { await commentSuggestions(client, pr, getSuggestions(pr.diff, patch)); }
     }
 
     setOutputs({
