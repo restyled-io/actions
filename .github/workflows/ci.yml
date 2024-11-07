@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: run
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          cache-dependency-path: 'run/yarn.lock'
+          node-version-file: 'run/.nvmrc'
+      - run: yarn install
+      - run: yarn test
+      - run: yarn build
