@@ -11,12 +11,7 @@ export function build<T>(x: T, ...xs: T[]) {
 }
 
 export function nonEmpty<T>(xs: T[]): NonEmpty<T> | null {
-  return xs.length === 0
-    ? null
-    : {
-        _head: xs[0],
-        _tail: xs.slice(1),
-      };
+  return xs.length === 0 ? null : build(xs[0], ...xs.slice(1));
 }
 
 export function append<T>(a: NonEmpty<T>, b: NonEmpty<T>): NonEmpty<T> {
