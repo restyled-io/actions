@@ -6,7 +6,7 @@
     "build": "tsc && ncc build lib/main.js && sed -i 's/\\x0D$//' ./dist/index.js",
     "format": "prettier --write \"**/*.ts\"",
     "format-check": "prettier --check \"**/*.ts\"",
-    "test": "jest",
+    "test": "jest --maxWorkers 1",
     "readme": "npx action-docs -u && prettier --write README.md"
   },
   "license": "AGPL-3.0-only",
