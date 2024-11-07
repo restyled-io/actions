@@ -101,7 +101,9 @@ async function run() {
     if (inputs.suggestions) {
       await clearPriorSuggestions(client, pr);
 
-      if (pr.diff && differences) { await commentSuggestions(client, pr, getSuggestions(pr.diff, patch)); }
+      if (pr.diff && differences) {
+        await commentSuggestions(client, pr, getSuggestions(pr.diff, patch));
+      }
     }
 
     setOutputs({
