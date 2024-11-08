@@ -30,6 +30,7 @@ export type Suggestion = {
 export function getSuggestions(
   baseStr: string,
   patchStr: string,
+  resolved: Suggestion[],
 ): Suggestion[] {
   const suggestions: Suggestion[] = [];
   const base = parseGitPatch(baseStr);
@@ -58,18 +59,27 @@ export function getSuggestions(
 
     dels.forEach((del) => {
       const add = adds.get(NE.head(del).lineNumber);
-
       if (baseAdds.contain(del) && add) {
-        suggestions.push({
+        const suggestion = {
           path: file.afterName,
           description: (patch.message || "").replace(/^\[PATCH] /, ""),
           startLine: NE.head(del).lineNumber - 1, // git-parse-patch bug
           endLine: NE.last(del).lineNumber - 1, // git-parse-patch bug
           code: NE.toList(add).map((x) => x.line),
-        });
+        };
+
+        if (!resolved.some((r) => isSameLocation(r, suggestion))) {
+          suggestions.push(suggestion);
+        }
       }
     });
   });
 
   return suggestions;
+}
+
+function isSameLocation(a: Suggestion, b: Suggestion): boolean {
+  return (
+    a.path === b.path && a.startLine == b.startLine && a.endLine == b.endLine
+  );
 }

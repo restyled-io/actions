@@ -199,8 +199,14 @@ const cases = [
 
 describe("getSuggestions", () => {
   test.each(cases)("Example case", ({ base, patch, expected }) => {
-    const actual = getSuggestions(base.join("\n"), patch.join("\n"));
+    const actual = getSuggestions(base.join("\n"), patch.join("\n"), []);
 
     expect(actual).toEqual(expected);
+  });
+
+  test.each(cases)("Example case (resolved)", ({ base, patch, expected }) => {
+    const actual = getSuggestions(base.join("\n"), patch.join("\n"), expected);
+
+    expect(actual).toEqual([]);
   });
 });
