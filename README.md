@@ -72,9 +72,6 @@ jobs:
 
 ### Upload Patch Artifact
 
-> [!WARNING]
-> This has not been tested yet, but should work in theory.
-
 ```yaml
 on:
   pull_request:
@@ -88,10 +85,10 @@ jobs:
       - id: restyler
         uses: restyled-io/actions/run@v4
 
-      - if: ${{ steps.restyler.outputs.patch }}
+      - if: ${{ steps.restyler.outputs.git-patch }}
         run: |
           cat >>/tmp/restyled.diff <<'EOM'
-          ${{ steps.restyler.outputs.patch }}
+          ${{ steps.restyler.outputs.git-patch }}
           EOM
 
       - id: upload
