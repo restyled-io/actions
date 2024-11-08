@@ -1,0 +1,5 @@
+--platform catthehacker/ubuntu:act-latest
+--workflows .github/workflows/restyled.yml
+--job restyled
+--secret-file .env
+--eventpath event.json
