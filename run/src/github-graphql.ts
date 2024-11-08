@@ -1,4 +1,3 @@
-import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 type GitHubClient = ReturnType<typeof github.getOctokit>;
@@ -72,11 +71,6 @@ export async function queryReviewThreads(
       }
     }
   }`;
-
-  // Useful for adhoc debugging
-  // core.info(`QUERY: ${query}`);
-  // const raw: any = await client.graphql(query);
-  // core.info(`RESPONSE ${JSON.stringify(raw)}`);
 
   const response: RepositoryResponse = await client.graphql(query);
   return response.repository.pullRequest.reviewThreads.nodes;
