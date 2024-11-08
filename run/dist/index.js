@@ -437,6 +437,45 @@ function setOutputs(outputs) {
 
 /***/ }),
 
+/***/ 8854:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parsePatches = parsePatches;
+const parse_git_patch_1 = __importDefault(__nccwpck_require__(2427));
+const PATCH_BEGIN = /^From /;
+function parsePatches(str) {
+    const patches = [];
+    let patchLines = [];
+    const accumulate = () => {
+        if (patchLines.length === 0) {
+            return;
+        }
+        const parsed = (0, parse_git_patch_1.default)(patchLines.join("\n"));
+        if (!parsed) {
+            return;
+        }
+        patches.push(parsed);
+        patchLines = [];
+    };
+    str.split("\n").forEach((line) => {
+        if (line.match(PATCH_BEGIN)) {
+            accumulate();
+        }
+        patchLines.push(line);
+    });
+    accumulate();
+    return patches;
+}
+
+
+/***/ }),
+
 /***/ 1633:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -738,49 +777,40 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getSuggestions = getSuggestions;
-const core = __importStar(__nccwpck_require__(7484));
-const parse_git_patch_1 = __importDefault(__nccwpck_require__(2427));
+const patch_1 = __nccwpck_require__(8854);
 const hunk_1 = __nccwpck_require__(9734);
 const NE = __importStar(__nccwpck_require__(1571));
 function getSuggestions(baseStr, patchStr, resolved) {
     const suggestions = [];
-    const base = (0, parse_git_patch_1.default)(baseStr);
-    const patch = (0, parse_git_patch_1.default)(patchStr);
-    if (!base) {
-        core.error("Unable to parse Pull Request patch");
-        return [];
-    }
-    if (!patch) {
-        core.error("Unable to parse Restyled patch");
-        return [];
-    }
-    patch.files.forEach((file) => {
-        const baseFile = base.files.find((x) => x.afterName === file.afterName);
-        if (!baseFile) {
-            return;
-        }
-        const baseAdds = new hunk_1.Hunks(baseFile.modifiedLines.filter((x) => x.added));
-        const dels = new hunk_1.Hunks(file.modifiedLines.filter((x) => !x.added));
-        const adds = new hunk_1.Hunks(file.modifiedLines.filter((x) => x.added));
-        dels.forEach((del) => {
-            const add = adds.get(NE.head(del).lineNumber);
-            if (baseAdds.contain(del) && add) {
-                const suggestion = {
-                    path: file.afterName,
-                    description: (patch.message || "").replace(/^\[PATCH] /, ""),
-                    startLine: NE.head(del).lineNumber - 1,
-                    endLine: NE.last(del).lineNumber - 1,
-                    code: NE.toList(add).map((x) => x.line),
-                };
-                if (!resolved.some((r) => isSameLocation(r, suggestion))) {
-                    suggestions.push(suggestion);
-                }
+    const bases = (0, patch_1.parsePatches)(baseStr);
+    const patches = (0, patch_1.parsePatches)(patchStr);
+    const baseFiles = bases.flatMap((p) => p.files);
+    patches.forEach((patch) => {
+        patch.files.forEach((file) => {
+            const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
+            if (!baseFile) {
+                return;
             }
+            const baseAdds = new hunk_1.Hunks(baseFile.modifiedLines.filter((x) => x.added));
+            const dels = new hunk_1.Hunks(file.modifiedLines.filter((x) => !x.added));
+            const adds = new hunk_1.Hunks(file.modifiedLines.filter((x) => x.added));
+            dels.forEach((del) => {
+                const add = adds.get(NE.head(del).lineNumber);
+                if (baseAdds.contain(del) && add) {
+                    const suggestion = {
+                        path: file.afterName,
+                        description: (patch.message || "").replace(/^\[PATCH] /, ""),
+                        startLine: NE.head(del).lineNumber - 1,
+                        endLine: NE.last(del).lineNumber - 1,
+                        code: NE.toList(add).map((x) => x.line),
+                    };
+                    if (!resolved.some((r) => isSameLocation(r, suggestion))) {
+                        suggestions.push(suggestion);
+                    }
+                }
+            });
         });
     });
     return suggestions;
