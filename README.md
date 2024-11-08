@@ -52,7 +52,11 @@ jobs:
 > [!NOTE]
 > If combining `fail-on-differences` with other examples below, make sure you
 > update the conditions on later steps that should run when differences are
-> found.
+> found (but not if restyler errors):
+>
+> ```yaml
+> if: ${{ !cancelled && steps.restyler.outputs.success == 'true' }}
+> ```
 
 ### Code Suggestion Comments
 
@@ -141,8 +145,7 @@ jobs:
       - id: restyler
         uses: restyled-io/actions/run@v4
 
-      - if: ${{ steps.restyler.outputs.success == 'true' }}
-        uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v7
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
           branch: ${{ steps.restyler.outputs.restyled-head }}
@@ -173,8 +176,7 @@ jobs:
       - id: restyler
         uses: restyled-io/actions/run@v4
 
-      - if: ${{ steps.restyler.outputs.success == 'true' }}
-        uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v7
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
           branch: ${{ steps.restyler.outputs.restyled-head }}
@@ -221,8 +223,7 @@ jobs:
       - id: restyler
         uses: restyled-io/actions/run@v4
 
-      - if: ${{ steps.restyler.outputs.success == 'true' }}
-        uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v7
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
           branch: ${{ steps.restyler.outputs.restyled-head }}
