@@ -32,6 +32,8 @@ concurrency:
 
 ### Status Check
 
+![](./files/failing-status.png)
+
 ```yaml
 on:
   pull_request:
@@ -49,9 +51,7 @@ jobs:
 
 ### Code Suggestion Comments
 
-> [!WARNING]
-> This is a relatively new feature. There may be cases where not all fixes
-> appear as comments.
+![](./files/suggestion.png)
 
 ```yaml
 on:
@@ -71,6 +71,8 @@ jobs:
 ```
 
 ### Upload Patch Artifact
+
+![](./files/patch-artifact.png)
 
 ```yaml
 on:
@@ -103,14 +105,20 @@ jobs:
           cat >>"$GITHUB_STEP_SUMMARY" <<'EOM'
           ## Restyled
 
-          To apply these fixes locally, run:
+          To apply these fixes locally,
 
-              curl '${{ steps.upload.outputs.artifact-url }}' | unzip -p - restyled.diff | git am
+          1. Download [this patch artifact](${{ steps.upload.outputs.artifact-url }})
+          2. Unzip it: `unzip artifact.zip`
+          3. Apply it: `git am < restyled.diff`
 
           EOM
 ```
 
 ### Sibling PRs (no forks, no cleanup)
+
+![](./files/pull-request-event.png)
+
+![](./files/pull-request.png)
 
 ```yaml
 on:
