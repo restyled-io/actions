@@ -85,6 +85,12 @@ const cases = [
   },
   {
     base: [
+      "From 0f6f88c98fff3afa0289f46bf4eab469f45eebc6 Mon Sep 17 00:00:00 2001",
+      "From: A dev <a-dev@users.noreply.github.com>",
+      "Date: Sat, 25 Jan 2020 19:21:35 +0200",
+      "Subject: [PATCH] Blah blah",
+      "",
+      "---",
       "diff --git a/suggestions/src/hunk.ts b/suggestions/src/hunk.ts",
       "new file mode 100644",
       "index 0000000..b295688",
@@ -208,5 +214,16 @@ describe("getSuggestions", () => {
     const actual = getSuggestions(base.join("\n"), patch.join("\n"), expected);
 
     expect(actual).toEqual([]);
+  });
+
+  it("Can find multiple suggestions", () => {
+    const base = cases.map((c) => c.base.join("\n")).join("\n\n");
+    const patch = cases.map((c) => c.patch.join("\n")).join("\n\n");
+    const expected = cases.flatMap((c) => c.expected);
+
+    const actual = getSuggestions(base, patch, []);
+
+    expect(actual.length).toEqual(2);
+    expect(actual).toEqual(expected);
   });
 });
