@@ -49,6 +49,11 @@ jobs:
           fail-on-differences: true
 ```
 
+> [!NOTE]
+> If combining `fail-on-differences` with other examples below, make sure you
+> update the conditions on later steps that should run when differences are
+> found.
+
 ### Code Suggestion Comments
 
 ![](./files/suggestion.png)
@@ -66,8 +71,6 @@ jobs:
       - uses: restyled-io/actions/run@v4
         with:
           suggestions: true
-          show-patch: false
-          show-patch-command: false
 ```
 
 ### Upload Patch Artifact
@@ -84,6 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: restyled-io/actions/setup@v4
+
       - id: restyler
         uses: restyled-io/actions/run@v4
 
@@ -136,10 +140,8 @@ jobs:
 
       - id: restyler
         uses: restyled-io/actions/run@v4
-        with:
-          fail-on-differences: true
 
-      - if: ${{ !cancelled() && steps.restyler.outputs.success == 'true' }}
+      - if: ${{ steps.restyler.outputs.success == 'true' }}
         uses: peter-evans/create-pull-request@v7
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
@@ -159,9 +161,7 @@ on:
 
 jobs:
   restyled:
-    # Same as above for non-fork PRs
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -172,10 +172,8 @@ jobs:
 
       - id: restyler
         uses: restyled-io/actions/run@v4
-        with:
-          fail-on-differences: true
 
-      - if: ${{ !cancelled() && steps.restyler.outputs.success == 'true' }}
+      - if: ${{ steps.restyler.outputs.success == 'true' }}
         uses: peter-evans/create-pull-request@v7
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
@@ -187,16 +185,12 @@ jobs:
           delete-branch: true
 
   restyled-fork:
-    # For forks we don't create the PR or operate on the head ref
     if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: restyled-io/actions/setup@v4
       - uses: restyled-io/actions/run@v4
-        with:
-          fail-on-differences: true
 ```
 
 ### Sibling PRs (forks and cleanup)
@@ -226,10 +220,8 @@ jobs:
 
       - id: restyler
         uses: restyled-io/actions/run@v4
-        with:
-          fail-on-differences: true
 
-      - if: ${{ !cancelled() && steps.restyler.outputs.success == 'true' }}
+      - if: ${{ steps.restyler.outputs.success == 'true' }}
         uses: peter-evans/create-pull-request@v7
         with:
           base: ${{ steps.restyler.outputs.restyled-base }}
@@ -250,8 +242,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: restyled-io/actions/setup@v4
       - uses: restyled-io/actions/run@v4
-        with:
-          fail-on-differences: true
 
   restyled-cleanup:
     if: ${{ github.event.action == 'closed' }}
