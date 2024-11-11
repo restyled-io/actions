@@ -1024,10 +1024,10 @@ acorn@^8.2.4:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.12.1.tgz#71616bdccbe25e27a54439e0046e89ca76df2248"
   integrity sha512-tcpGyI9zbizT9JbV6oYE477V6mTlXvvi0T0G3SNIYE2apm/G5huBa1+K89VGeovbg+jycCrfhl3ADxErOuO6Jg==
 
-action-docs@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/action-docs/-/action-docs-2.5.0.tgz#c236de7b515ed46014c61ad3ddcd5898af38c0b5"
-  integrity sha512-DByAgBW3sEooXA/S8aiYju9t2viay+QUrtVsSKP89l96yfDLE1c+Gz5s4W8Ac+DutqCTrlOiEAqy7x9YyfMfAw==
+action-docs@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/action-docs/-/action-docs-2.5.1.tgz#6ec3ab8bb5e8f33ccbc34a3d879a797c0d814baf"
+  integrity sha512-kACC20UOsuVifAEYZAAMsm+Lpq14nWXM3FDbIUqUiu7s3KtlGSfRG5btboYIGNomZQ5coTc/UR1F5H9yRqTAEw==
   dependencies:
     chalk "^5.3.0"
     figlet "^1.7.0"
