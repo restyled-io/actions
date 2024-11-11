@@ -93,6 +93,11 @@ class Hunks {
                 NE.last(hunk).lineNumber <= NE.last(x).lineNumber);
         });
     }
+    lines() {
+        return this.hunks().flatMap((hunk) => {
+            return NE.toList(hunk).map((x) => x.lineNumber);
+        });
+    }
     add(line) {
         const current = this.get(this.lastHunk);
         const isSameLine = line.lineNumber === this.lastLine;
@@ -232,6 +237,7 @@ const review_comments_1 = __nccwpck_require__(7253);
 const inputs_1 = __nccwpck_require__(6107);
 const pull_request_1 = __nccwpck_require__(4925);
 const suggestions_1 = __nccwpck_require__(6017);
+const patch_1 = __nccwpck_require__(8854);
 const process_1 = __nccwpck_require__(1633);
 const outputs_1 = __nccwpck_require__(3914);
 function pullRequestDescription(number) {
@@ -301,7 +307,19 @@ async function run() {
         if (inputs.suggestions) {
             const resolved = await (0, review_comments_1.clearPriorSuggestions)(client, pr);
             if (pr.diff && differences) {
-                await (0, review_comments_1.commentSuggestions)(client, pr, (0, suggestions_1.getSuggestions)(pr.diff, patch, resolved));
+                const bases = (0, patch_1.parsePatches)(pr.diff);
+                const patches = (0, patch_1.parsePatches)(patch);
+                const ps = (0, suggestions_1.getSuggestions)(bases, patches, resolved).map((s) => {
+                    if (s.skipReason) {
+                        core.warning(`Skipping suggestion at ${s.path}:${s.startLine}: ${s.skipReason}`);
+                        return Promise.resolve();
+                    }
+                    else {
+                        return (0, review_comments_1.commentSuggestion)(client, pr, s);
+                    }
+                });
+                core.info(`Leaving ${ps.length} suggestion(s)`);
+                await Promise.all(ps);
             }
         }
         (0, outputs_1.setOutputs)({
@@ -456,7 +474,7 @@ function parsePatches(str) {
         if (patchLines.length === 0) {
             return;
         }
-        const parsed = (0, parse_git_patch_1.default)(patchLines.join("\n"));
+        const parsed = parsePatch(patchLines.join("\n"));
         if (!parsed) {
             return;
         }
@@ -471,6 +489,20 @@ function parsePatches(str) {
     });
     accumulate();
     return patches;
+}
+function parsePatch(str) {
+    const p = (0, parse_git_patch_1.default)(str);
+    if (p) {
+        fixLineNumbers(p);
+    }
+    return p;
+}
+function fixLineNumbers(patch) {
+    patch.files.forEach((file) => {
+        file.modifiedLines.forEach((mod) => {
+            mod.lineNumber = mod.lineNumber - 1;
+        });
+    });
 }
 
 
@@ -670,7 +702,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.clearPriorSuggestions = clearPriorSuggestions;
-exports.commentSuggestions = commentSuggestions;
+exports.commentSuggestion = commentSuggestion;
 const core = __importStar(__nccwpck_require__(7484));
 const github = __importStar(__nccwpck_require__(3228));
 const github_graphql_1 = __nccwpck_require__(7945);
@@ -710,13 +742,6 @@ async function clearPriorSuggestions(client, pullRequest) {
     core.debug(`Deleting ${ps.length} old suggestions(s)`);
     await Promise.all(ps);
     return resolved;
-}
-async function commentSuggestions(client, pullRequest, suggestions) {
-    const ps = suggestions.map((suggestion) => {
-        return commentSuggestion(client, pullRequest, suggestion);
-    });
-    core.info(`Leaving ${ps.length} suggestion(s)`);
-    Promise.all(ps);
 }
 async function commentSuggestion(client, pullRequest, suggestion) {
     const path = suggestion.path;
@@ -779,37 +804,58 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getSuggestions = getSuggestions;
-const patch_1 = __nccwpck_require__(8854);
 const hunk_1 = __nccwpck_require__(9734);
 const NE = __importStar(__nccwpck_require__(1571));
-function getSuggestions(baseStr, patchStr, resolved) {
+function mkSuggestion(file, patch, delLine, add) {
+    return {
+        path: file.afterName,
+        description: (patch.message || "").replace(/^\[PATCH] /, ""),
+        startLine: delLine,
+        endLine: delLine,
+        code: NE.toList(add).map((x) => x.line),
+    };
+}
+function mkSkipped(skipReason, file, patch, delLine, add) {
+    return {
+        path: file.afterName,
+        description: (patch.message || "").replace(/^\[PATCH] /, ""),
+        startLine: delLine ?? 0,
+        endLine: delLine ?? 0,
+        code: add ? NE.toList(add).map((x) => x.line) : [],
+        skipReason,
+    };
+}
+function getSuggestions(bases, patches, resolved) {
     const suggestions = [];
-    const bases = (0, patch_1.parsePatches)(baseStr);
-    const patches = (0, patch_1.parsePatches)(patchStr);
     const baseFiles = bases.flatMap((p) => p.files);
     patches.forEach((patch) => {
         patch.files.forEach((file) => {
             const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
             if (!baseFile) {
+                suggestions.push(mkSkipped(`Changed file ${file.afterName} is not present in base diff`, file, patch));
                 return;
             }
             const baseAdds = new hunk_1.Hunks(baseFile.modifiedLines.filter((x) => x.added));
             const dels = new hunk_1.Hunks(file.modifiedLines.filter((x) => !x.added));
             const adds = new hunk_1.Hunks(file.modifiedLines.filter((x) => x.added));
             dels.forEach((del) => {
-                const add = adds.get(NE.head(del).lineNumber);
-                if (baseAdds.contain(del) && add) {
-                    const suggestion = {
-                        path: file.afterName,
-                        description: (patch.message || "").replace(/^\[PATCH] /, ""),
-                        startLine: NE.head(del).lineNumber - 1,
-                        endLine: NE.last(del).lineNumber - 1,
-                        code: NE.toList(add).map((x) => x.line),
-                    };
-                    if (!resolved.some((r) => isSameLocation(r, suggestion))) {
-                        suggestions.push(suggestion);
-                    }
+                const delLine = NE.head(del).lineNumber;
+                const location = `${file.afterName}:${delLine}`;
+                const add = adds.get(delLine);
+                if (!add) {
+                    suggestions.push(mkSkipped(`Deletion at ${location} has no corresponding addition: ${JSON.stringify(adds.lines())}`, file, patch, delLine));
+                    return;
                 }
+                if (!baseAdds.contain(del)) {
+                    suggestions.push(mkSkipped(`Deletion at ${location} was not added in base diff: ${JSON.stringify(baseAdds.lines())}`, file, patch, delLine, add));
+                    return;
+                }
+                const suggestion = mkSuggestion(file, patch, delLine, add);
+                if (resolved.some((r) => isSameLocation(r, suggestion))) {
+                    suggestions.push(mkSkipped(`Suggestion at ${location} already marked resolved`, file, patch, delLine, add));
+                    return;
+                }
+                suggestions.push(suggestion);
             });
         });
     });
