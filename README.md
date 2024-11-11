@@ -25,6 +25,9 @@ In all cases, we recommend creating the workflow as `restyled.yml`, naming it
 
 name: Restyled
 
+on:
+  pull_request:
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -35,9 +38,6 @@ concurrency:
 ![](./files/failing-status.png)
 
 ```yaml
-on:
-  pull_request:
-
 jobs:
   restyled:
     runs-on: ubuntu-latest
@@ -63,9 +63,6 @@ jobs:
 ![](./files/suggestion.png)
 
 ```yaml
-on:
-  pull_request:
-
 jobs:
   restyled:
     runs-on: ubuntu-latest
@@ -82,9 +79,6 @@ jobs:
 ![](./files/patch-artifact.png)
 
 ```yaml
-on:
-  pull_request:
-
 jobs:
   restyled:
     runs-on: ubuntu-latest
@@ -122,16 +116,13 @@ jobs:
           EOM
 ```
 
-### Sibling PRs (no forks, no cleanup)
+### Sibling PRs
 
 ![](./files/pull-request-event.png)
 
 ![](./files/pull-request.png)
 
 ```yaml
-on:
-  pull_request:
-
 jobs:
   restyled:
     runs-on: ubuntu-latest
@@ -156,36 +147,21 @@ jobs:
           delete-branch: true
 ```
 
-### Sibling PRs (forks, no cleanup)
+#### Handling Forks
+
+If you expect PRs from forks, sibling PRs are not possible. You should skip
+them:
+
+```diff
+ jobs:
+   restyled:
++    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+     runs-on: ubuntu-latest
+```
+
+Optionally, add a separate job for forks that does something else:
 
 ```yaml
-on:
-  pull_request:
-
-jobs:
-  restyled:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-
-      - uses: restyled-io/actions/setup@v4
-
-      - id: restyler
-        uses: restyled-io/actions/run@v4
-
-      - uses: peter-evans/create-pull-request@v7
-        with:
-          base: ${{ steps.restyler.outputs.restyled-base }}
-          branch: ${{ steps.restyler.outputs.restyled-head }}
-          title: ${{ steps.restyler.outputs.restyled-title }}
-          body: ${{ steps.restyler.outputs.restyled-body }}
-          labels: "restyled"
-          reviewers: ${{ github.event.pull_request.user.login }}
-          delete-branch: true
-
   restyled-fork:
     if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
     runs-on: ubuntu-latest
@@ -193,57 +169,51 @@ jobs:
       - uses: actions/checkout@v4
       - uses: restyled-io/actions/setup@v4
       - uses: restyled-io/actions/run@v4
+        with:
+          fail-on-differences: true
 ```
 
-### Sibling PRs (forks and cleanup)
+#### Cleaning Up
+
+If you elect not to merge a sibling PR, it will remain open. One option for
+cleaning up is to run this workflow on closed events:
+
+```diff
+ on:
+   pull_request:
++    types:
++      - opened
++      - reopened
++      - synchronize
++      - closed
+```
+
+Ensure you don't run the usual jobs for that action:
+
+```diff
+ jobs:
+   restyled:
+-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
++    if: |
++      github.event.action != 'closed' &&
++      github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+```
+
+```diff
+   restyled-fork:
+-    if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
++    if: |
++      github.event.action != 'closed' &&
++      github.event.pull_request.head.repo.full_name != github.repository
+
+     runs-on: ubuntu-latest
+```
+
+And run a clean-up job instead:
 
 ```yaml
-on:
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - closed
-
-jobs:
-  restyled:
-    if: |
-      github.event.action != 'closed' && # <-- same as above besides this
-      github.event.pull_request.head.repo.full_name == github.repository
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-
-      - uses: restyled-io/actions/setup@v4
-
-      - id: restyler
-        uses: restyled-io/actions/run@v4
-
-      - uses: peter-evans/create-pull-request@v7
-        with:
-          base: ${{ steps.restyler.outputs.restyled-base }}
-          branch: ${{ steps.restyler.outputs.restyled-head }}
-          title: ${{ steps.restyler.outputs.restyled-title }}
-          body: ${{ steps.restyler.outputs.restyled-body }}
-          labels: "restyled"
-          reviewers: ${{ github.event.pull_request.user.login }}
-          delete-branch: true
-
-  restyled-fork:
-    if: |
-      github.event.action != 'closed' && # <-- same as above besides this
-      github.event.pull_request.head.repo.full_name != github.repository
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: restyled-io/actions/setup@v4
-      - uses: restyled-io/actions/run@v4
-
   restyled-cleanup:
     if: ${{ github.event.action == 'closed' }}
     runs-on: ubuntu-latest
