@@ -54,6 +54,12 @@ export class Hunks<T> {
     });
   }
 
+  lines(): number[] {
+    return this.hunks().flatMap((hunk) => {
+      return NE.toList(hunk).map((x) => x.lineNumber);
+    });
+  }
+
   private add(line: HunkLine<T>) {
     const current = this.get(this.lastHunk);
     const isSameLine = line.lineNumber === this.lastLine;

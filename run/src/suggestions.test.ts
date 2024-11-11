@@ -13,185 +13,207 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { getSuggestions } from "./suggestions";
+import {
+  type ParsedPatchType,
+  type ParsedPatchFileDataType,
+} from "parse-git-patch";
 
-const cases = [
-  {
-    base: [
-      "From 0f6f88c98fff3afa0289f46bf4eab469f45eebc6 Mon Sep 17 00:00:00 2001",
-      "From: A dev <a-dev@users.noreply.github.com>",
-      "Date: Sat, 25 Jan 2020 19:21:35 +0200",
-      "Subject: [PATCH] JSON stringify string responses",
-      "",
-      "---",
-      " src/events/http/HttpServer.js | 4 +++-",
-      " 1 file changed, 3 insertions(+), 1 deletion(-)",
-      "",
-      "diff --git a/src/events/http/HttpServer.js b/src/events/http/HttpServer.js",
-      "index 20bf454..c0fdafb 100644",
-      "--- a/src/events/http/HttpServer.js",
-      "+++ b/src/events/http/HttpServer.js",
-      "@@ -770,7 +770,9 @@ export default class HttpServer {",
-      "           override: false,",
-      "         })",
-      "",
-      "-        if (result && typeof result.body !== 'undefined') {",
-      "+        if (typeof result === 'string') {",
-      "+          response.source = JSON.stringify(result)",
-      "+        } else if (result && typeof result.body !== 'undefined') {",
-      "           if (result.isBase64Encoded) {",
-      "             response.encoding = 'binary'",
-      "             response.source = Buffer.from(result.body, 'base64')",
-      "--",
-      "2.21.1 (Apple Git-122.3)",
+import { type Suggestion, getSuggestions } from "./suggestions";
+
+type TestCase = {
+  name: string;
+  bases: ParsedPatchType[];
+  patches: ParsedPatchType[];
+  suggestions: Suggestion[];
+};
+
+function testCase(
+  name: string,
+  bases: ParsedPatchType[],
+  patches: ParsedPatchType[],
+  suggestions: Suggestion[],
+): TestCase {
+  return { name, bases, patches, suggestions };
+}
+
+function patch(
+  message: string,
+  files: ParsedPatchFileDataType[],
+): ParsedPatchType {
+  return {
+    hash: "<some hash>",
+    date: "<some date>",
+    authorName: "Restyled Test",
+    authorEmail: "test@restyled.io",
+    message: `[PATCH] ${message}`,
+    files,
+  };
+}
+
+function patchFile(name: string, diff: string): ParsedPatchFileDataType {
+  const modifiedLines = diff
+    .split("\n")
+    .filter((x) => x.trim() !== "")
+    .map((diffLine) => {
+      const [rawBeforeLine, rawAfterLine, ...line] = diffLine.split("|");
+      const beforeLine = rawBeforeLine.trim();
+      const afterLine = rawAfterLine.trim();
+
+      if (beforeLine !== "" && afterLine !== "") {
+        throw new Error("Must only specify before or after line, not both");
+      }
+
+      if (beforeLine !== "") {
+        return {
+          added: false,
+          lineNumber: parseInt(beforeLine, 10),
+          line: line.join("|"),
+        };
+      }
+
+      return {
+        added: true,
+        lineNumber: parseInt(afterLine, 10),
+        line: line.join("|"),
+      };
+    });
+
+  return {
+    added: false,
+    deleted: false,
+    beforeName: name,
+    afterName: name,
+    modifiedLines,
+  };
+}
+
+const cases: TestCase[] = [
+  testCase(
+    "Change on change",
+    [
+      patch("JSON stringify string responses", [
+        patchFile(
+          "src/events/http/HttpServer.js",
+          `
+            774|   |        if (result && typeof result.body !== 'undefined') {
+               |774|        if (typeof result === 'string') {
+               |775|          response.source = JSON.stringify(result)
+               |776|        } else if (result && typeof result.body !== 'undefined') {
+          `,
+        ),
+      ]),
     ],
-    patch: [
-      "From 0f6f88c98fff3afa0289f46bf4eab469f45eebc6 Mon Sep 17 00:00:00 2001",
-      "From: A dev <a-dev@users.noreply.github.com>",
-      "Date: Sat, 25 Jan 2020 19:21:35 +0200",
-      "Subject: [PATCH] JSON stringify string responses",
-      "",
-      "---",
-      " src/events/http/HttpServer.js | 4 +++-",
-      " 1 file changed, 3 insertions(+), 1 deletion(-)",
-      "",
-      "diff --git a/src/events/http/HttpServer.js b/src/events/http/HttpServer.js",
-      "index 20bf454..c0fdafb 100644",
-      "--- a/src/events/http/HttpServer.js",
-      "+++ b/src/events/http/HttpServer.js",
-      "@@ -770,7 +770,9 @@ export default class HttpServer {",
-      "           override: false,",
-      "         })",
-      "",
-      "         if (typeof result === 'string') {",
-      "-          response.source = JSON.stringify(result)",
-      "+          response.source = JSON.stringify(result);",
-      "         } else if (result && typeof result.body !== 'undefined') {",
-      "           if (result.isBase64Encoded) {",
-      "             response.encoding = 'binary'",
-      "             response.source = Buffer.from(result.body, 'base64')",
-      "--",
-      "2.21.1 (Apple Git-122.3)",
+    [
+      patch("Restyled by prettier", [
+        patchFile(
+          "src/events/http/HttpServer.js",
+          `
+            775|   |          response.source = JSON.stringify(result)
+               |775|          response.source = JSON.stringify(result);
+          `,
+        ),
+      ]),
     ],
-    expected: [
+    [
       {
         path: "src/events/http/HttpServer.js",
-        description: "JSON stringify string responses",
-        startLine: 774,
-        endLine: 774,
+        description: "Restyled by prettier",
+        startLine: 775,
+        endLine: 775,
         code: ["          response.source = JSON.stringify(result);"],
       },
     ],
-  },
-  {
-    base: [
-      "From 0f6f88c98fff3afa0289f46bf4eab469f45eebc6 Mon Sep 17 00:00:00 2001",
-      "From: A dev <a-dev@users.noreply.github.com>",
-      "Date: Sat, 25 Jan 2020 19:21:35 +0200",
-      "Subject: [PATCH] Blah blah",
-      "",
-      "---",
-      "diff --git a/suggestions/src/hunk.ts b/suggestions/src/hunk.ts",
-      "new file mode 100644",
-      "index 0000000..b295688",
-      "--- /dev/null",
-      "+++ b/suggestions/src/hunk.ts",
-      "@@ -0,0 +1,61 @@",
-      '+import { type NonEmpty } from "./non-empty";',
-      '+import * as NE from "./non-empty";',
-      "+",
-      "+export interface HasLineNumber {",
-      "+  lineNumber: number;",
-      "+}",
-      "+",
-      "+export class Hunks<T> {",
-      "+  private map: Map<number, NonEmpty<T & HasLineNumber>>;",
-      "+  private lastHunk: number;",
-      "+  private lastLine: number;",
-      "+",
-      "+  constructor() {",
-      "+    this.map = new Map();",
-      "+    this.lastHunk = -1;",
-      "+    this.lastLine = -1;",
-      "+  }",
-      "+",
-      "+  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null { return this.map.get(lineNumber) || null; }",
-      "+",
-      "+  add(line: T & HasLineNumber) {",
-      "+    const current = this.get(line.lineNumber);",
-      "+    const sameLine = line.lineNumber == this.lastLine;",
-      "+    const lastLine = line.lineNumber === this.lastLine + 1;",
-      "+",
-      "+    if (current && (sameLine || lastLine)) {",
-      "+      NE.append(current, NE.singleton(line));",
-      "+    } else {",
-      "+      this.map.set(line.lineNumber, NE.singleton(line));",
-      "+      this.lastHunk = line.lineNumber;",
-      "+    }",
-      "+",
-      "+    this.lastLine = line.lineNumber;",
-      "+  }",
-      "+",
-      "+  forEachHunkWithin(",
-      "+    other: Hunks<T>,",
-      "+    f: (hunk: NonEmpty<T & HasLineNumber>) => void,",
-      "+  ): void {",
-      "+    Array.from(this.map.values()).forEach((hunk) => {",
-      "+      if (other.contains(hunk)) {",
-      "+        f(hunk);",
-      "+      }",
-      "+    });",
-      "+  }",
-      "+",
-      "+  contains(hunk: NonEmpty<T & HasLineNumber>) {",
-      "+    return Array.from(this.map.values()).some((x) => {",
-      "+      return (",
-      "+        hunk.head.lineNumber >= x.head.lineNumber &&",
-      "+        hunk.last.lineNumber <= x.last.lineNumber",
-      "+      );",
-      "+    });",
-      "+  }",
-      "+}",
-      "+",
-      "+export function build<T>(lines: (T & HasLineNumber)[]): Hunks<T> {",
-      "+  const hunks: Hunks<T> = new Hunks();",
-      "+  lines.forEach((line) => hunks.add(line));",
-      "+  return hunks;",
-      "+}",
+  ),
+  testCase(
+    "Change on addition",
+    [
+      patch("Blah blah", [
+        patchFile(
+          "suggestions/src/hunk.ts",
+          `
+            | 1|import { type NonEmpty } from "./non-empty";
+            | 2|import * as NE from "./non-empty";
+            | 3|
+            | 4|export interface HasLineNumber {
+            | 5|  lineNumber: number;
+            | 6|}
+            | 7|
+            | 8|export class Hunks<T> {
+            | 9|  private map: Map<number, NonEmpty<T & HasLineNumber>>;
+            |10|  private lastHunk: number;
+            |11|  private lastLine: number;
+            |12|
+            |12|  constructor() {
+            |13|    this.map = new Map();
+            |14|    this.lastHunk = -1;
+            |15|    this.lastLine = -1;
+            |16|  }
+            |17|
+            |18|  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null { return this.map.get(lineNumber) || null; }
+            |19|
+            |20|  add(line: T & HasLineNumber) {
+            |21|    const current = this.get(line.lineNumber);
+            |22|    const sameLine = line.lineNumber == this.lastLine;
+            |23|    const lastLine = line.lineNumber === this.lastLine + 1;
+            |24|
+            |25|    if (current && (sameLine || lastLine)) {
+            |26|      NE.append(current, NE.singleton(line));
+            |27|    } else {
+            |28|      this.map.set(line.lineNumber, NE.singleton(line));
+            |29|      this.lastHunk = line.lineNumber;
+            |30|    }
+            |31|
+            |32|    this.lastLine = line.lineNumber;
+            |33|  }
+            |34|
+            |35|  forEachHunkWithin(
+            |36|    other: Hunks<T>,
+            |37|    f: (hunk: NonEmpty<T & HasLineNumber>) => void,
+            |38|  ): void {
+            |39|    Array.from(this.map.values()).forEach((hunk) => {
+            |40|      if (other.contains(hunk)) {
+            |41|        f(hunk);
+            |42|      }
+            |43|    });
+            |44|  }
+            |45|
+            |46|  contains(hunk: NonEmpty<T & HasLineNumber>) {
+            |47|    return Array.from(this.map.values()).some((x) => {
+            |48|      return (
+            |49|        hunk.head.lineNumber >= x.head.lineNumber &&
+            |50|        hunk.last.lineNumber <= x.last.lineNumber
+            |51|      );
+            |52|    });
+            |53|  }
+            |54|}
+            |55|
+            |56|export function build<T>(lines: (T & HasLineNumber)[]): Hunks<T> {
+            |57|  const hunks: Hunks<T> = new Hunks();
+            |58|  lines.forEach((line) => hunks.add(line));
+            |59|  return hunks;
+            |60|}
+        `,
+        ),
+      ]),
     ],
-    patch: [
-      "From c09573b2a7edbb92eafbacca0b6e66b9382a618a Mon Sep 17 00:00:00 2001",
-      'From: "Restyled.io" <commits@restyled.io>',
-      "Date: Wed, 6 Nov 2024 17:46:14 +0000",
-      "Subject: [PATCH] Restyled by prettier",
-      "",
-      "---",
-      " suggestions/src/hunk.ts | 4 +++-",
-      " 1 file changed, 3 insertions(+), 1 deletion(-)",
-      "",
-      "diff --git a/suggestions/src/hunk.ts b/suggestions/src/hunk.ts",
-      "index b295688..8ca573f 100644",
-      "--- a/suggestions/src/hunk.ts",
-      "+++ b/suggestions/src/hunk.ts",
-      "@@ -16,7 +16,9 @@ export class Hunks<T> {",
-      "     this.lastLine = -1;",
-      "   }",
-      " ",
-      "-  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null { return this.map.get(lineNumber) || null; }",
-      "+  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null {",
-      "+    return this.map.get(lineNumber) || null;",
-      "+  }",
-      " ",
-      "   add(line: T & HasLineNumber) {",
-      "     const current = this.get(line.lineNumber);",
-      "-- ",
-      "2.47.0",
+    [
+      patch("Restyled by prettier", [
+        patchFile(
+          "suggestions/src/hunk.ts",
+          `
+            18|  |  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null { return this.map.get(lineNumber) || null; }
+              |18|  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null {
+              |19|    return this.map.get(lineNumber) || null;
+              |20|  }
+          `,
+        ),
+      ]),
     ],
-    expected: [
+    [
       {
         path: "suggestions/src/hunk.ts",
-        startLine: 19,
-        endLine: 19,
+        startLine: 18,
+        endLine: 18,
         description: "Restyled by prettier",
         code: [
           "  get(lineNumber: number): NonEmpty<T & HasLineNumber> | null {",
@@ -200,30 +222,40 @@ const cases = [
         ],
       },
     ],
-  },
+  ),
 ];
 
 describe("getSuggestions", () => {
-  test.each(cases)("Example case", ({ base, patch, expected }) => {
-    const actual = getSuggestions(base.join("\n"), patch.join("\n"), []);
+  test.each(cases)("$name", ({ bases, patches, suggestions }) => {
+    const actual = getSuggestions(bases, patches, []).filter((x) => {
+      return !x.skipReason;
+    });
 
-    expect(actual).toEqual(expected);
+    expect(actual).toEqual(suggestions);
   });
 
-  test.each(cases)("Example case (resolved)", ({ base, patch, expected }) => {
-    const actual = getSuggestions(base.join("\n"), patch.join("\n"), expected);
+  test.each(cases)("$name (resolved)", ({ bases, patches, suggestions }) => {
+    const includingSkipped = getSuggestions(bases, patches, suggestions);
+    const actual = includingSkipped.filter((x) => {
+      return !x.skipReason;
+    });
 
     expect(actual).toEqual([]);
+    expect(includingSkipped.map((x) => x.skipReason)).toEqual(
+      suggestions.map((x) => {
+        return `Suggestion at ${x.path}:${x.startLine} already marked resolved`;
+      }),
+    );
   });
 
-  it("Can find multiple suggestions", () => {
-    const base = cases.map((c) => c.base.join("\n")).join("\n\n");
-    const patch = cases.map((c) => c.patch.join("\n")).join("\n\n");
-    const expected = cases.flatMap((c) => c.expected);
+  it("Multiple suggestions", () => {
+    const bases = cases.flatMap((c) => c.bases);
+    const patches = cases.flatMap((c) => c.patches);
+    const suggestions = cases.flatMap((c) => c.suggestions);
 
-    const actual = getSuggestions(base, patch, []);
+    const actual = getSuggestions(bases, patches, []);
 
     expect(actual.length).toEqual(2);
-    expect(actual).toEqual(expected);
+    expect(actual).toEqual(suggestions);
   });
 });
