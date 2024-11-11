@@ -17,10 +17,11 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
-import { clearPriorSuggestions, commentSuggestions } from "./review-comments";
+import { clearPriorSuggestions, commentSuggestion } from "./review-comments";
 import { cliArguments, getInputs } from "./inputs";
 import { getPullRequest } from "./pull-request";
 import { getSuggestions } from "./suggestions";
+import { parsePatches } from "./patch";
 import { readProcess } from "./process";
 import { setOutputs } from "./outputs";
 
@@ -102,11 +103,21 @@ async function run() {
       const resolved = await clearPriorSuggestions(client, pr);
 
       if (pr.diff && differences) {
-        await commentSuggestions(
-          client,
-          pr,
-          getSuggestions(pr.diff, patch, resolved),
-        );
+        const bases = parsePatches(pr.diff);
+        const patches = parsePatches(patch);
+        const ps = getSuggestions(bases, patches, resolved).map((s) => {
+          if (s.skipReason) {
+            core.warning(
+              `Skipping suggestion at ${s.path}:${s.startLine}: ${s.skipReason}`,
+            );
+            return Promise.resolve();
+          } else {
+            return commentSuggestion(client, pr, s);
+          }
+        });
+
+        core.info(`Leaving ${ps.length} suggestion(s)`);
+        await Promise.all(ps);
       }
     }
 

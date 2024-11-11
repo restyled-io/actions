@@ -13,9 +13,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { parsePatches } from "./patch";
+import {
+  type ParsedPatchType,
+  type ParsedPatchFileDataType,
+  type ParsedPatchModifiedLineType,
+} from "parse-git-patch";
 
 import { Hunks } from "./hunk";
+import { type NonEmpty } from "./non-empty";
 import * as NE from "./non-empty";
 
 export type Suggestion = {
@@ -24,16 +29,47 @@ export type Suggestion = {
   startLine: number;
   endLine: number;
   code: string[];
+  skipReason?: string;
 };
 
+function mkSuggestion(
+  file: ParsedPatchFileDataType,
+  patch: ParsedPatchType,
+  delLine: number,
+  add: NonEmpty<ParsedPatchModifiedLineType>,
+): Suggestion {
+  return {
+    path: file.afterName,
+    description: (patch.message || "").replace(/^\[PATCH] /, ""),
+    startLine: delLine,
+    endLine: delLine,
+    code: NE.toList(add).map((x) => x.line),
+  };
+}
+
+function mkSkipped(
+  skipReason: string,
+  file: ParsedPatchFileDataType,
+  patch: ParsedPatchType,
+  delLine?: number,
+  add?: NonEmpty<ParsedPatchModifiedLineType>,
+): Suggestion {
+  return {
+    path: file.afterName,
+    description: (patch.message || "").replace(/^\[PATCH] /, ""),
+    startLine: delLine ?? 0,
+    endLine: delLine ?? 0,
+    code: add ? NE.toList(add).map((x) => x.line) : [],
+    skipReason,
+  };
+}
+
 export function getSuggestions(
-  baseStr: string,
-  patchStr: string,
+  bases: ParsedPatchType[],
+  patches: ParsedPatchType[],
   resolved: Suggestion[],
 ): Suggestion[] {
   const suggestions: Suggestion[] = [];
-  const bases = parsePatches(baseStr);
-  const patches = parsePatches(patchStr);
   const baseFiles = bases.flatMap((p) => p.files);
 
   patches.forEach((patch) => {
@@ -41,6 +77,13 @@ export function getSuggestions(
       const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
 
       if (!baseFile) {
+        suggestions.push(
+          mkSkipped(
+            `Changed file ${file.afterName} is not present in base diff`,
+            file,
+            patch,
+          ),
+        );
         return;
       }
 
@@ -49,20 +92,51 @@ export function getSuggestions(
       const adds = new Hunks(file.modifiedLines.filter((x) => x.added));
 
       dels.forEach((del) => {
-        const add = adds.get(NE.head(del).lineNumber);
-        if (baseAdds.contain(del) && add) {
-          const suggestion = {
-            path: file.afterName,
-            description: (patch.message || "").replace(/^\[PATCH] /, ""),
-            startLine: NE.head(del).lineNumber - 1, // git-parse-patch bug
-            endLine: NE.last(del).lineNumber - 1, // git-parse-patch bug
-            code: NE.toList(add).map((x) => x.line),
-          };
+        const delLine = NE.head(del).lineNumber;
+        const location = `${file.afterName}:${delLine}`;
+        const add = adds.get(delLine);
 
-          if (!resolved.some((r) => isSameLocation(r, suggestion))) {
-            suggestions.push(suggestion);
-          }
+        if (!add) {
+          suggestions.push(
+            mkSkipped(
+              `Deletion at ${location} has no corresponding addition: ${JSON.stringify(adds.lines())}`,
+              file,
+              patch,
+              delLine,
+            ),
+          );
+          return;
         }
+
+        if (!baseAdds.contain(del)) {
+          suggestions.push(
+            mkSkipped(
+              `Deletion at ${location} was not added in base diff: ${JSON.stringify(baseAdds.lines())}`,
+              file,
+              patch,
+              delLine,
+              add,
+            ),
+          );
+          return;
+        }
+
+        const suggestion = mkSuggestion(file, patch, delLine, add);
+
+        if (resolved.some((r) => isSameLocation(r, suggestion))) {
+          suggestions.push(
+            mkSkipped(
+              `Suggestion at ${location} already marked resolved`,
+              file,
+              patch,
+              delLine,
+              add,
+            ),
+          );
+          return;
+        }
+
+        suggestions.push(suggestion);
       });
     });
   });

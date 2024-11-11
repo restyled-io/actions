@@ -136,5 +136,23 @@ describe("parsePatches", () => {
       "src/events/http/HttpServer.js",
       "suggestions/src/hunk.ts",
     ]);
+    expect(
+      parsed.map((p) => {
+        return p.files.map((f) => {
+          return f.modifiedLines.map((l) => {
+            return l.lineNumber;
+          });
+        });
+      }),
+    ).toEqual([[[773].concat(range(773, 3)).concat([777])], [range(1, 61)]]);
   });
 });
+
+/* range(5, 3) => [5, 6, 7] */
+function range(begin: number, len: number): number[] {
+  return Array(len)
+    .fill(0)
+    .map((_: number, index: number) => {
+      return index + begin;
+    });
+}

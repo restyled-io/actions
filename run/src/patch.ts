@@ -23,18 +23,19 @@ export function parsePatches(str: string): ParsedPatchType[] {
 
   let patchLines: string[] = [];
 
+  // Parse what we have so far and reset lines
   const accumulate = () => {
     if (patchLines.length === 0) {
       return;
     }
 
-    const parsed = parseGitPatch(patchLines.join("\n"));
+    const parsed = parsePatch(patchLines.join("\n"));
 
     if (!parsed) {
       return;
     }
 
-    patches.push(parsed as ParsedPatchType);
+    patches.push(parsed);
     patchLines = [];
   };
 
@@ -49,4 +50,24 @@ export function parsePatches(str: string): ParsedPatchType[] {
   accumulate();
 
   return patches;
+}
+
+function parsePatch(str: string): ParsedPatchType | null {
+  // https://github.com/dherault/parse-git-patch/issues/17
+  const p = parseGitPatch(str) as ParsedPatchType | null;
+
+  if (p) {
+    fixLineNumbers(p);
+  }
+
+  return p;
+}
+
+// https://github.com/dherault/parse-git-patch/issues/16
+function fixLineNumbers(patch: ParsedPatchType): void {
+  patch.files.forEach((file) => {
+    file.modifiedLines.forEach((mod) => {
+      mod.lineNumber = mod.lineNumber - 1;
+    });
+  });
 }

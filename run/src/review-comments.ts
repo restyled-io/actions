@@ -75,20 +75,7 @@ export async function clearPriorSuggestions(
   return resolved;
 }
 
-export async function commentSuggestions(
-  client: GitHubClient,
-  pullRequest: PullRequest,
-  suggestions: Suggestion[],
-): Promise<void> {
-  const ps = suggestions.map((suggestion) => {
-    return commentSuggestion(client, pullRequest, suggestion);
-  });
-
-  core.info(`Leaving ${ps.length} suggestion(s)`);
-  Promise.all(ps);
-}
-
-async function commentSuggestion(
+export async function commentSuggestion(
   client: GitHubClient,
   pullRequest: PullRequest,
   suggestion: Suggestion,
