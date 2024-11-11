@@ -193,9 +193,9 @@ Ensure you don't run the usual jobs for that action:
 ```diff
  jobs:
    restyled:
--    if: github.event.pull_request.head.repo.full_name == github.repository
+-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
 +    if: |
-+      github.event.action != 'closed'
++      github.event.action != 'closed' &&
 +      github.event.pull_request.head.repo.full_name == github.repository
 
     runs-on: ubuntu-latest
@@ -203,7 +203,7 @@ Ensure you don't run the usual jobs for that action:
 
 ```diff
    restyled-fork:
--    if: github.event.pull_request.head.repo.full_name != github.repository
+-    if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
 +    if: |
 +      github.event.action != 'closed' &&
 +      github.event.pull_request.head.repo.full_name != github.repository
