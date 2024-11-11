@@ -16,7 +16,7 @@
     "@actions/exec": "^1.1.0",
     "@actions/github": "^6.0.0",
     "@types/temp": "^0.9.4",
-    "action-docs": "^2.5.0",
+    "action-docs": "^2.5.1",
     "parse-git-patch": "^1.2.2",
     "temp": "^0.9.4"
   },
