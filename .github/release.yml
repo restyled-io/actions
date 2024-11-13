@@ -11,6 +11,7 @@ changelog:
       labels:
         - feature
     - title: Fixes
+      labels:
         - bugfix
     - title: Other Changes
       labels:
