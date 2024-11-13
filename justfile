@@ -1,7 +1,7 @@
-release release_tag:
-  git tag {{release_tag}} -m {{release_tag}} -s
+release-tag tag:
+  git tag {{tag}} -m {{tag}} -s
   git push --tags
-  gh release create --generate-notes {{release_tag}} --verify-tag
+  gh release create --generate-notes {{tag}} --verify-tag
 
 update-major:
   vmajor=$(git tag | \
