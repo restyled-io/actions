@@ -13,14 +13,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import {
-  type ParsedPatchType,
-  type ParsedPatchFileDataType,
-  type ParsedPatchModifiedLineType,
-} from "parse-git-patch";
+import { type ParsedPatchType } from "parse-git-patch";
 
 import { Hunks } from "./hunk";
-import { type NonEmpty } from "./non-empty";
 import * as NE from "./non-empty";
 
 export type Suggestion = {
