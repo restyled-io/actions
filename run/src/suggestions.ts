@@ -32,38 +32,6 @@ export type Suggestion = {
   skipReason?: string;
 };
 
-function mkSuggestion(
-  file: ParsedPatchFileDataType,
-  patch: ParsedPatchType,
-  delLine: number,
-  add: NonEmpty<ParsedPatchModifiedLineType>,
-): Suggestion {
-  return {
-    path: file.afterName,
-    description: (patch.message || "").replace(/^\[PATCH] /, ""),
-    startLine: delLine,
-    endLine: delLine,
-    code: NE.toList(add).map((x) => x.line),
-  };
-}
-
-function mkSkipped(
-  skipReason: string,
-  file: ParsedPatchFileDataType,
-  patch: ParsedPatchType,
-  delLine?: number,
-  add?: NonEmpty<ParsedPatchModifiedLineType>,
-): Suggestion {
-  return {
-    path: file.afterName,
-    description: (patch.message || "").replace(/^\[PATCH] /, ""),
-    startLine: delLine ?? 0,
-    endLine: delLine ?? 0,
-    code: add ? NE.toList(add).map((x) => x.line) : [],
-    skipReason,
-  };
-}
-
 export function getSuggestions(
   bases: ParsedPatchType[],
   patches: ParsedPatchType[],
@@ -77,13 +45,14 @@ export function getSuggestions(
       const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
 
       if (!baseFile) {
-        suggestions.push(
-          mkSkipped(
-            `Changed file ${file.afterName} is not present in base diff`,
-            file,
-            patch,
-          ),
-        );
+        suggestions.push({
+          path: file.afterName,
+          description: (patch.message || "").replace(/^\[PATCH] /, ""),
+          startLine: 0,
+          endLine: 0,
+          code: [],
+          skipReason: `Changed file ${file.afterName} is not present in base diff`,
+        });
         return;
       }
 
@@ -92,46 +61,50 @@ export function getSuggestions(
       const adds = new Hunks(file.modifiedLines.filter((x) => x.added));
 
       dels.forEach((del) => {
-        const delLine = NE.head(del).lineNumber;
-        const location = `${file.afterName}:${delLine}`;
-        const add = adds.get(delLine);
+        const mkSkipped = (skipReason: string): Suggestion => {
+          return {
+            path: file.afterName,
+            description: (patch.message || "").replace(/^\[PATCH] /, ""),
+            startLine: NE.head(del).lineNumber,
+            endLine: NE.last(del).lineNumber,
+            code: [],
+            skipReason,
+          };
+        };
+
+        const line = NE.head(del).lineNumber;
+        const location = `${file.afterName}:${line}`;
+        const add = adds.get(line);
 
         if (!add) {
           suggestions.push(
             mkSkipped(
               `Deletion at ${location} has no corresponding addition: ${JSON.stringify(adds.lines())}`,
-              file,
-              patch,
-              delLine,
             ),
           );
           return;
         }
+
+        const suggestion: Suggestion = {
+          path: file.afterName,
+          description: (patch.message || "").replace(/^\[PATCH] /, ""),
+          startLine: NE.head(del).lineNumber,
+          endLine: NE.last(del).lineNumber,
+          code: NE.toList(add).map((x) => x.line),
+        };
 
         if (!baseAdds.contain(del)) {
           suggestions.push(
             mkSkipped(
               `Deletion at ${location} was not added in base diff: ${JSON.stringify(baseAdds.lines())}`,
-              file,
-              patch,
-              delLine,
-              add,
             ),
           );
           return;
         }
 
-        const suggestion = mkSuggestion(file, patch, delLine, add);
-
         if (resolved.some((r) => isSameLocation(r, suggestion))) {
           suggestions.push(
-            mkSkipped(
-              `Suggestion at ${location} already marked resolved`,
-              file,
-              patch,
-              delLine,
-              add,
-            ),
+            mkSkipped(`Suggestion at ${location} already marked resolved`),
           );
           return;
         }

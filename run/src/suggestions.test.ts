@@ -16,6 +16,7 @@
 import {
   type ParsedPatchType,
   type ParsedPatchFileDataType,
+  type ParsedPatchModifiedLineType,
 } from "parse-git-patch";
 
 import { type Suggestion, getSuggestions } from "./suggestions";
@@ -51,31 +52,35 @@ function patch(
 }
 
 function patchFile(name: string, diff: string): ParsedPatchFileDataType {
-  const modifiedLines = diff
+  const modifiedLines: ParsedPatchModifiedLineType[] = [];
+
+  diff
     .split("\n")
     .filter((x) => x.trim() !== "")
-    .map((diffLine) => {
+    .forEach((diffLine) => {
       const [rawBeforeLine, rawAfterLine, ...line] = diffLine.split("|");
       const beforeLine = rawBeforeLine.trim();
       const afterLine = rawAfterLine.trim();
 
       if (beforeLine !== "" && afterLine !== "") {
-        throw new Error("Must only specify before or after line, not both");
+        // context
+        return;
       }
 
-      if (beforeLine !== "") {
-        return {
-          added: false,
-          lineNumber: parseInt(beforeLine, 10),
-          line: line.join("|"),
-        };
-      }
+      const modifiedLine =
+        beforeLine !== ""
+          ? {
+              added: false,
+              lineNumber: parseInt(beforeLine, 10),
+              line: line.join("|"),
+            }
+          : {
+              added: true,
+              lineNumber: parseInt(afterLine, 10),
+              line: line.join("|"),
+            };
 
-      return {
-        added: true,
-        lineNumber: parseInt(afterLine, 10),
-        line: line.join("|"),
-      };
+      modifiedLines.push(modifiedLine);
     });
 
   return {
@@ -223,6 +228,48 @@ const cases: TestCase[] = [
       },
     ],
   ),
+  testCase(
+    "Multi-line suggestion",
+    [
+      patch("Update Foo", [
+        patchFile(
+          "Foo.hs",
+          `
+          1|1|
+          2| | setRequestBody
+          3| |   $ encode
+           |2| setRequestBody $
+           |3|   encode
+          4|4|
+          `,
+        ),
+      ]),
+    ],
+    [
+      patch("Restyled by fourmolu", [
+        patchFile(
+          "Foo.hs",
+          `
+          1|1|
+          2| | setRequestBody $
+          3| |   encode
+           |2| setRequestBody
+           |3|   $ encode
+          4|4|
+          `,
+        ),
+      ]),
+    ],
+    [
+      {
+        path: "Foo.hs",
+        startLine: 2,
+        endLine: 3,
+        description: "Restyled by fourmolu",
+        code: [" setRequestBody", "   $ encode"],
+      },
+    ],
+  ),
 ];
 
 describe("getSuggestions", () => {
@@ -255,7 +302,7 @@ describe("getSuggestions", () => {
 
     const actual = getSuggestions(bases, patches, []);
 
-    expect(actual.length).toEqual(2);
+    expect(actual.length).toEqual(3);
     expect(actual).toEqual(suggestions);
   });
 });
