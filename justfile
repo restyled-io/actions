@@ -1,3 +1,7 @@
+# Release a bumped tag, bump=major|minor|patch
+release bump:
+  t=$(git tag | vbump {{bump}}) && just release-tag "$t" update-major
+
 # Release a specific tag
 release-tag tag:
   git tag {{tag}} -m {{tag}} -s
