@@ -806,25 +806,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getSuggestions = getSuggestions;
 const hunk_1 = __nccwpck_require__(9734);
 const NE = __importStar(__nccwpck_require__(1571));
-function mkSuggestion(file, patch, delLine, add) {
-    return {
-        path: file.afterName,
-        description: (patch.message || "").replace(/^\[PATCH] /, ""),
-        startLine: delLine,
-        endLine: delLine,
-        code: NE.toList(add).map((x) => x.line),
-    };
-}
-function mkSkipped(skipReason, file, patch, delLine, add) {
-    return {
-        path: file.afterName,
-        description: (patch.message || "").replace(/^\[PATCH] /, ""),
-        startLine: delLine ?? 0,
-        endLine: delLine ?? 0,
-        code: add ? NE.toList(add).map((x) => x.line) : [],
-        skipReason,
-    };
-}
 function getSuggestions(bases, patches, resolved) {
     const suggestions = [];
     const baseFiles = bases.flatMap((p) => p.files);
@@ -832,27 +813,50 @@ function getSuggestions(bases, patches, resolved) {
         patch.files.forEach((file) => {
             const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
             if (!baseFile) {
-                suggestions.push(mkSkipped(`Changed file ${file.afterName} is not present in base diff`, file, patch));
+                suggestions.push({
+                    path: file.afterName,
+                    description: (patch.message || "").replace(/^\[PATCH] /, ""),
+                    startLine: 0,
+                    endLine: 0,
+                    code: [],
+                    skipReason: `Changed file ${file.afterName} is not present in base diff`,
+                });
                 return;
             }
             const baseAdds = new hunk_1.Hunks(baseFile.modifiedLines.filter((x) => x.added));
             const dels = new hunk_1.Hunks(file.modifiedLines.filter((x) => !x.added));
             const adds = new hunk_1.Hunks(file.modifiedLines.filter((x) => x.added));
             dels.forEach((del) => {
-                const delLine = NE.head(del).lineNumber;
-                const location = `${file.afterName}:${delLine}`;
-                const add = adds.get(delLine);
+                const mkSkipped = (skipReason) => {
+                    return {
+                        path: file.afterName,
+                        description: (patch.message || "").replace(/^\[PATCH] /, ""),
+                        startLine: NE.head(del).lineNumber,
+                        endLine: NE.last(del).lineNumber,
+                        code: [],
+                        skipReason,
+                    };
+                };
+                const line = NE.head(del).lineNumber;
+                const location = `${file.afterName}:${line}`;
+                const add = adds.get(line);
                 if (!add) {
-                    suggestions.push(mkSkipped(`Deletion at ${location} has no corresponding addition: ${JSON.stringify(adds.lines())}`, file, patch, delLine));
+                    suggestions.push(mkSkipped(`Deletion at ${location} has no corresponding addition: ${JSON.stringify(adds.lines())}`));
                     return;
                 }
+                const suggestion = {
+                    path: file.afterName,
+                    description: (patch.message || "").replace(/^\[PATCH] /, ""),
+                    startLine: NE.head(del).lineNumber,
+                    endLine: NE.last(del).lineNumber,
+                    code: NE.toList(add).map((x) => x.line),
+                };
                 if (!baseAdds.contain(del)) {
-                    suggestions.push(mkSkipped(`Deletion at ${location} was not added in base diff: ${JSON.stringify(baseAdds.lines())}`, file, patch, delLine, add));
+                    suggestions.push(mkSkipped(`Deletion at ${location} was not added in base diff: ${JSON.stringify(baseAdds.lines())}`));
                     return;
                 }
-                const suggestion = mkSuggestion(file, patch, delLine, add);
                 if (resolved.some((r) => isSameLocation(r, suggestion))) {
-                    suggestions.push(mkSkipped(`Suggestion at ${location} already marked resolved`, file, patch, delLine, add));
+                    suggestions.push(mkSkipped(`Suggestion at ${location} already marked resolved`));
                     return;
                 }
                 suggestions.push(suggestion);
