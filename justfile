@@ -1,8 +1,10 @@
+# Release a specific tag
 release-tag tag:
   git tag {{tag}} -m {{tag}} -s
   git push --tags
   gh release create --generate-notes {{tag}} --verify-tag
 
+# Update the major version tag to latest
 update-major:
   vmajor=$(git tag | \
     sort -rV | \
