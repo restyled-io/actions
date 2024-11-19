@@ -474,7 +474,7 @@ function parsePatches(str) {
         if (patchLines.length === 0) {
             return;
         }
-        const parsed = parsePatch(patchLines.join("\n"));
+        const parsed = (0, parse_git_patch_1.default)(patchLines.join("\n"));
         if (!parsed) {
             return;
         }
@@ -489,20 +489,6 @@ function parsePatches(str) {
     });
     accumulate();
     return patches;
-}
-function parsePatch(str) {
-    const p = (0, parse_git_patch_1.default)(str);
-    if (p) {
-        fixLineNumbers(p);
-    }
-    return p;
-}
-function fixLineNumbers(patch) {
-    patch.files.forEach((file) => {
-        file.modifiedLines.forEach((mod) => {
-            mod.lineNumber = mod.lineNumber - 1;
-        });
-    });
 }
 
 
@@ -11710,8 +11696,8 @@ function parseGitPatch(patch) {
             if (!match4)
                 return;
             const [, a, b] = match4;
-            let nA = parseInt(a);
-            let nB = parseInt(b);
+            let nA = parseInt(a) - 1;
+            let nB = parseInt(b) - 1;
             lines.forEach(line => {
                 nA++;
                 nB++;
@@ -11723,7 +11709,7 @@ function parseGitPatch(patch) {
                     fileData.modifiedLines.push({
                         added: true,
                         lineNumber: nB,
-                        line: line.substr(1),
+                        line: line.substring(1),
                     });
                 }
                 else if (line.startsWith('-')) {
@@ -11731,7 +11717,7 @@ function parseGitPatch(patch) {
                     fileData.modifiedLines.push({
                         added: false,
                         lineNumber: nA,
-                        line: line.substr(1),
+                        line: line.substring(1),
                     });
                 }
             });
