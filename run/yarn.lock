@@ -2776,10 +2776,10 @@ parent-module@^1.0.0:
   dependencies:
     callsites "^3.0.0"
 
-parse-git-patch@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/parse-git-patch/-/parse-git-patch-1.2.2.tgz#b1e184d030e95091470c2e929974bb587c85d523"
-  integrity sha512-Ap5/BFHSgLK+ouuofWPEFCpP5TG6MAfFLtES7Rbe8JBAXtXdFr87rwPoCn8/t3pzTKWxHgNjtiiXjEME1GRgYg==
+parse-git-patch@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/parse-git-patch/-/parse-git-patch-2.0.0.tgz#8d63c01daeb795e6447f8ed5b37681558598680b"
+  integrity sha512-dG79wuJ/fezufoTJyCHxrzjrsmB1NGEIE9x1/c+9TPYAqSZvdB6KJqJO8W487BB6uq5HVT+SmjE0C8VbcV16eA==
 
 parse-json@^5.2.0:
   version "5.2.0"
