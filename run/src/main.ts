@@ -99,7 +99,7 @@ async function run() {
       core.info("  ");
     }
 
-    if (inputs.suggestions) {
+    if (inputs.suggestions && success) {
       const resolved = await clearPriorSuggestions(client, pr);
 
       if (pr.diff && differences) {
