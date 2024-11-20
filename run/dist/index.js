@@ -304,7 +304,7 @@ async function run() {
             core.info("EOM");
             core.info("  ");
         }
-        if (inputs.suggestions) {
+        if (inputs.suggestions && success) {
             const resolved = await (0, review_comments_1.clearPriorSuggestions)(client, pr);
             if (pr.diff && differences) {
                 const bases = (0, patch_1.parsePatches)(pr.diff);
