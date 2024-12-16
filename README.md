@@ -1,12 +1,5 @@
 # Restyled Actions
 
-> [!IMPORTANT]
-> Before using Restyled as a GitHub Action, make sure you prevent any previous
-> hosted installation from running. Otherwise, they may fight over the restyled
-> branch. This can be done by uninstalling the GitHub App entirely, or
-> configuring it for specific repositories and excluding the one where you plan
-> to use GitHub Actions.
-
 ## Usage Examples
 
 The [`restyle` CLI][restyler] is meant to one thing and do it well: re-format
@@ -33,7 +26,11 @@ concurrency:
   cancel-in-progress: true
 ```
 
+The workflows described here are meant to be combined and extended.
+
 ### Status Check
+
+**Good for**: users who want CI to fail on style issues.
 
 ![](./files/failing-status.png)
 
@@ -60,6 +57,9 @@ jobs:
 
 ### Code Suggestion Comments
 
+**Good for**: PRs (including forks) with a low number of style issues, probably
+because the team size is small and everyone has an effective local editor setup.
+
 ![](./files/suggestion.png)
 
 ```yaml
@@ -75,6 +75,9 @@ jobs:
 ```
 
 ### Upload Patch Artifact
+
+**Good for**: users who are not using _Code Suggestion Comments_ and expect
+contributions in forks (where _Sibling PRs_ cannot be used).
 
 ![](./files/patch-artifact.png)
 
@@ -117,6 +120,9 @@ jobs:
 ```
 
 ### Sibling PRs
+
+**Good for**: non-fork PRs with a high number of style issues, so merging them
+all as a single Sibling PR is better than triaging _Code Suggestion Comments_.
 
 ![](./files/pull-request-event.png)
 
