@@ -337,18 +337,20 @@ async function run() {
         if (inputs.suggestions && success) {
             const resolved = await (0, review_comments_1.clearPriorSuggestions)(client, pr);
             if (pr.diff && differences) {
+                let n = 0;
                 const bases = (0, patch_1.parsePatches)(pr.diff);
                 const patches = (0, patch_1.parsePatches)(patch);
                 const ps = (0, suggestions_1.getSuggestions)(bases, patches, resolved).map((s) => {
                     if (s.skipReason) {
-                        core.warning(`Skipping suggestion at ${s.path}:${s.startLine}: ${s.skipReason}`);
+                        core.warning(`Skipping suggestion: ${s.skipReason}`);
                         return Promise.resolve();
                     }
                     else {
+                        n += 1;
                         return (0, review_comments_1.commentSuggestion)(client, pr, s);
                     }
                 });
-                core.info(`Leaving ${ps.length} suggestion(s)`);
+                core.info(`Leaving ${n} suggestion(s)`);
                 await Promise.all(ps);
             }
         }
