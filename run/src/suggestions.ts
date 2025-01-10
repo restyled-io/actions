@@ -57,24 +57,8 @@ export function getSuggestions(
 
       dels.forEach((del) => {
         const line = NE.head(del).lineNumber;
-        const location = `${file.afterName}:${line}`;
         const add = adds.get(line);
-        const mkSkipped = (
-          message: string,
-          omitLineDetails?: boolean,
-        ): Suggestion => {
-          const lineDetails = omitLineDetails
-            ? []
-            : [
-                `Lines   added in PR       diff: ${JSON.stringify(baseAdds.lines())}`,
-                `Lines deleted in Restyled diff: ${JSON.stringify(dels.lines())}`,
-                `Lines   added in Restyled diff: ${JSON.stringify(adds.lines())}`,
-              ];
-
-          const skipReason = [`[${location}] ${message}`]
-            .concat(lineDetails)
-            .join("\n");
-
+        const mkSkipped = (skipReason: string): Suggestion => {
           return {
             path: file.afterName,
             description: (patch.message || "").replace(/^\[PATCH] /, ""),
@@ -95,15 +79,13 @@ export function getSuggestions(
 
         if (!baseAdds.contain(del)) {
           suggestions.push(
-            mkSkipped(`Suggestions can only be made on added lines`),
+            mkSkipped(`suggestions can only be made on added lines`),
           );
           return;
         }
 
         if (resolved.some((r) => isSameLocation(r, suggestion))) {
-          suggestions.push(
-            mkSkipped(`Suggestion already marked resolved`, true),
-          );
+          suggestions.push(mkSkipped(`previously marked resolved`));
           return;
         }
 

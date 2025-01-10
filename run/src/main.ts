@@ -108,7 +108,12 @@ async function run() {
         const patches = parsePatches(patch);
         const ps = getSuggestions(bases, patches, resolved).map((s) => {
           if (s.skipReason) {
-            core.warning(`Skipping suggestion: ${s.skipReason}`);
+            const line =
+              s.startLine !== s.endLine
+                ? `${s.startLine}-${s.endLine}`
+                : `${s.startLine}`;
+            const location = `${s.path}:${line}`;
+            core.warning(`[${location}]: Skipping suggestion: ${s.skipReason}`);
             return Promise.resolve();
           } else {
             n += 1;
