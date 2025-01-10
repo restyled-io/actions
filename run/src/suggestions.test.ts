@@ -270,6 +270,46 @@ const cases: TestCase[] = [
       },
     ],
   ),
+  testCase(
+    "Suggested deletion",
+    [
+      patch("Update Foo", [
+        patchFile(
+          "Foo.hs",
+          `
+          1|1|
+          2| | setRequestBody
+          3| |   $ encode
+           |2| setRequestBody $
+           |3|   encode
+          4|4|
+          `,
+        ),
+      ]),
+    ],
+    [
+      patch("Restyled by fourmolu", [
+        patchFile(
+          "Foo.hs",
+          `
+          1|1|
+          2| | setRequestBody $
+          3| |   encode
+          4|2|
+          `,
+        ),
+      ]),
+    ],
+    [
+      {
+        path: "Foo.hs",
+        startLine: 2,
+        endLine: 3,
+        description: "Restyled by fourmolu",
+        code: [],
+      },
+    ],
+  ),
 ];
 
 describe("getSuggestions", () => {
@@ -302,7 +342,7 @@ describe("getSuggestions", () => {
 
     const actual = getSuggestions(bases, patches, []);
 
-    expect(actual.length).toEqual(3);
+    expect(actual.length).toEqual(4);
     expect(actual).toEqual(suggestions);
   });
 });

@@ -85,22 +85,12 @@ export function getSuggestions(
           };
         };
 
-        // TODO: this can suggest a removal
-        if (!add) {
-          suggestions.push(
-            mkSkipped(
-              `Restyled line did not add anything at the same location`,
-            ),
-          );
-          return;
-        }
-
         const suggestion: Suggestion = {
           path: file.afterName,
           description: (patch.message || "").replace(/^\[PATCH] /, ""),
           startLine: NE.head(del).lineNumber,
           endLine: NE.last(del).lineNumber,
-          code: NE.toList(add).map((x) => x.line),
+          code: add ? NE.toList(add).map((x) => x.line) : [],
         };
 
         if (!baseAdds.contain(del)) {
