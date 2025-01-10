@@ -46,7 +46,7 @@ export function getSuggestions(
           startLine: 0,
           endLine: 0,
           code: [],
-          skipReason: `Changed file ${file.afterName} is not present in base diff`,
+          skipReason: `Restyled file ${file.afterName} was not changed in the PR`,
         });
         return;
       }
@@ -56,7 +56,25 @@ export function getSuggestions(
       const adds = new Hunks(file.modifiedLines.filter((x) => x.added));
 
       dels.forEach((del) => {
-        const mkSkipped = (skipReason: string): Suggestion => {
+        const line = NE.head(del).lineNumber;
+        const location = `${file.afterName}:${line}`;
+        const add = adds.get(line);
+        const mkSkipped = (
+          message: string,
+          omitLineDetails?: boolean,
+        ): Suggestion => {
+          const lineDetails = omitLineDetails
+            ? []
+            : [
+                `Lines   added in PR       diff: ${JSON.stringify(baseAdds.lines())}`,
+                `Lines deleted in Restyled diff: ${JSON.stringify(dels.lines())}`,
+                `Lines   added in Restyled diff: ${JSON.stringify(adds.lines())}`,
+              ];
+
+          const skipReason = [`[${location}] ${message}`]
+            .concat(lineDetails)
+            .join("\n");
+
           return {
             path: file.afterName,
             description: (patch.message || "").replace(/^\[PATCH] /, ""),
@@ -67,14 +85,11 @@ export function getSuggestions(
           };
         };
 
-        const line = NE.head(del).lineNumber;
-        const location = `${file.afterName}:${line}`;
-        const add = adds.get(line);
-
+        // TODO: this can suggest a removal
         if (!add) {
           suggestions.push(
             mkSkipped(
-              `Deletion at ${location} has no corresponding addition: ${JSON.stringify(adds.lines())}`,
+              `Restyled line did not add anything at the same location`,
             ),
           );
           return;
@@ -90,16 +105,14 @@ export function getSuggestions(
 
         if (!baseAdds.contain(del)) {
           suggestions.push(
-            mkSkipped(
-              `Deletion at ${location} was not added in base diff: ${JSON.stringify(baseAdds.lines())}`,
-            ),
+            mkSkipped(`Suggestions can only be made on added lines`),
           );
           return;
         }
 
         if (resolved.some((r) => isSameLocation(r, suggestion))) {
           suggestions.push(
-            mkSkipped(`Suggestion at ${location} already marked resolved`),
+            mkSkipped(`Suggestion already marked resolved`, true),
           );
           return;
         }
