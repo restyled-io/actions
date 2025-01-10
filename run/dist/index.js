@@ -342,7 +342,11 @@ async function run() {
                 const patches = (0, patch_1.parsePatches)(patch);
                 const ps = (0, suggestions_1.getSuggestions)(bases, patches, resolved).map((s) => {
                     if (s.skipReason) {
-                        core.warning(`Skipping suggestion: ${s.skipReason}`);
+                        const line = s.startLine !== s.endLine
+                            ? `${s.startLine}-${s.endLine}`
+                            : `${s.startLine}`;
+                        const location = `${s.path}:${line}`;
+                        core.warning(`[${location}]: Skipping suggestion: ${s.skipReason}`);
                         return Promise.resolve();
                     }
                     else {
@@ -896,19 +900,8 @@ function getSuggestions(bases, patches, resolved) {
             const adds = new hunk_1.Hunks(file.modifiedLines.filter((x) => x.added));
             dels.forEach((del) => {
                 const line = NE.head(del).lineNumber;
-                const location = `${file.afterName}:${line}`;
                 const add = adds.get(line);
-                const mkSkipped = (message, omitLineDetails) => {
-                    const lineDetails = omitLineDetails
-                        ? []
-                        : [
-                            `Lines   added in PR       diff: ${JSON.stringify(baseAdds.lines())}`,
-                            `Lines deleted in Restyled diff: ${JSON.stringify(dels.lines())}`,
-                            `Lines   added in Restyled diff: ${JSON.stringify(adds.lines())}`,
-                        ];
-                    const skipReason = [`[${location}] ${message}`]
-                        .concat(lineDetails)
-                        .join("\n");
+                const mkSkipped = (skipReason) => {
                     return {
                         path: file.afterName,
                         description: (patch.message || "").replace(/^\[PATCH] /, ""),
@@ -926,11 +919,11 @@ function getSuggestions(bases, patches, resolved) {
                     code: add ? NE.toList(add).map((x) => x.line) : [],
                 };
                 if (!baseAdds.contain(del)) {
-                    suggestions.push(mkSkipped(`Suggestions can only be made on added lines`));
+                    suggestions.push(mkSkipped(`suggestions can only be made on added lines`));
                     return;
                 }
                 if (resolved.some((r) => isSameLocation(r, suggestion))) {
-                    suggestions.push(mkSkipped(`Suggestion already marked resolved`, true));
+                    suggestions.push(mkSkipped(`previously marked resolved`));
                     return;
                 }
                 suggestions.push(suggestion);
