@@ -290,7 +290,7 @@ describe("getSuggestions", () => {
     expect(actual).toEqual([]);
     expect(includingSkipped.map((x) => x.skipReason)).toEqual(
       suggestions.map((x) => {
-        return `Suggestion at ${x.path}:${x.startLine} already marked resolved`;
+        return `[${x.path}:${x.startLine}] Suggestion already marked resolved`;
       }),
     );
   });
