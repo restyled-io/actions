@@ -329,8 +329,8 @@ describe("getSuggestions", () => {
 
     expect(actual).toEqual([]);
     expect(includingSkipped.map((x) => x.skipReason)).toEqual(
-      suggestions.map((x) => {
-        return `[${x.path}:${x.startLine}] Suggestion already marked resolved`;
+      suggestions.map(() => {
+        return `previously marked resolved`;
       }),
     );
   });
