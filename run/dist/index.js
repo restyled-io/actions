@@ -677,9 +677,13 @@ async function getPullRequest(client, paths) {
     });
     const restylePaths = paths.length === 0 ? files.map((f) => f.filename) : paths;
     const diff1 = files.map((f) => f.patch).join("\n");
-    core.info(diff1);
     const diff2 = await getPullRequestDiff(client, pr.number);
+    core.info("=== files ===");
+    core.info(diff1);
+    core.info("=== /files ===");
+    core.info("=== patch ===");
     core.info(diff2);
+    core.info("=== /patch ===");
     return {
         number: pr.number,
         title: pr.title,
