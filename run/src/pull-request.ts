@@ -60,11 +60,20 @@ export async function getPullRequest(
   const pullRequestJson = temp.path({ suffix: ".json" });
   fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
 
+  const files = await await client.paginate(client.rest.pulls.listFiles, {
+    ...github.context.repo,
+    pull_number: pr.number,
+  });
+
   // Respect paths if given, otherwise pull PR changed files
   const restylePaths =
-    paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
+    paths.length === 0 ? files.map((f) => f.filename) : paths;
 
-  const diff = await getPullRequestDiff(client, pr.number);
+  // TESTING
+  const diff1 = files.map((f) => f.patch).join("\n");
+  core.info(diff1);
+  const diff2 = await getPullRequestDiff(client, pr.number);
+  core.info(diff2);
 
   return {
     number: pr.number,
@@ -73,7 +82,7 @@ export async function getPullRequest(
     headSha: pr.head.sha,
     restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
     restyleDiffBase: base,
-    diff,
+    diff: diff2,
   };
 }
 
