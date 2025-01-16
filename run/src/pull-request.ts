@@ -71,9 +71,14 @@ export async function getPullRequest(
 
   // TESTING
   const diff1 = files.map((f) => f.patch).join("\n");
-  core.info(diff1);
   const diff2 = await getPullRequestDiff(client, pr.number);
+
+  core.info("=== files ===");
+  core.info(diff1);
+  core.info("=== /files ===");
+  core.info("=== patch ===");
   core.info(diff2);
+  core.info("=== /patch ===");
 
   return {
     number: pr.number,
