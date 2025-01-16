@@ -671,8 +671,15 @@ async function getPullRequest(client, paths) {
     }
     const pullRequestJson = temp.path({ suffix: ".json" });
     fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
-    const restylePaths = paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
-    const diff = await getPullRequestDiff(client, pr.number);
+    const files = await await client.paginate(client.rest.pulls.listFiles, {
+        ...github.context.repo,
+        pull_number: pr.number,
+    });
+    const restylePaths = paths.length === 0 ? files.map((f) => f.filename) : paths;
+    const diff1 = files.map((f) => f.patch).join("\n");
+    core.info(diff1);
+    const diff2 = await getPullRequestDiff(client, pr.number);
+    core.info(diff2);
     return {
         number: pr.number,
         title: pr.title,
@@ -680,7 +687,7 @@ async function getPullRequest(client, paths) {
         headSha: pr.head.sha,
         restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
         restyleDiffBase: base,
-        diff,
+        diff: diff2,
     };
 }
 function fakePullRequest(base, paths) {
