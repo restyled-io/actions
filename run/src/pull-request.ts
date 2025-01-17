@@ -61,8 +61,8 @@ export async function getPullRequest(
   }
 
   // Write PR data for restyle to use. It expects a proper API type so we can't
-  // do that with our fakePullRequest. This is also why centralize restyleArgs
-  // handling here.
+  // do that with our fakePullRequest. This is also why we centralize
+  // restyleArgs handling here.
   const pullRequestJson = temp.path({ suffix: ".json" });
   fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
 
