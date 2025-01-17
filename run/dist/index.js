@@ -1,6 +1,48 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 6641:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fromPullRequestFile = fromPullRequestFile;
+const hunk_1 = __nccwpck_require__(9734);
+const DIGITS_RE = "[1-9][0-9]*";
+const DIFF_BEGIN_RE = new RegExp(`^@@ -${DIGITS_RE},${DIGITS_RE} +(?<addBegin>${DIGITS_RE}),${DIGITS_RE} @@$`);
+function fromPullRequestFile(file) {
+    const { filename, patch } = file;
+    if (!patch) {
+        return {
+            filename,
+            additions: new hunk_1.Hunks([]),
+        };
+    }
+    const addedLines = [];
+    let cursor = 0;
+    patch.split("\n").forEach((line) => {
+        const md = line.match(DIFF_BEGIN_RE);
+        const addBegin = md?.groups?.addBegin;
+        if (addBegin) {
+            cursor = parseInt(addBegin, 10);
+        }
+        else if (line.match(/^\+/)) {
+            addedLines.push({ lineNumber: cursor });
+            cursor += 1;
+        }
+        else if (line.match(/^-/)) {
+        }
+        else {
+            cursor += 1;
+        }
+    });
+    return { filename, additions: new hunk_1.Hunks(addedLines) };
+}
+
+
+/***/ }),
+
 /***/ 7945:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -336,9 +378,9 @@ async function run() {
         }
         if (inputs.suggestions && success) {
             const resolved = await (0, review_comments_1.clearPriorSuggestions)(client, pr);
-            if (pr.diff && differences) {
+            if (differences) {
                 let n = 0;
-                const bases = (0, patch_1.parsePatches)(pr.diff);
+                const bases = pr.changedFiles;
                 const patches = (0, patch_1.parsePatches)(patch);
                 const ps = (0, suggestions_1.getSuggestions)(bases, patches, resolved).map((s) => {
                     if (s.skipReason) {
@@ -657,6 +699,7 @@ const fs = __importStar(__nccwpck_require__(9896));
 const temp = __importStar(__nccwpck_require__(2790));
 const core = __importStar(__nccwpck_require__(7484));
 const github = __importStar(__nccwpck_require__(3228));
+const diff_1 = __nccwpck_require__(6641);
 const process_1 = __nccwpck_require__(1633);
 async function getPullRequest(client, paths) {
     const base = await getDiffBase();
@@ -667,12 +710,21 @@ async function getPullRequest(client, paths) {
         return fakePullRequest(base, paths);
     }
     if (base.tag === "known" && base.sha !== pr.head.sha) {
-        core.warning(`The checked out commit does not match the event PR's head. ${base.sha} != ${pr.head.sha}. Weird things may happen.`);
+        core.warning([
+            `The checked out commit does not match the event PR's head.`,
+            `${base.sha} != ${pr.head.sha}.`,
+            `This usually means you are operating on the default merge ref.`,
+            `If so, Restyled may pick up changes that have been made to the default`,
+            `branch since you created this branch.`,
+        ].join(" "));
     }
     const pullRequestJson = temp.path({ suffix: ".json" });
     fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
-    const restylePaths = paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
-    const diff = await getPullRequestDiff(client, pr.number);
+    const files = await client.paginate(client.rest.pulls.listFiles, {
+        ...github.context.repo,
+        pull_number: pr.number,
+    });
+    const restylePaths = paths.length === 0 ? files.map((f) => f.filename) : paths;
     return {
         number: pr.number,
         title: pr.title,
@@ -680,7 +732,7 @@ async function getPullRequest(client, paths) {
         headSha: pr.head.sha,
         restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
         restyleDiffBase: base,
-        diff,
+        changedFiles: files.map(diff_1.fromPullRequestFile),
     };
 }
 function fakePullRequest(base, paths) {
@@ -691,25 +743,8 @@ function fakePullRequest(base, paths) {
         headSha: "unknown",
         restyleArgs: paths,
         restyleDiffBase: base,
-        diff: null,
+        changedFiles: [],
     };
-}
-async function getPullRequestPaths(client, number) {
-    const files = await client.paginate(client.rest.pulls.listFiles, {
-        ...github.context.repo,
-        pull_number: number,
-    });
-    return files.map((f) => f.filename);
-}
-async function getPullRequestDiff(client, number) {
-    const response = await client.rest.pulls.get({
-        ...github.context.repo,
-        pull_number: number,
-        mediaType: {
-            format: "patch",
-        },
-    });
-    return response.data;
 }
 async function getDiffBase() {
     try {
@@ -878,12 +913,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getSuggestions = getSuggestions;
 const hunk_1 = __nccwpck_require__(9734);
 const NE = __importStar(__nccwpck_require__(1571));
-function getSuggestions(bases, patches, resolved) {
+function getSuggestions(baseFiles, patches, resolved) {
     const suggestions = [];
-    const baseFiles = bases.flatMap((p) => p.files);
     patches.forEach((patch) => {
         patch.files.forEach((file) => {
-            const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
+            const baseFile = baseFiles.find((x) => x.filename === file.afterName);
             if (!baseFile) {
                 suggestions.push({
                     path: file.afterName,
@@ -895,7 +929,7 @@ function getSuggestions(bases, patches, resolved) {
                 });
                 return;
             }
-            const baseAdds = new hunk_1.Hunks(baseFile.modifiedLines.filter((x) => x.added));
+            const baseAdds = baseFile.additions;
             const dels = new hunk_1.Hunks(file.modifiedLines.filter((x) => !x.added));
             const adds = new hunk_1.Hunks(file.modifiedLines.filter((x) => x.added));
             dels.forEach((del) => {
