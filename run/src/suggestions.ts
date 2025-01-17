@@ -16,6 +16,7 @@
 import { type ParsedPatchType } from "parse-git-patch";
 
 import { Hunks } from "./hunk";
+import { ChangedFile } from "./diff";
 import * as NE from "./non-empty";
 
 export type Suggestion = {
@@ -28,16 +29,15 @@ export type Suggestion = {
 };
 
 export function getSuggestions(
-  bases: ParsedPatchType[],
+  baseFiles: ChangedFile[],
   patches: ParsedPatchType[],
   resolved: Suggestion[],
 ): Suggestion[] {
   const suggestions: Suggestion[] = [];
-  const baseFiles = bases.flatMap((p) => p.files);
 
   patches.forEach((patch) => {
     patch.files.forEach((file) => {
-      const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
+      const baseFile = baseFiles.find((x) => x.filename === file.afterName);
 
       if (!baseFile) {
         suggestions.push({
@@ -51,7 +51,7 @@ export function getSuggestions(
         return;
       }
 
-      const baseAdds = new Hunks(baseFile.modifiedLines.filter((x) => x.added));
+      const baseAdds = baseFile.additions;
       const dels = new Hunks(file.modifiedLines.filter((x) => !x.added));
       const adds = new Hunks(file.modifiedLines.filter((x) => x.added));
 

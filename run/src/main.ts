@@ -102,9 +102,9 @@ async function run() {
     if (inputs.suggestions && success) {
       const resolved = await clearPriorSuggestions(client, pr);
 
-      if (pr.diff && differences) {
+      if (differences) {
         let n = 0;
-        const bases = parsePatches(pr.diff);
+        const bases = pr.changedFiles;
         const patches = parsePatches(patch);
         const ps = getSuggestions(bases, patches, resolved).map((s) => {
           if (s.skipReason) {

@@ -19,6 +19,7 @@ import * as temp from "temp";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+import { ChangedFile, fromPullRequestFile } from "./diff";
 import { readProcess } from "./process";
 
 type GitHubClient = ReturnType<typeof github.getOctokit>;
@@ -30,7 +31,7 @@ export type PullRequest = {
   headSha: string;
   restyleArgs: string[];
   restyleDiffBase: DiffBase;
-  diff: string | null;
+  changedFiles: ChangedFile[];
 };
 
 export type DiffBase = { tag: "unknown" } | { tag: "known"; sha: string };
@@ -66,11 +67,14 @@ export async function getPullRequest(
   const pullRequestJson = temp.path({ suffix: ".json" });
   fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
 
+  const files = await client.paginate(client.rest.pulls.listFiles, {
+    ...github.context.repo,
+    pull_number: pr.number,
+  });
+
   // Respect paths if given, otherwise pull PR changed files
   const restylePaths =
-    paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
-
-  const diff = await getPullRequestDiff(client, pr.number);
+    paths.length === 0 ? files.map((f) => f.filename) : paths;
 
   return {
     number: pr.number,
@@ -79,7 +83,7 @@ export async function getPullRequest(
     headSha: pr.head.sha,
     restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
     restyleDiffBase: base,
-    diff,
+    changedFiles: files.map(fromPullRequestFile),
   };
 }
 
@@ -91,36 +95,8 @@ function fakePullRequest(base: DiffBase, paths: string[]): PullRequest {
     headSha: "unknown",
     restyleArgs: paths,
     restyleDiffBase: base,
-    diff: null,
+    changedFiles: [],
   };
-}
-
-async function getPullRequestPaths(
-  client: GitHubClient,
-  number: number,
-): Promise<string[]> {
-  const files = await client.paginate(client.rest.pulls.listFiles, {
-    ...github.context.repo,
-    pull_number: number,
-  });
-
-  return files.map((f) => f.filename);
-}
-
-async function getPullRequestDiff(
-  client: GitHubClient,
-  number: number,
-): Promise<string> {
-  const response = await client.rest.pulls.get({
-    ...github.context.repo,
-    pull_number: number,
-    mediaType: {
-      format: "patch",
-    },
-  });
-
-  // Custom mediatype is not expected by octokit types
-  return response.data as unknown as string;
 }
 
 async function getDiffBase(): Promise<DiffBase> {

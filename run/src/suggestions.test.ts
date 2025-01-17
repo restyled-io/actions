@@ -19,6 +19,8 @@ import {
   type ParsedPatchModifiedLineType,
 } from "parse-git-patch";
 
+import { ChangedFile } from "./diff";
+import { Hunks } from "./hunk";
 import { type Suggestion, getSuggestions } from "./suggestions";
 
 type TestCase = {
@@ -312,9 +314,26 @@ const cases: TestCase[] = [
   ),
 ];
 
+// TODO: just use ChangedFile[] in the test setup
+function patchesToChangedFiles(patches: ParsedPatchType[]): ChangedFile[] {
+  const files: ChangedFile[] = [];
+
+  patches.forEach((patch) => {
+    patch.files.forEach((file) => {
+      files.push({
+        filename: file.afterName,
+        additions: new Hunks(file.modifiedLines.filter((x) => x.added)),
+      });
+    });
+  });
+
+  return files;
+}
+
 describe("getSuggestions", () => {
   test.each(cases)("$name", ({ bases, patches, suggestions }) => {
-    const actual = getSuggestions(bases, patches, []).filter((x) => {
+    const baseFiles = patchesToChangedFiles(bases);
+    const actual = getSuggestions(baseFiles, patches, []).filter((x) => {
       return !x.skipReason;
     });
 
@@ -322,7 +341,8 @@ describe("getSuggestions", () => {
   });
 
   test.each(cases)("$name (resolved)", ({ bases, patches, suggestions }) => {
-    const includingSkipped = getSuggestions(bases, patches, suggestions);
+    const baseFiles = patchesToChangedFiles(bases);
+    const includingSkipped = getSuggestions(baseFiles, patches, suggestions);
     const actual = includingSkipped.filter((x) => {
       return !x.skipReason;
     });
@@ -340,7 +360,8 @@ describe("getSuggestions", () => {
     const patches = cases.flatMap((c) => c.patches);
     const suggestions = cases.flatMap((c) => c.suggestions);
 
-    const actual = getSuggestions(bases, patches, []);
+    const baseFiles = patchesToChangedFiles(bases);
+    const actual = getSuggestions(baseFiles, patches, []);
 
     expect(actual.length).toEqual(4);
     expect(actual).toEqual(suggestions);
