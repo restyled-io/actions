@@ -50,7 +50,13 @@ export async function getPullRequest(
 
   if (base.tag === "known" && base.sha !== pr.head.sha) {
     core.warning(
-      `The checked out commit does not match the event PR's head. ${base.sha} != ${pr.head.sha}. Weird things may happen.`,
+      [
+        `The checked out commit does not match the event PR's head.`,
+        `${base.sha} != ${pr.head.sha}.`,
+        `This usually means you are operating on the default merge ref.`,
+        `If so, Restyled may pick up changes that have been made to the default`,
+        `branch since you created this branch.`,
+      ].join(" "),
     );
   }
 
