@@ -30,8 +30,13 @@ export type PullRequest = {
   headSha: string;
   restyleArgs: string[];
   restyleDiffBase: DiffBase;
-  diff: string | null;
+  files: PullRequestFile[];
 };
+
+export interface PullRequestFile {
+  filename: string;
+  patch?: string;
+}
 
 export type DiffBase = { tag: "unknown" } | { tag: "known"; sha: string };
 
@@ -69,19 +74,6 @@ export async function getPullRequest(
   const restylePaths =
     paths.length === 0 ? files.map((f) => f.filename) : paths;
 
-  // Make a fake, multi-file diff to parse later
-  const diff = files
-    .flatMap((file) => {
-      return [
-        `diff --git a/${file.filename} b/${file.filename}`,
-        "index 000000000..000000000 100644",
-        `--- a/${file.filename}`,
-        `+++ a/${file.filename}`,
-        file.patch ?? "",
-      ];
-    })
-    .join("\n");
-
   return {
     number: pr.number,
     title: pr.title,
@@ -89,7 +81,7 @@ export async function getPullRequest(
     headSha: pr.head.sha,
     restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
     restyleDiffBase: base,
-    diff,
+    files,
   };
 }
 
@@ -101,7 +93,7 @@ function fakePullRequest(base: DiffBase, paths: string[]): PullRequest {
     headSha: "unknown",
     restyleArgs: paths,
     restyleDiffBase: base,
-    diff: null,
+    files: [],
   };
 }
 

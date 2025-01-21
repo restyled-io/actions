@@ -54,10 +54,16 @@ export function parseGitPatch(patch: string) {
 
   if (!gitPatchMetaInfo) return null;
 
-  const parsedPatch: Patch = {
+  const files = parseGitDiff(lines);
+
+  return {
     ...gitPatchMetaInfo,
-    files: [] as PatchFile[],
+    files,
   };
+}
+
+export function parseGitDiff(lines: string[]): PatchFile[] {
+  const files: PatchFile[] = [];
 
   splitIntoParts(lines, "diff --git").forEach((diff) => {
     const fileNameLine = diff.shift();
@@ -81,7 +87,7 @@ export function parseGitPatch(patch: string) {
       modifiedLines: [],
     };
 
-    parsedPatch.files.push(fileData);
+    files.push(fileData);
 
     if (addedFileModeRegex.test(metaLine)) {
       fileData.added = true;
@@ -94,7 +100,9 @@ export function parseGitPatch(patch: string) {
     }
 
     splitIntoParts(diff, "@@ ").forEach((lines) => {
+      // console.log(lines);
       const fileLinesLine = lines.shift();
+      // console.log(lines);
 
       if (!fileLinesLine) return;
 
@@ -143,7 +151,7 @@ export function parseGitPatch(patch: string) {
     });
   });
 
-  return parsedPatch;
+  return files;
 }
 
 function splitMetaInfo(patch: string, lines: string[]) {

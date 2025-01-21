@@ -1,0 +1,105 @@
+From 9d0324430cd612e42315fa7d45aafce2240a2a99 Mon Sep 17 00:00:00 2001
+From: "Restyled.io" <commits@restyled.io>
+Date: Tue, 21 Jan 2025 19:21:33 +0000
+Subject: [PATCH] Restyled by whitespace
+
+---
+ run/src/parse-git-patch.test.ts | 44 ++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/run/src/parse-git-patch.test.ts b/run/src/parse-git-patch.test.ts
+index 7103294..b3ccfe8 100644
+--- a/run/src/parse-git-patch.test.ts
++++ b/run/src/parse-git-patch.test.ts
+@@ -48,7 +48,7 @@ afterName: src/events/http/HttpServer.js
+ | 490 | 491 |           this.#serverless.service.provider.stage,
+ |     | 492 |+          _path,
+ | 491 | 493 |         )
+-| 492 | 494 | 
++| 492 | 494 |
+ | 493 | 495 |         event = lambdaProxyIntegrationEvent.create()
+ added: false
+ deleted: false
+@@ -56,13 +56,13 @@ beforeName: src/events/http/lambda-events/LambdaIntegrationEvent.js
+ afterName: src/events/http/lambda-events/LambdaIntegrationEvent.js
+ --
+ |   2 |   2 | import VelocityContext from './VelocityContext.js'
+-|   3 |   3 | 
++|   3 |   3 |
+ |   4 |   4 | export default class LambdaIntegrationEvent {
+ |     |   5 |+  #path = null
+ |   5 |   6 |   #request = null
+ |   6 |   7 |   #requestTemplate = null
+ |   7 |   8 |   #stage = null
+-|   8 |   9 | 
++|   8 |   9 |
+ |   9 |     |-  constructor(request, stage, requestTemplate) {
+ |     |  10 |+  constructor(request, stage, requestTemplate, path) {
+ |     |  11 |+    this.#path = path
+@@ -74,7 +74,7 @@ afterName: src/events/http/lambda-events/LambdaIntegrationEvent.js
+ |  19 |  21 |       this.#request.payload || {},
+ |     |  22 |+      this.#path,
+ |  20 |  23 |     ).getContext()
+-|  21 |  24 | 
++|  21 |  24 |
+ |  22 |  25 |     const event = renderVelocityTemplateObject(
+ added: false
+ deleted: false
+@@ -87,7 +87,7 @@ afterName: src/events/http/lambda-events/LambdaProxyIntegrationEvent.js
+ |     |  19 |+  #path = null
+ |  19 |  20 |   #request = null
+ |  20 |  21 |   #stage = null
+-|  21 |  22 | 
++|  21 |  22 |
+ |  22 |     |-  constructor(request, stage) {
+ |     |  23 |+  constructor(request, stage, path) {
+ |     |  24 |+    this.#path = path
+@@ -99,7 +99,7 @@ afterName: src/events/http/lambda-events/LambdaProxyIntegrationEvent.js
+ | 108 | 110 |       method,
+ | 109 |     |-      path,
+ | 110 | 111 |     } = this.#request
+-| 111 | 112 | 
++| 111 | 112 |
+ | 112 | 113 |     const httpMethod = method.toUpperCase()
+ |  20 |  21 |   #stage = null
+-|  21 |  22 | 
++|  21 |  22 |
+ |  22 |     |-  constructor(request, stage) {
+ |     |  23 |+  constructor(request, stage, path) {
+ |     |  24 |+    this.#path = path
+@@ -369,7 +369,7 @@ afterName: src/events/http/lambda-events/LambdaProxyIntegrationEvent.js
+ | 108 | 110 |       method,
+ | 109 |     |-      path,
+ | 110 | 111 |     } = this.#request
+-| 111 | 112 | 
++| 111 | 112 |
+ | 112 | 113 |     const httpMethod = method.toUpperCase()
+ | 125 | 126 |       multiValueQueryStringParameters: parseMultiValueQueryStringParameters(
+ | 126 | 127 |         url,
+@@ -410,7 +410,7 @@ afterName: src/events/http/lambda-events/VelocityContext.js
+ |  39 |  40 |   #payload = null
+ |  40 |  41 |   #request = null
+ |  41 |  42 |   #stage = null
+-|  42 |  43 | 
++|  42 |  43 |
+ |  43 |     |-  constructor(request, stage, payload) {
+ |     |  44 |+  constructor(request, stage, payload, path) {
+ |     |  45 |+    this.#path = path
+@@ -501,13 +501,13 @@ beforeName: hlint/.hlint.yaml
+ afterName: hlint/.hlint.yaml
+ --
+ | 24 | 24 | # for ad hoc ways to suppress hlint.
+-| 25 | 25 | 
++| 25 | 25 |
+ | 26 | 26 | ---
+ | 27 |    |-
+ | 28 | 27 | # By default, everything is an error
+ | 29 |    |-- error: {name: ""}
+ |    | 28 |+- error: { name: "" }
+-| 30 | 29 | 
++| 30 | 29 |
+ | 31 | 30 | # Some things we don't care about at all
+ | 32 |    |-- ignore: {name: "Use module export list"}
+ `.trim(),
+-- 
+2.47.1
