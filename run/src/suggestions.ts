@@ -13,88 +13,90 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { type ParsedPatchType } from "parse-git-patch";
-
-import { Hunks } from "./hunk";
+import { type Patch, PatchLine } from "./parse-git-patch";
+import { NonEmpty, nonEmpty } from "./non-empty";
 import * as NE from "./non-empty";
 
 export type Suggestion = {
   path: string;
   description: string;
+  code: string[];
   startLine: number;
   endLine: number;
-  code: string[];
   skipReason?: string;
 };
 
 export function getSuggestions(
-  bases: ParsedPatchType[],
-  patches: ParsedPatchType[],
+  baseDiff: string,
+  patches: Patch[],
   resolved: Suggestion[],
 ): Suggestion[] {
   const suggestions: Suggestion[] = [];
-  const baseFiles = bases.flatMap((p) => p.files);
 
   patches.forEach((patch) => {
     patch.files.forEach((file) => {
-      const baseFile = baseFiles.find((x) => x.afterName === file.afterName);
+      const groups = groupBy(file.modifiedLines, (a, b) => {
+        return a.tag === b.tag || (a.tag === "removed" && b.tag === "added");
+      });
 
-      if (!baseFile) {
-        suggestions.push({
-          path: file.afterName,
-          description: (patch.message || "").replace(/^\[PATCH] /, ""),
-          startLine: 0,
-          endLine: 0,
-          code: [],
-          skipReason: `Restyled file ${file.afterName} was not changed in the PR`,
-        });
-        return;
-      }
+      groups.forEach((group: PatchLine[]) => {
+        const removed = getRemoveLineNumbers(group);
 
-      const baseAdds = new Hunks(baseFile.modifiedLines.filter((x) => x.added));
-      const dels = new Hunks(file.modifiedLines.filter((x) => !x.added));
-      const adds = new Hunks(file.modifiedLines.filter((x) => x.added));
-
-      dels.forEach((del) => {
-        const line = NE.head(del).lineNumber;
-        const add = adds.get(line);
-        const mkSkipped = (skipReason: string): Suggestion => {
-          return {
+        if (removed) {
+          const suggestion: Suggestion = {
             path: file.afterName,
-            description: (patch.message || "").replace(/^\[PATCH] /, ""),
-            startLine: NE.head(del).lineNumber,
-            endLine: NE.last(del).lineNumber,
-            code: [],
-            skipReason,
+            description: (patch.message ?? "").replace(/\[PATCH.*] /, ""),
+            code: getAddedLines(group),
+            startLine: NE.head(removed),
+            endLine: NE.last(removed),
           };
-        };
 
-        const suggestion: Suggestion = {
-          path: file.afterName,
-          description: (patch.message || "").replace(/^\[PATCH] /, ""),
-          startLine: NE.head(del).lineNumber,
-          endLine: NE.last(del).lineNumber,
-          code: add ? NE.toList(add).map((x) => x.line) : [],
-        };
+          if (!isAddedInDiff(baseDiff, suggestion)) {
+            suggestion.skipReason =
+              "suggestions can only be made on added lines";
+          } else if (resolved.some((r) => isSameLocation(r, suggestion))) {
+            suggestion.skipReason = "previously marked resolved";
+          }
 
-        if (!baseAdds.contain(del)) {
-          suggestions.push(
-            mkSkipped(`suggestions can only be made on added lines`),
-          );
-          return;
+          suggestions.push(suggestion);
         }
-
-        if (resolved.some((r) => isSameLocation(r, suggestion))) {
-          suggestions.push(mkSkipped(`previously marked resolved`));
-          return;
-        }
-
-        suggestions.push(suggestion);
       });
     });
   });
 
   return suggestions;
+}
+
+function getRemoveLineNumbers(lines: PatchLine[]): NonEmpty<number> | null {
+  const acc: number[] = [];
+
+  lines.forEach((line) => {
+    if (line.tag === "removed") {
+      acc.push(line.removedLineNumber);
+    }
+  });
+
+  return nonEmpty(acc);
+}
+
+function getAddedLines(lines: PatchLine[]): string[] {
+  const acc: string[] = [];
+
+  lines.forEach((line) => {
+    if (line.tag === "added") {
+      acc.push(line.line);
+    }
+  });
+
+  return acc;
+}
+
+function groupBy<T>(_xs: T[], _compare: (a: T, b: T) => boolean): T[][] {
+  return []; // TODO
+}
+
+function isAddedInDiff(_diff: string, _s: Suggestion): boolean {
+  return true; // TODO
 }
 
 function isSameLocation(a: Suggestion, b: Suggestion): boolean {

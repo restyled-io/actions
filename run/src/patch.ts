@@ -13,13 +13,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { type ParsedPatchType } from "parse-git-patch";
-import parseGitPatch from "parse-git-patch";
+import { type Patch } from "./parse-git-patch";
+import parseGitPatch from "./parse-git-patch";
 
 const PATCH_BEGIN = /^From /;
 
-export function parsePatches(str: string): ParsedPatchType[] {
-  const patches: ParsedPatchType[] = [];
+export function parsePatches(str: string): Patch[] {
+  const patches: Patch[] = [];
 
   let patchLines: string[] = [];
 

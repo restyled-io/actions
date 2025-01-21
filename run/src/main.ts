@@ -104,9 +104,8 @@ async function run() {
 
       if (pr.diff && differences) {
         let n = 0;
-        const bases = parsePatches(pr.diff);
         const patches = parsePatches(patch);
-        const ps = getSuggestions(bases, patches, resolved).map((s) => {
+        const ps = getSuggestions(pr.diff, patches, resolved).map((s) => {
           if (s.skipReason) {
             const line =
               s.startLine !== s.endLine
