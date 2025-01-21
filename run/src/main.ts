@@ -21,7 +21,7 @@ import { clearPriorSuggestions, commentSuggestion } from "./review-comments";
 import { cliArguments, getInputs } from "./inputs";
 import { getPullRequest } from "./pull-request";
 import { getSuggestions } from "./suggestions";
-import { parsePatches } from "./patch";
+import { parseGitPatches } from "./parse-git-patch";
 import { readProcess } from "./process";
 import { setOutputs } from "./outputs";
 
@@ -104,8 +104,9 @@ async function run() {
 
       if (pr.diff && differences) {
         let n = 0;
-        const patches = parsePatches(patch);
-        const ps = getSuggestions(pr.diff, patches, resolved).map((s) => {
+        const bases = parseGitPatches(pr.diff);
+        const patches = parseGitPatches(patch);
+        const ps = getSuggestions(bases, patches, resolved).map((s) => {
           if (s.skipReason) {
             const line =
               s.startLine !== s.endLine

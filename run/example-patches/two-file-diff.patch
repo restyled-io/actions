@@ -13,3 +13,18 @@ index 20bf454..c0fdafb 100644
            if (result.isBase64Encoded) {
              response.encoding = 'binary'
              response.source = Buffer.from(result.body, 'base64')
+diff --git a/hlint/.hlint.yaml b/hlint/.hlint.yaml
+index 1e09829..19356c5 100644
+--- a/hlint/.hlint.yaml
++++ b/hlint/.hlint.yaml
+@@ -24,34 +24,33 @@
+ # for ad hoc ways to suppress hlint.
+ 
+ ---
+-
+ # By default, everything is an error
+-- error: {name: ""}
++- error: { name: "" }
+ 
+ # Some things we don't care about at all
+-- ignore: {name: "Use module export list"}
