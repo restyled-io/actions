@@ -90,7 +90,7 @@ const cases: TestCase[] = [
     [
       patch("JSON stringify string responses", [
         patchFile(
-          "src/events/http/HttpServer.js",
+          "src/events/http/File1.js",
           `
             774|   |        if (result && typeof result.body !== 'undefined') {
                |774|        if (typeof result === 'string') {
@@ -103,7 +103,7 @@ const cases: TestCase[] = [
     [
       patch("Restyled by prettier", [
         patchFile(
-          "src/events/http/HttpServer.js",
+          "src/events/http/File1.js",
           `
             775|   |          response.source = JSON.stringify(result)
                |775|          response.source = JSON.stringify(result);
@@ -113,7 +113,7 @@ const cases: TestCase[] = [
     ],
     [
       {
-        path: "src/events/http/HttpServer.js",
+        path: "src/events/http/File1.js",
         description: "Restyled by prettier",
         startLine: 775,
         endLine: 775,
@@ -267,7 +267,7 @@ const cases: TestCase[] = [
     [
       patch("Update Foo", [
         patchFile(
-          "Foo.hs",
+          "Foo2.hs",
           `
           1|1|
           2| | setRequestBody
@@ -282,7 +282,7 @@ const cases: TestCase[] = [
     [
       patch("Restyled by fourmolu", [
         patchFile(
-          "Foo.hs",
+          "Foo2.hs",
           `
           1|1|
           2| | setRequestBody $
@@ -294,7 +294,7 @@ const cases: TestCase[] = [
     ],
     [
       {
-        path: "Foo.hs",
+        path: "Foo2.hs",
         startLine: 2,
         endLine: 3,
         description: "Restyled by fourmolu",
@@ -302,25 +302,98 @@ const cases: TestCase[] = [
       },
     ],
   ),
+  testCase(
+    "Skipped on non-added file",
+    [
+      patch("JSON stringify string responses", [
+        patchFile(
+          "src/events/http/File3.js",
+          `
+            773|773|        # mispelt
+            774|   |        if (result && typeof result.body !== 'undefined') {
+               |774|        if (typeof result === 'string') {
+               |775|          response.source = JSON.stringify(result)
+               |776|        } else if (result && typeof result.body !== 'undefined') {
+          `,
+        ),
+      ]),
+    ],
+    [
+      patch("Restyled by spelling", [
+        patchFile(
+          "src/events/http/Other2.js",
+          `
+            12|  | # from
+              |12| # to
+          `,
+        ),
+      ]),
+    ],
+    [
+      {
+        path: "src/events/http/Other2.js",
+        description: "Restyled by spelling",
+        startLine: 12,
+        endLine: 12,
+        code: [" # to"],
+        skipReason: "suggestions can only be made on added lines",
+      },
+    ],
+  ),
+  testCase(
+    "Skipped on non-added line",
+    [
+      patch("JSON stringify string responses", [
+        patchFile(
+          "src/events/http/File4.js",
+          `
+            773|773|        # mispelt
+            774|   |        if (result && typeof result.body !== 'undefined') {
+               |774|        if (typeof result === 'string') {
+               |775|          response.source = JSON.stringify(result)
+               |776|        } else if (result && typeof result.body !== 'undefined') {
+          `,
+        ),
+      ]),
+    ],
+    [
+      patch("Restyled by spelling", [
+        patchFile(
+          "src/events/http/File4.js",
+          `
+            773|   |       # mispelt
+               |773|       # mispelled
+          `,
+        ),
+      ]),
+    ],
+    [
+      {
+        path: "src/events/http/File4.js",
+        description: "Restyled by spelling",
+        startLine: 773,
+        endLine: 773,
+        code: ["       # mispelled"],
+        skipReason: "suggestions can only be made on added lines",
+      },
+    ],
+  ),
 ];
 
 describe("getSuggestions", () => {
   test.each(cases)("$name", ({ bases, patches, suggestions }) => {
-    const actual = getSuggestions(bases, patches, []).filter((x) => {
-      return !x.skipReason;
-    });
-
+    const actual = getSuggestions(bases, patches, []);
     expect(actual).toEqual(suggestions);
   });
 
   test.each(cases)("$name (resolved)", ({ bases, patches, suggestions }) => {
-    const includingSkipped = getSuggestions(bases, patches, suggestions);
-    const actual = includingSkipped.filter((x) => {
+    const actual = getSuggestions(bases, patches, suggestions);
+    const notSkipped = actual.filter((x) => {
       return !x.skipReason;
     });
 
-    expect(actual).toEqual([]);
-    expect(includingSkipped.map((x) => x.skipReason)).toEqual(
+    expect(notSkipped).toEqual([]);
+    expect(actual.map((x) => x.skipReason)).toEqual(
       suggestions.map(() => {
         return `previously marked resolved`;
       }),
@@ -331,10 +404,8 @@ describe("getSuggestions", () => {
     const bases = cases.flatMap((c) => c.bases);
     const patches = cases.flatMap((c) => c.patches);
     const suggestions = cases.flatMap((c) => c.suggestions);
-
     const actual = getSuggestions(bases, patches, []);
-
-    expect(actual.length).toEqual(4);
+    expect(actual.length).toEqual(cases.length);
     expect(actual).toEqual(suggestions);
   });
 });

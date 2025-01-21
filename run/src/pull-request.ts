@@ -60,11 +60,27 @@ export async function getPullRequest(
   const pullRequestJson = temp.path({ suffix: ".json" });
   fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
 
+  const files = await client.paginate(client.rest.pulls.listFiles, {
+    ...github.context.repo,
+    pull_number: pr.number,
+  });
+
   // Respect paths if given, otherwise pull PR changed files
   const restylePaths =
-    paths.length === 0 ? await getPullRequestPaths(client, pr.number) : paths;
+    paths.length === 0 ? files.map((f) => f.filename) : paths;
 
-  const diff = await getPullRequestDiff(client, pr.number);
+  // Make a fake, multi-file diff to parse later
+  const diff = files
+    .flatMap((file) => {
+      return [
+        `diff --git a/${file.filename} b/${file.filename}`,
+        "index 000000000..000000000 100644",
+        `--- a/${file.filename}`,
+        `+++ a/${file.filename}`,
+        file.patch ?? "",
+      ];
+    })
+    .join("\n");
 
   return {
     number: pr.number,
@@ -87,34 +103,6 @@ function fakePullRequest(base: DiffBase, paths: string[]): PullRequest {
     restyleDiffBase: base,
     diff: null,
   };
-}
-
-async function getPullRequestPaths(
-  client: GitHubClient,
-  number: number,
-): Promise<string[]> {
-  const files = await client.paginate(client.rest.pulls.listFiles, {
-    ...github.context.repo,
-    pull_number: number,
-  });
-
-  return files.map((f) => f.filename);
-}
-
-async function getPullRequestDiff(
-  client: GitHubClient,
-  number: number,
-): Promise<string> {
-  const response = await client.rest.pulls.get({
-    ...github.context.repo,
-    pull_number: number,
-    mediaType: {
-      format: "patch",
-    },
-  });
-
-  // Custom mediatype is not expected by octokit types
-  return response.data as unknown as string;
 }
 
 async function getDiffBase(): Promise<DiffBase> {
