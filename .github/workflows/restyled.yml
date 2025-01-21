@@ -18,7 +18,6 @@ jobs:
       - uses: ./run
         with:
           suggestions: true
-          show-patch: false
           show-patch-command: false
 
   restyled-demo:
