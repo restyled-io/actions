@@ -55,7 +55,9 @@ export function getSuggestions(
           if (!isAddedInDiff(bases, suggestion)) {
             suggestion.skipReason =
               "suggestions can only be made on added lines";
-          } else if (resolved.some((r) => isSameLocation(r, suggestion))) {
+          }
+
+          if (resolved.some((r) => isSameLocation(r, suggestion))) {
             suggestion.skipReason = "previously marked resolved";
           }
 
@@ -92,8 +94,27 @@ function getAddedLines(lines: PatchLine[]): string[] {
   return acc;
 }
 
-function isAddedInDiff(bases: Patch[], _s: Suggestion): boolean {
-  return true; // TODO
+function isAddedInDiff(patches: Patch[], s: Suggestion): boolean {
+  const matched: PatchLine[] = [];
+  const suggestionSize = s.endLine - s.startLine + 1;
+
+  patches.forEach((patch) => {
+    patch.files.forEach((file) => {
+      if (file.afterName === s.path) {
+        for (let i = s.startLine; i <= s.endLine; i++) {
+          const line = file.modifiedLines.find((line) => {
+            return line.tag === "added" && line.addedLineNumber === i;
+          });
+
+          if (line) {
+            matched.push(line);
+          }
+        }
+      }
+    });
+  });
+
+  return matched.length == suggestionSize;
 }
 
 function isSameLocation(a: Suggestion, b: Suggestion): boolean {
