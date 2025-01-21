@@ -17,13 +17,12 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
-import { clearPriorSuggestions, commentSuggestion } from "./review-comments";
 import { cliArguments, getInputs } from "./inputs";
-import { getPullRequest } from "./pull-request";
-import { getSuggestions } from "./suggestions";
-import { parseGitPatches } from "./parse-git-patch";
-import { readProcess } from "./process";
 import { setOutputs } from "./outputs";
+import { readProcess } from "./process";
+import { getPullRequest } from "./pull-request";
+import { clearPriorSuggestions, commentSuggestion } from "./review-comments";
+import { suggest } from "./suggest";
 
 function pullRequestDescription(number: number): string {
   return `
@@ -102,11 +101,11 @@ async function run() {
     if (inputs.suggestions && success) {
       const resolved = await clearPriorSuggestions(client, pr);
 
-      if (pr.diff && differences) {
+      if (differences) {
+        const suggestions = suggest(pr.files, resolved, patch);
+
         let n = 0;
-        const bases = parseGitPatches(pr.diff);
-        const patches = parseGitPatches(patch);
-        const ps = getSuggestions(bases, patches, resolved).map((s) => {
+        const ps = suggestions.map((s) => {
           if (s.skipReason) {
             const line =
               s.startLine !== s.endLine

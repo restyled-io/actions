@@ -1,0 +1,101 @@
+[
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "| 492 | 494 |"
+    ],
+    "startLine": 51,
+    "endLine": 51
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "|   3 |   3 |"
+    ],
+    "startLine": 59,
+    "endLine": 59
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "|   8 |   9 |"
+    ],
+    "startLine": 65,
+    "endLine": 65
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "|  21 |  24 |"
+    ],
+    "startLine": 77,
+    "endLine": 77
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "|  21 |  22 |"
+    ],
+    "startLine": 90,
+    "endLine": 90
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "| 111 | 112 |"
+    ],
+    "startLine": 102,
+    "endLine": 102
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "|  21 |  22 |"
+    ],
+    "startLine": 105,
+    "endLine": 105
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "| 111 | 112 |"
+    ],
+    "startLine": 372,
+    "endLine": 372
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "|  42 |  43 |"
+    ],
+    "startLine": 413,
+    "endLine": 413
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "| 25 | 25 |"
+    ],
+    "startLine": 504,
+    "endLine": 504
+  },
+  {
+    "path": "run/src/parse-git-patch.test.ts",
+    "description": "Restyled by whitespace",
+    "code": [
+      "| 30 | 29 |"
+    ],
+    "startLine": 510,
+    "endLine": 510
+  }
+]
