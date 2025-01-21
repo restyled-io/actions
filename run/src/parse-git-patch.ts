@@ -33,7 +33,17 @@ export type Patch = {
   files: PatchFile[];
 };
 
-function parseGitPatch(patch: string) {
+export function parseGitPatches(patches: string): Patch[] {
+  const lines = patches.split("\n");
+
+  return splitIntoParts(lines, "From ")
+    .map((xs) => parseGitPatch(xs.join("\n")))
+    .filter((x) => {
+      return x;
+    }) as Patch[];
+}
+
+export function parseGitPatch(patch: string) {
   if (typeof patch !== "string") {
     throw new Error("Expected first argument (patch) to be a string");
   }
@@ -94,36 +104,40 @@ function parseGitPatch(patch: string) {
 
       const [, a, b] = match4;
 
-      let nA = parseInt(a) - 1;
-      let nB = parseInt(b) - 1;
+      let nA = parseInt(a);
+      let nB = parseInt(b);
 
-      lines.forEach((line, idx) => {
-        nA++;
-        nB++;
-
-        // This may be deletion of a line with content "- ", or it may be the
-        // end of patch terminator. We can ensure it's the latter by checking
-        // that we're the 2nd-to-last line.
-        if (line === "-- " && idx === lines.length - 3) {
+      lines.forEach((line) => {
+        if (line === "-- ") {
           return;
         }
 
         if (line.startsWith("+")) {
-          nA--;
-
           fileData.modifiedLines.push({
             tag: "added",
             addedLineNumber: nB,
             line: line.substring(1),
           });
-        } else if (line.startsWith("-")) {
-          nB--;
 
+          nB++;
+        } else if (line.startsWith("-")) {
           fileData.modifiedLines.push({
             tag: "removed",
             removedLineNumber: nA,
             line: line.substring(1),
           });
+
+          nA++;
+        } else if (line.startsWith(" ")) {
+          fileData.modifiedLines.push({
+            tag: "context",
+            addedLineNumber: nB,
+            removedLineNumber: nA,
+            line: line.substring(1),
+          });
+
+          nA++;
+          nB++;
         }
       });
     });
@@ -201,5 +215,3 @@ function splitIntoParts(lines: string[], separator: string) {
 
   return parts;
 }
-
-export default parseGitPatch;

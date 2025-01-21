@@ -13,41 +13,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { type Patch } from "./parse-git-patch";
-import parseGitPatch from "./parse-git-patch";
+export function last<T>(xs: T[]): T | null {
+  return xs.slice(-1)[0] ?? null;
+}
 
-const PATCH_BEGIN = /^From /;
+export function group<T>(xs: T[]): T[][] {
+  return groupBy(xs, (a, b) => a === b);
+}
 
-export function parsePatches(str: string): Patch[] {
-  const patches: Patch[] = [];
+export function groupBy<T>(xs: T[], isEqual: (a: T, b: T) => boolean): T[][] {
+  const go = (acc: T[][], x: T): T[][] => {
+    const prevGroup: T[] | null = last(acc);
 
-  let patchLines: string[] = [];
+    if (prevGroup) {
+      const prevElem = last(prevGroup);
 
-  // Parse what we have so far and reset lines
-  const accumulate = () => {
-    if (patchLines.length === 0) {
-      return;
+      if (prevElem && isEqual(prevElem, x)) {
+        prevGroup.push(x); // ick
+        return acc;
+      }
     }
 
-    const parsed = parseGitPatch(patchLines.join("\n"));
-
-    if (!parsed) {
-      return;
-    }
-
-    patches.push(parsed);
-    patchLines = [];
+    return acc.concat([[x]]);
   };
 
-  str.split("\n").forEach((line) => {
-    if (line.match(PATCH_BEGIN)) {
-      accumulate();
-    }
-
-    patchLines.push(line);
-  });
-
-  accumulate();
-
-  return patches;
+  return xs.reduce(go, []);
 }

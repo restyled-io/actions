@@ -13,9 +13,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { type Patch, PatchLine } from "./parse-git-patch";
+import { groupBy } from "./list";
 import { NonEmpty, nonEmpty } from "./non-empty";
 import * as NE from "./non-empty";
+import { Patch, PatchLine } from "./parse-git-patch";
 
 export type Suggestion = {
   path: string;
@@ -27,7 +28,7 @@ export type Suggestion = {
 };
 
 export function getSuggestions(
-  baseDiff: string,
+  bases: Patch[],
   patches: Patch[],
   resolved: Suggestion[],
 ): Suggestion[] {
@@ -51,7 +52,7 @@ export function getSuggestions(
             endLine: NE.last(removed),
           };
 
-          if (!isAddedInDiff(baseDiff, suggestion)) {
+          if (!isAddedInDiff(bases, suggestion)) {
             suggestion.skipReason =
               "suggestions can only be made on added lines";
           } else if (resolved.some((r) => isSameLocation(r, suggestion))) {
@@ -91,11 +92,7 @@ function getAddedLines(lines: PatchLine[]): string[] {
   return acc;
 }
 
-function groupBy<T>(_xs: T[], _compare: (a: T, b: T) => boolean): T[][] {
-  return []; // TODO
-}
-
-function isAddedInDiff(_diff: string, _s: Suggestion): boolean {
+function isAddedInDiff(bases: Patch[], _s: Suggestion): boolean {
   return true; // TODO
 }
 
