@@ -17,7 +17,6 @@
     "@actions/github": "^6.0.0",
     "@types/temp": "^0.9.4",
     "action-docs": "^2.5.1",
-    "parse-git-patch": "^2.0.0",
     "temp": "^0.9.4"
   },
   "devDependencies": {
