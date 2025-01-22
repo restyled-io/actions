@@ -13,22 +13,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { last, group, groupBy } from "./list";
-
-describe("last", () => {
-  it("gets the last element of a non-empty array", () => {
-    expect(last([1, 2, 3])).toEqual(3);
-  });
-
-  it("returns null for an empty array", () => {
-    expect(last([])).toBeNull();
-  });
-});
+import { group, groupBy } from "./list";
+import * as NE from "./non-empty";
 
 describe("group", () => {
   it("groups equal elements", () => {
     const actual = group([1, 2, 2, 3, 2, 4, 5, 5, 5, 6]);
-    const expected = [[1], [2, 2], [3], [2], [4], [5, 5, 5], [6]];
+    const expected = [
+      NE.build(1),
+      NE.build(2, 2),
+      NE.build(3),
+      NE.build(2),
+      NE.build(4),
+      NE.build(5, 5, 5),
+      NE.build(6),
+    ];
 
     expect(actual).toEqual(expected);
   });
@@ -44,10 +43,10 @@ describe("groupBy", () => {
       sameFirstLetter,
     );
     const expected = [
-      ["apple", "adam"],
-      ["banana", "bake"],
-      ["about"],
-      ["pie"],
+      NE.build("apple", "adam"),
+      NE.build("banana", "bake"),
+      NE.build("about"),
+      NE.build("pie"),
     ];
 
     expect(actual).toEqual(expected);

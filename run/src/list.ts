@@ -13,28 +13,33 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-export function last<T>(xs: T[]): T | null {
-  return xs.slice(-1)[0] ?? null;
-}
+import { NonEmpty, nonEmpty } from "./non-empty";
+import * as NE from "./non-empty";
 
-export function group<T>(xs: T[]): T[][] {
+export function group<T>(xs: T[]): NonEmpty<T>[] {
   return groupBy(xs, (a, b) => a === b);
 }
 
-export function groupBy<T>(xs: T[], isEqual: (a: T, b: T) => boolean): T[][] {
-  const go = (acc: T[][], x: T): T[][] => {
-    const prevGroup: T[] | null = last(acc);
+export function groupBy<T>(
+  xs: T[],
+  isEqual: (a: T, b: T) => boolean,
+): NonEmpty<T>[] {
+  const go = (acc: NonEmpty<T>[], x: T): NonEmpty<T>[] => {
+    const neAcc = nonEmpty(acc);
 
-    if (prevGroup) {
-      const prevElem = last(prevGroup);
-
-      if (prevElem && isEqual(prevElem, x)) {
-        prevGroup.push(x); // ick
-        return acc;
-      }
+    if (!neAcc) {
+      // empty accumulator, start first group
+      return [NE.singleton(x)];
     }
 
-    return acc.concat([[x]]);
+    const init = NE.init(neAcc);
+    const prevGroup = NE.last(neAcc);
+    const prevElem = NE.last(prevGroup);
+    const updated = isEqual(prevElem, x)
+      ? [NE.append(prevGroup, NE.singleton(x))]
+      : [prevGroup, NE.singleton(x)];
+
+    return init.concat(updated);
   };
 
   return xs.reduce(go, []);

@@ -58,7 +58,10 @@ export function last<T>(ne: NonEmpty<T>): T {
 }
 
 export function init<T>(ne: NonEmpty<T>): T[] {
-  return [head(ne)].concat(tail(ne).slice(-1));
+  const t = ne._tail;
+  const l = t.length;
+
+  return l === 0 ? [] : [head(ne)].concat(t.slice(0, l - 1));
 }
 
 export function toList<T>(ne: NonEmpty<T>): T[] {

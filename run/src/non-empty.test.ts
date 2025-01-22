@@ -54,4 +54,18 @@ describe("NonEmpty", () => {
       expect(NE.toList(ne)).toEqual([1]);
     });
   });
+
+  describe("init", () => {
+    it("returns all but the last element", () => {
+      const ne = NE.build(1, 2, 3);
+
+      expect(NE.init(ne)).toEqual([1, 2]);
+    });
+
+    it("returns empty for singleton list", () => {
+      const ne = NE.singleton(1);
+
+      expect(NE.init(ne)).toEqual([]);
+    });
+  });
 });
