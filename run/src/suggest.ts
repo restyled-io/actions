@@ -73,10 +73,12 @@ export function suggest(
   return suggestions;
 }
 
-function getRemoveLineNumbers(lines: PatchLine[]): NonEmpty<number> | null {
+function getRemoveLineNumbers(
+  lines: NonEmpty<PatchLine>,
+): NonEmpty<number> | null {
   const acc: number[] = [];
 
-  lines.forEach((line) => {
+  NE.toList(lines).forEach((line) => {
     if (line.tag === "removed") {
       acc.push(line.removedLineNumber);
     }
@@ -85,10 +87,10 @@ function getRemoveLineNumbers(lines: PatchLine[]): NonEmpty<number> | null {
   return nonEmpty(acc);
 }
 
-function getAddedLines(lines: PatchLine[]): string[] {
+function getAddedLines(lines: NonEmpty<PatchLine>): string[] {
   const acc: string[] = [];
 
-  lines.forEach((line) => {
+  NE.toList(lines).forEach((line) => {
     if (line.tag === "added") {
       acc.push(line.line);
     }
