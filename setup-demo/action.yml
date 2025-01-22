@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Patrick Brisbin
+# Copyright (C) 2025 Patrick Brisbin
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 name: Create files for demoing (or testing) Restyled
 author: pbrisbin
 
