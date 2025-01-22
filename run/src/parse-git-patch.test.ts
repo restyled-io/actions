@@ -11,11 +11,11 @@ import {
 describe("parseGitPatches", () => {
   // works on multi-patch, patch, but not diff-only
   const cases = [
-    "example-patches/many-patches.patch",
-    "example-patches/many-files.patch",
-    "example-patches/rename-file.patch",
-    "example-patches/add-and-delete-file.patch",
-    "example-patches/hlint-yaml.patch",
+    "test-files/parse-git-patch/many-patches.patch",
+    "test-files/parse-git-patch/many-files.patch",
+    "test-files/parse-git-patch/rename-file.patch",
+    "test-files/parse-git-patch/add-and-delete-file.patch",
+    "test-files/parse-git-patch/hlint-yaml.patch",
   ];
 
   test.each(cases)("%s", (path) => {
@@ -29,12 +29,12 @@ describe("parseGitPatches", () => {
 describe("parseGitPatch", () => {
   // works on patch or diff-only, but not multi-patch
   const cases = [
-    "example-patches/many-files.patch",
-    "example-patches/rename-file.patch",
-    "example-patches/add-and-delete-file.patch",
-    "example-patches/hlint-yaml.patch",
-    "example-patches/one-file.diff",
-    "example-patches/two-file.diff",
+    "test-files/parse-git-patch/many-files.patch",
+    "test-files/parse-git-patch/rename-file.patch",
+    "test-files/parse-git-patch/add-and-delete-file.patch",
+    "test-files/parse-git-patch/hlint-yaml.patch",
+    "test-files/parse-git-patch/one-file.diff",
+    "test-files/parse-git-patch/two-file.diff",
   ];
 
   test.each(cases)("%s", (path) => {

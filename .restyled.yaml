@@ -1,6 +1,7 @@
 also_exclude:
   - "*/dist/**/*"
-  - "run/suggest-test-files/**/*"
+  - "*/src/__snapshots__/**/*"
+  - "*/test-files/**/*"
 
 restylers:
   # Disable other json formatters (using prettier-json)
@@ -11,10 +12,5 @@ restylers:
   - prettier:
       include:
         - "run/src/**/*.ts"
-
-  - whitespace:
-      include:
-        - "**/*"
-        - "!run/src/parse-git-patch.test.ts" # significant whitespace, for now
 
   - "*"

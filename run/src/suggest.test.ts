@@ -4,7 +4,7 @@ import { PullRequestFile } from "./pull-request";
 import { suggest } from "./suggest";
 
 describe("suggest", () => {
-  const cases = ["suggest-test-files/restyled-io-actions-110"];
+  const cases = ["test-files/suggest/restyled-io-actions-110"];
 
   test.each(cases)("%s", (path) => {
     const baseFilesRaw = fs.readFileSync(`${path}/files.json`).toString();
