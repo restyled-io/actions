@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`suggest suggest-test-files/restyled-io-actions-110 1`] = `
+exports[`suggest test-files/suggest/restyled-io-actions-110 1`] = `
 Array [
   Object {
     "code": Array [
