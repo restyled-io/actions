@@ -130,39 +130,6 @@ function cliArguments(inputs) {
 
 /***/ }),
 
-/***/ 670:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.last = last;
-exports.group = group;
-exports.groupBy = groupBy;
-function last(xs) {
-    return xs.slice(-1)[0] ?? null;
-}
-function group(xs) {
-    return groupBy(xs, (a, b) => a === b);
-}
-function groupBy(xs, isEqual) {
-    const go = (acc, x) => {
-        const prevGroup = last(acc);
-        if (prevGroup) {
-            const prevElem = last(prevGroup);
-            if (prevElem && isEqual(prevElem, x)) {
-                prevGroup.push(x);
-                return acc;
-            }
-        }
-        return acc.concat([[x]]);
-    };
-    return xs.reduce(go, []);
-}
-
-
-/***/ }),
-
 /***/ 5915:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -346,6 +313,8 @@ exports.tail = tail;
 exports.last = last;
 exports.init = init;
 exports.toList = toList;
+exports.group = group;
+exports.groupBy = groupBy;
 function build(x, ...xs) {
     return {
         _head: x,
@@ -378,10 +347,30 @@ function last(ne) {
     return t.length == 0 ? head(ne) : t.slice(-1)[0];
 }
 function init(ne) {
-    return [head(ne)].concat(tail(ne).slice(-1));
+    const t = ne._tail;
+    const l = t.length;
+    return l === 0 ? [] : [head(ne)].concat(t.slice(0, l - 1));
 }
 function toList(ne) {
     return [head(ne)].concat(tail(ne));
+}
+function group(xs) {
+    return groupBy(xs, (a, b) => a === b);
+}
+function groupBy(xs, isEqual) {
+    const go = (acc, x) => {
+        const neAcc = nonEmpty(acc);
+        if (!neAcc) {
+            return [singleton(x)];
+        }
+        const prevGroup = last(neAcc);
+        const prevElem = last(prevGroup);
+        const updated = isEqual(prevElem, x)
+            ? [append(prevGroup, singleton(x))]
+            : [prevGroup, singleton(x)];
+        return init(neAcc).concat(updated);
+    };
+    return xs.reduce(go, []);
 }
 
 
@@ -738,7 +727,15 @@ async function getPullRequest(client, paths) {
         return fakePullRequest(base, paths);
     }
     if (base.tag === "known" && base.sha !== pr.head.sha) {
-        core.warning(`The checked out commit does not match the event PR's head. ${base.sha} != ${pr.head.sha}. Weird things may happen.`);
+        core.info([
+            "The checked out commit does not match the event PR's head.",
+            `${base.sha} != ${pr.head.sha}.`,
+            "This usually means you've checked out the merge ref,",
+            "which is actions/checkout's default behavior.",
+            "This is usually fine, but if you have a very busy default branch,",
+            "Restyled could pick up changes you don't expect and do weird things.",
+            "Consider using `ref: ${{ github.event.pull_request.head.ref }}` instead.",
+        ].join(" "));
     }
     const pullRequestJson = temp.path({ suffix: ".json" });
     fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
@@ -933,7 +930,6 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.suggest = suggest;
-const list_1 = __nccwpck_require__(670);
 const non_empty_1 = __nccwpck_require__(1571);
 const NE = __importStar(__nccwpck_require__(1571));
 const parse_git_patch_1 = __nccwpck_require__(297);
@@ -942,7 +938,7 @@ function suggest(baseFiles, resolved, patch) {
     const suggestions = [];
     patches.forEach((patch) => {
         patch.files.forEach((file) => {
-            const groups = (0, list_1.groupBy)(file.modifiedLines, (a, b) => {
+            const groups = NE.groupBy(file.modifiedLines, (a, b) => {
                 return a.tag === b.tag || (a.tag === "removed" && b.tag === "added");
             });
             groups.forEach((group) => {
@@ -971,7 +967,7 @@ function suggest(baseFiles, resolved, patch) {
 }
 function getRemoveLineNumbers(lines) {
     const acc = [];
-    lines.forEach((line) => {
+    NE.toList(lines).forEach((line) => {
         if (line.tag === "removed") {
             acc.push(line.removedLineNumber);
         }
@@ -980,7 +976,7 @@ function getRemoveLineNumbers(lines) {
 }
 function getAddedLines(lines) {
     const acc = [];
-    lines.forEach((line) => {
+    NE.toList(lines).forEach((line) => {
         if (line.tag === "added") {
             acc.push(line.line);
         }
@@ -992,7 +988,7 @@ function isOnAddedLines(baseFiles, suggestion) {
     const { path, startLine, endLine } = suggestion;
     const suggestionSize = endLine - startLine + 1;
     const lines = getPullRequestDiff(baseFiles, path);
-    if (lines && lines.length >= suggestionSize) {
+    if (lines.length >= suggestionSize) {
         for (let i = startLine; i <= endLine; i++) {
             const line = lines.find((line) => {
                 return line.tag === "added" && line.addedLineNumber === i;
