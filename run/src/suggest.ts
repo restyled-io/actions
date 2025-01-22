@@ -106,7 +106,7 @@ function isOnAddedLines(
   const suggestionSize = endLine - startLine + 1;
   const lines = getPullRequestDiff(baseFiles, path);
 
-  if (lines && lines.length >= suggestionSize) {
+  if (lines.length >= suggestionSize) {
     for (let i = startLine; i <= endLine; i++) {
       const line = lines.find((line) => {
         return line.tag === "added" && line.addedLineNumber === i;
