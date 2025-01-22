@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`suggest suggest-test-files/restyled-io-actions-110 1`] = `
+Array [
+  Object {
+    "code": Array [
+      "| 492 | 494 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 51,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 51,
+  },
+  Object {
+    "code": Array [
+      "|   3 |   3 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 59,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 59,
+  },
+  Object {
+    "code": Array [
+      "|   8 |   9 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 65,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 65,
+  },
+  Object {
+    "code": Array [
+      "|  21 |  24 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 77,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 77,
+  },
+  Object {
+    "code": Array [
+      "|  21 |  22 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 90,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 90,
+  },
+  Object {
+    "code": Array [
+      "| 111 | 112 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 102,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 102,
+  },
+  Object {
+    "code": Array [
+      "|  21 |  22 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 105,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 105,
+  },
+  Object {
+    "code": Array [
+      "| 111 | 112 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 372,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 372,
+  },
+  Object {
+    "code": Array [
+      "|  42 |  43 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 413,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 413,
+  },
+  Object {
+    "code": Array [
+      "| 25 | 25 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 504,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 504,
+  },
+  Object {
+    "code": Array [
+      "| 30 | 29 |",
+    ],
+    "description": "Restyled by whitespace",
+    "endLine": 510,
+    "path": "run/src/parse-git-patch.test.ts",
+    "startLine": 510,
+  },
+]
+`;
