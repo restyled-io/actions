@@ -1,7 +1,11 @@
 release release_tag:
   git tag {{release_tag}} -m {{release_tag}} -s
   git push --tags
-  gh release create --generate-notes {{release_tag}} --verify-tag
+  prev=$(git tag | \
+    grep -Fxv '{{release_tag}}' | \
+    sort -rV | \
+    head -n 1) && \
+  gh release create --generate-notes {{release_tag}} --notes-start-tag "$prev" --verify-tag
 
 update-major:
   vmajor=$(git tag | \
