@@ -67,3 +67,31 @@ export function init<T>(ne: NonEmpty<T>): T[] {
 export function toList<T>(ne: NonEmpty<T>): T[] {
   return [head(ne)].concat(tail(ne));
 }
+
+export function group<T>(xs: T[]): NonEmpty<T>[] {
+  return groupBy(xs, (a, b) => a === b);
+}
+
+export function groupBy<T>(
+  xs: T[],
+  isEqual: (a: T, b: T) => boolean,
+): NonEmpty<T>[] {
+  const go = (acc: NonEmpty<T>[], x: T): NonEmpty<T>[] => {
+    const neAcc = nonEmpty(acc);
+
+    if (!neAcc) {
+      // empty accumulator, start first group
+      return [singleton(x)];
+    }
+
+    const prevGroup = last(neAcc);
+    const prevElem = last(prevGroup);
+    const updated = isEqual(prevElem, x)
+      ? [append(prevGroup, singleton(x))]
+      : [prevGroup, singleton(x)];
+
+    return init(neAcc).concat(updated);
+  };
+
+  return xs.reduce(go, []);
+}

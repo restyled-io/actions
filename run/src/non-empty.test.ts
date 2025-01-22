@@ -69,3 +69,40 @@ describe("NonEmpty", () => {
     });
   });
 });
+
+describe("group", () => {
+  it("groups equal elements", () => {
+    const actual = NE.group([1, 2, 2, 3, 2, 4, 5, 5, 5, 6]);
+    const expected = [
+      NE.build(1),
+      NE.build(2, 2),
+      NE.build(3),
+      NE.build(2),
+      NE.build(4),
+      NE.build(5, 5, 5),
+      NE.build(6),
+    ];
+
+    expect(actual).toEqual(expected);
+  });
+});
+
+describe("groupBy", () => {
+  it("groups elements by custom comparison", () => {
+    const sameFirstLetter = (a: string, b: string): boolean => {
+      return a[0] === b[0];
+    };
+    const actual = NE.groupBy(
+      ["apple", "adam", "banana", "bake", "about", "pie"],
+      sameFirstLetter,
+    );
+    const expected = [
+      NE.build("apple", "adam"),
+      NE.build("banana", "bake"),
+      NE.build("about"),
+      NE.build("pie"),
+    ];
+
+    expect(actual).toEqual(expected);
+  });
+});
