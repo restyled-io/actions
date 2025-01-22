@@ -13,7 +13,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { groupBy } from "./list";
 import { NonEmpty, nonEmpty } from "./non-empty";
 import * as NE from "./non-empty";
 import { PatchLine, parseGitPatches, parseGitPatch } from "./parse-git-patch";
@@ -38,7 +37,7 @@ export function suggest(
 
   patches.forEach((patch) => {
     patch.files.forEach((file) => {
-      const groups = groupBy(file.modifiedLines, (a, b) => {
+      const groups = NE.groupBy(file.modifiedLines, (a, b) => {
         return a.tag === b.tag || (a.tag === "removed" && b.tag === "added");
       });
 
