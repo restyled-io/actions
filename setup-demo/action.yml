@@ -40,7 +40,7 @@ runs:
         echo "manifest=$MANIFEST" >>"$GITHUB_OUTPUT"
       env:
         MANIFEST: "/tmp/restylers-${{ inputs.channel }}.yaml"
-        MANIFEST_URL: "https://docs.restyled.io/data-files/restylers/manifests/${{ inputs.channel }}/restylers.yaml"
+        MANIFEST_URL: "https://github.com/restyled-io/restylers/releases/download/${{ inputs.channel }}/restylers.yaml"
 
     - shell: bash
       run: |
