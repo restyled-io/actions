@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - rc/*
+  workflow_dispatch:
 
 jobs:
   release:
