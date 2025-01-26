@@ -19,15 +19,3 @@ jobs:
         with:
           suggestions: true
           show-patch-command: false
-
-  restyled-demo:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./setup-demo
-        with:
-          options: --limit 5
-      - uses: ./setup
-      - uses: ./run
-        with:
-          paths: .

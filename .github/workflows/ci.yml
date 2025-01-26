@@ -20,6 +20,29 @@ jobs:
       - run: yarn test
       - run: yarn build
       - run: yarn lint
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: run/dist/index.js
+
+  test-integration:
+    needs:
+      - test
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: run/dist # overwrite run/dist/index.js
+      - uses: ./setup-demo
+        with:
+          options: --limit 5
+      - uses: ./setup
+      - uses: ./run
+        with:
+          paths: .
 
   commitlint:
     runs-on: ubuntu-latest
