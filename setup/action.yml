@@ -20,6 +20,9 @@ inputs:
   tag:
     description: "Release tag to install, if empty latest is used"
     required: false
+  github-token:
+    description: "GitHub token used for gh invocations"
+    default: "${{ github.token }}"
 
 outputs: {}
 
@@ -27,9 +30,33 @@ runs:
   using: composite
   steps:
     - shell: bash
-      working-directory: /tmp
       run: |
-        curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/restyled-io/restyler/main/install |
-          sudo sh -s -- -t "$TAG"
+        gh_release() {
+          gh --repo restyled-io/restyler release "$@"
+        }
+
+        os=$(uname -s | tr '[:upper:]' '[:lower:]')
+        arch=$(uname -m)
+        dir=restyler-$os-$arch
+        ext=tar.gz
+        tag=$TAG
+
+        if [[ -z "$tag" ]]; then
+          tag=$(gh_release view --json tagName --jq '.tagName')
+        fi
+
+        printf 'Release artifact %s/%s.%s\n' "$tag" "$dir" "$ext"
+
+        gh_release download "$TAG" --pattern "$dir.$ext" --output - |
+          tar xzf -
+
+        for bin in "$dir"/*; do
+          if [ -x "$bin" ]; then
+            sudo cp -v "$bin" /usr/local/bin/
+          fi
+        done
+
+        rm -rf "$dir"
       env:
+        GH_TOKEN: ${{ inputs.github-token }}
         TAG: ${{ inputs.tag }}
