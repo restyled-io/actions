@@ -30,7 +30,7 @@ exports[`parseGitPatch test-files/parse-git-patch/hlint-yaml.patch 1`] = `
 "***
 hash: 89afcd42fb6f2602fbcd03d6e5573b1859347787
 message: [PATCH 2/2] Restyled by prettier-yaml
-authorName: \\"Restyled.io\\"
+authorName: "Restyled.io"
 authorEmail: commits@restyled.io
 date: Fri, 17 Jan 2025 18:09:56 +0000
 ---
@@ -44,11 +44,11 @@ afterName: hlint/.hlint.yaml
 | 26 | 26 | ---
 | 27 |    |-
 | 28 | 27 | # By default, everything is an error
-| 29 |    |-- error: {name: \\"\\"}
-|    | 28 |+- error: { name: \\"\\" }
+| 29 |    |-- error: {name: ""}
+|    | 28 |+- error: { name: "" }
 | 30 | 29 | 
 | 31 | 30 | # Some things we don't care about at all
-| 32 |    |-- ignore: {name: \\"Use module export list\\"}"
+| 32 |    |-- ignore: {name: "Use module export list"}"
 `;
 
 exports[`parseGitPatch test-files/parse-git-patch/many-files.patch 1`] = `
@@ -258,11 +258,11 @@ afterName: hlint/.hlint.yaml
 | 26 | 26 | ---
 | 27 |    |-
 | 28 | 27 | # By default, everything is an error
-| 29 |    |-- error: {name: \\"\\"}
-|    | 28 |+- error: { name: \\"\\" }
+| 29 |    |-- error: {name: ""}
+|    | 28 |+- error: { name: "" }
 | 30 | 29 | 
 | 31 | 30 | # Some things we don't care about at all
-| 32 |    |-- ignore: {name: \\"Use module export list\\"}"
+| 32 |    |-- ignore: {name: "Use module export list"}"
 `;
 
 exports[`parseGitPatches test-files/parse-git-patch/add-and-delete-file.patch 1`] = `
@@ -295,7 +295,7 @@ exports[`parseGitPatches test-files/parse-git-patch/hlint-yaml.patch 1`] = `
 "***
 hash: 89afcd42fb6f2602fbcd03d6e5573b1859347787
 message: [PATCH 2/2] Restyled by prettier-yaml
-authorName: \\"Restyled.io\\"
+authorName: "Restyled.io"
 authorEmail: commits@restyled.io
 date: Fri, 17 Jan 2025 18:09:56 +0000
 ---
@@ -309,11 +309,11 @@ afterName: hlint/.hlint.yaml
 | 26 | 26 | ---
 | 27 |    |-
 | 28 | 27 | # By default, everything is an error
-| 29 |    |-- error: {name: \\"\\"}
-|    | 28 |+- error: { name: \\"\\" }
+| 29 |    |-- error: {name: ""}
+|    | 28 |+- error: { name: "" }
 | 30 | 29 | 
 | 31 | 30 | # Some things we don't care about at all
-| 32 |    |-- ignore: {name: \\"Use module export list\\"}"
+| 32 |    |-- ignore: {name: "Use module export list"}"
 `;
 
 exports[`parseGitPatches test-files/parse-git-patch/many-files.patch 1`] = `
