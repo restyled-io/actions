@@ -67,6 +67,8 @@ outputs:
     description: "The title to use if opening fixes as a new PR"
   restyled-body:
     description: "The body to use if opening fixes as a new PR"
+  suggestions-skipped:
+    description: "True if there were suggestions we had to skip"
 
 runs:
   using: "node20"

@@ -23,6 +23,7 @@ export type Outputs = {
   restyledHead: string;
   restyledTitle: string;
   restyledBody: string;
+  suggestionsSkipped: boolean;
 };
 
 export function setOutputs(outputs: Outputs): void {
@@ -33,4 +34,5 @@ export function setOutputs(outputs: Outputs): void {
   core.setOutput("restyled-head", outputs.restyledHead);
   core.setOutput("restyled-title", outputs.restyledTitle);
   core.setOutput("restyled-body", outputs.restyledBody);
+  core.setOutput("suggestions-skipped", outputs.suggestionsSkipped);
 }
