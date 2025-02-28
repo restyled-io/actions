@@ -74,6 +74,8 @@ jobs:
           suggestions: true
 ```
 
+See also: `inputs.suggestions-limit`, `outputs.suggestions-skipped`.
+
 ### Upload Patch Artifact
 
 **Good for**: users who are not using _Code Suggestion Comments_ and expect

@@ -27,6 +27,12 @@ Run the restyle CLI on changed files in a PR
     # Required: false
     # Default: false
 
+    suggestion-limit:
+    # Limit the number of suggestion comments left
+    #
+    # Required: false
+    # Default: ""
+
     show-patch:
     # Log the patch produced by Restyled with git format-patch
     #
@@ -106,6 +112,7 @@ Run the restyle CLI on changed files in a PR
 | `paths`               | <p>New-line separated paths to restyle, default is paths changed in the PR</p>           | `false`  | `""`                  |
 | `github-token`        | <p>Token used to query for PR details</p>                                                | `false`  | `${{ github.token }}` |
 | `suggestions`         | <p>Add suggestion comments of restyled changes</p>                                       | `false`  | `false`               |
+| `suggestion-limit`    | <p>Limit the number of suggestion comments left</p>                                      | `false`  | `""`                  |
 | `show-patch`          | <p>Log the patch produced by Restyled with git format-patch</p>                          | `false`  | `true`                |
 | `show-patch-command`  | <p>Log a copy/paste-able command to apply the patch produced by Restyled with git-am</p> | `false`  | `true`                |
 | `committer-email`     | <p>Email used for Restyled commits</p>                                                   | `false`  | `commits@restyled.io` |
@@ -124,14 +131,15 @@ Run the restyle CLI on changed files in a PR
 
 ## Outputs
 
-| name             | description                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| `success`        | <p><code>true</code> if <code>restyle</code> ran successfully (differences or not)</p> |
-| `differences`    | <p><code>true</code> if differences were created by restyling</p>                      |
-| `git-patch`      | <p>The restyle commits, formatted for use with <code>git am</code></p>                 |
-| `restyled-base`  | <p>The base branch to use if opening fixes as a new PR</p>                             |
-| `restyled-head`  | <p>The head branch to use if opening fixes as a new PR </p>                            |
-| `restyled-title` | <p>The title to use if opening fixes as a new PR</p>                                   |
-| `restyled-body`  | <p>The body to use if opening fixes as a new PR</p>                                    |
+| name                  | description                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| `success`             | <p><code>true</code> if <code>restyle</code> ran successfully (differences or not)</p> |
+| `differences`         | <p><code>true</code> if differences were created by restyling</p>                      |
+| `git-patch`           | <p>The restyle commits, formatted for use with <code>git am</code></p>                 |
+| `restyled-base`       | <p>The base branch to use if opening fixes as a new PR</p>                             |
+| `restyled-head`       | <p>The head branch to use if opening fixes as a new PR </p>                            |
+| `restyled-title`      | <p>The title to use if opening fixes as a new PR</p>                                   |
+| `restyled-body`       | <p>The body to use if opening fixes as a new PR</p>                                    |
+| `suggestions-skipped` | <p>True if there were suggestions we had to skip</p>                                   |
 
 <!-- action-docs-outputs source="action.yml" -->
