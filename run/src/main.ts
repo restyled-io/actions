@@ -106,13 +106,20 @@ async function run() {
 
         let n = 0;
         const ps = suggestions.map((s) => {
-          if (s.skipReason) {
+          const limitSkipReason =
+            inputs.suggestionsLimit && n >= inputs.suggestionsLimit
+              ? "limit reached"
+              : null;
+
+          const skipReason = s.skipReason ?? limitSkipReason;
+
+          if (skipReason) {
             const line =
               s.startLine !== s.endLine
                 ? `${s.startLine}-${s.endLine}`
                 : `${s.startLine}`;
             const location = `${s.path}:${line}`;
-            core.warning(`[${location}]: Skipping suggestion: ${s.skipReason}`);
+            core.warning(`[${location}]: Skipping suggestion: ${skipReason}`);
             return Promise.resolve();
           } else {
             n += 1;

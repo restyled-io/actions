@@ -20,6 +20,7 @@ export type Inputs = {
   paths: string[];
   githubToken: string;
   suggestions: boolean;
+  suggestionsLimit: number | null;
   showPatch: boolean;
   showPatchCommand: boolean;
   committerEmail: string;
@@ -44,12 +45,20 @@ export function getInputs(): Inputs {
     }
   }
 
+  const rawSuggestionLimit = core.getInput("suggestion-limit", {
+    required: false,
+  });
+
   return {
     paths,
     githubToken: core.getInput("github-token", { required: true }),
     suggestions: core.getBooleanInput("suggestions", {
       required: true,
     }),
+    suggestionsLimit:
+      rawSuggestionLimit && rawSuggestionLimit !== ""
+        ? parseInt(rawSuggestionLimit, 10)
+        : null,
     showPatch: core.getBooleanInput("show-patch", {
       required: true,
     }),

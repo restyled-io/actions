@@ -13,6 +13,9 @@ inputs:
   suggestions:
     description: "Add suggestion comments of restyled changes"
     default: false
+  suggestion-limit:
+    description: "Limit the number of suggestion comments left"
+    required: false
   show-patch:
     description: "Log the patch produced by Restyled with git format-patch"
     default: true
