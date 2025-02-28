@@ -91,12 +91,18 @@ function getInputs() {
             throw new Error("paths input is required for non-PR events");
         }
     }
+    const rawSuggestionLimit = core.getInput("suggestion-limit", {
+        required: false,
+    });
     return {
         paths,
         githubToken: core.getInput("github-token", { required: true }),
         suggestions: core.getBooleanInput("suggestions", {
             required: true,
         }),
+        suggestionsLimit: rawSuggestionLimit && rawSuggestionLimit !== ""
+            ? parseInt(rawSuggestionLimit, 10)
+            : null,
         showPatch: core.getBooleanInput("show-patch", {
             required: true,
         }),
@@ -242,18 +248,24 @@ async function run() {
             core.info("EOM");
             core.info("  ");
         }
+        let suggestionsSkipped = false;
         if (inputs.suggestions && success) {
             const resolved = await (0, review_comments_1.clearPriorSuggestions)(client, pr);
             if (differences) {
                 const suggestions = (0, suggest_1.suggest)(pr.files, resolved, patch);
                 let n = 0;
                 const ps = suggestions.map((s) => {
-                    if (s.skipReason) {
+                    const limitSkipReason = inputs.suggestionsLimit && n >= inputs.suggestionsLimit
+                        ? "limit reached"
+                        : null;
+                    const skipReason = s.skipReason ?? limitSkipReason;
+                    if (skipReason) {
                         const line = s.startLine !== s.endLine
                             ? `${s.startLine}-${s.endLine}`
                             : `${s.startLine}`;
                         const location = `${s.path}:${line}`;
-                        core.warning(`[${location}]: Skipping suggestion: ${s.skipReason}`);
+                        core.warning(`[${location}]: Skipping suggestion: ${skipReason}`);
+                        suggestionsSkipped = true;
                         return Promise.resolve();
                     }
                     else {
@@ -273,6 +285,7 @@ async function run() {
             restyledHead: `restyled/${pr.headRef}`,
             restyledTitle: `Restyled ${pr.title}`,
             restyledBody: pullRequestDescription(pr.number),
+            suggestionsSkipped,
         });
         if (ec !== 0) {
             core.setFailed(`Restyler exited non-zero: ${ec}`);
@@ -425,6 +438,7 @@ function setOutputs(outputs) {
     core.setOutput("restyled-head", outputs.restyledHead);
     core.setOutput("restyled-title", outputs.restyledTitle);
     core.setOutput("restyled-body", outputs.restyledBody);
+    core.setOutput("suggestions-skipped", outputs.suggestionsSkipped);
 }
 
 
