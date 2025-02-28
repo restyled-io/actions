@@ -237,9 +237,16 @@ And run a clean-up job instead:
 
 ## Workflow Permissions
 
-The Restyled actions themselves require no permissions. However, `contents:read`
-is required for `actions/checkout` and `pull-requests:write` is required for
-`peter-evans/create-pull-request`, which are both used above.
+The specific permissions required depends on your workflow:
+
+1. `restyled-io/actions/setup` requires no permissions
+1. `restyled-io/actions/run` requires no permission by default, but requires
+   `pull-requests:write` if leaving suggestion comments
+1. For `actions/checkout`, see its [docs][checkout-docs]
+1. For `peter-evans/create-pull-request`, see its [docs][createpr-docs]
+
+[checkout-docs]: https://github.com/actions/checkout?tab=readme-ov-file#recommended-permissions
+[createpr-docs]: https://github.com/peter-evans/create-pull-request?tab=readme-ov-file#workflow-permissions
 
 Default permissions for workflows can be adjusted in your repository settings,
 or a `permissions` key can be used in the workflow itself. For more details, see
