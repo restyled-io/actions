@@ -98,6 +98,8 @@ async function run() {
       core.info("  ");
     }
 
+    let suggestionsSkipped = false;
+
     if (inputs.suggestions && success) {
       const resolved = await clearPriorSuggestions(client, pr);
 
@@ -120,6 +122,7 @@ async function run() {
                 : `${s.startLine}`;
             const location = `${s.path}:${line}`;
             core.warning(`[${location}]: Skipping suggestion: ${skipReason}`);
+            suggestionsSkipped = true;
             return Promise.resolve();
           } else {
             n += 1;
@@ -140,6 +143,7 @@ async function run() {
       restyledHead: `restyled/${pr.headRef}`,
       restyledTitle: `Restyled ${pr.title}`,
       restyledBody: pullRequestDescription(pr.number),
+      suggestionsSkipped,
     });
 
     if (ec !== 0) {
