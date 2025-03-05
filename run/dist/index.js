@@ -214,6 +214,7 @@ async function run() {
             .concat((0, inputs_1.cliArguments)(inputs));
         const ec = await exec.exec("restyle", args, {
             env: {
+                ...process.env,
                 GITHUB_TOKEN: inputs.githubToken,
                 GIT_AUTHOR_EMAIL: inputs.committerEmail,
                 GIT_AUTHOR_NAME: inputs.committerName,
