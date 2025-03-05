@@ -58,6 +58,7 @@ async function run() {
 
     const ec = await exec.exec("restyle", args, {
       env: {
+        ...process.env,
         GITHUB_TOKEN: inputs.githubToken,
         GIT_AUTHOR_EMAIL: inputs.committerEmail,
         GIT_AUTHOR_NAME: inputs.committerName,
