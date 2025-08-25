@@ -144,9 +144,9 @@ module Generate
         YAML.dump({
           "also_exclude" => ["./.git/**/*"],
           "ignore" => {
-            "authors" => "",
-            "branches" => "",
-            "labels" => "",
+            "authors" => [],
+            "branches" => [],
+            "labels" => [],
           },
           "restylers_version" => options.channel,
           "restylers" => yaml.restylers.map(&:config_restyler_yaml)
