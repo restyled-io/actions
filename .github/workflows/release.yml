@@ -22,7 +22,7 @@ jobs:
           private-key: ${{ secrets.AUTOMATION_PRIVATE_KEY }}
 
       - id: release
-        uses: cycjimmy/semantic-release-action@v4
+        uses: cycjimmy/semantic-release-action@v5
         with:
           extra_plugins: |
             @semantic-release/exec
