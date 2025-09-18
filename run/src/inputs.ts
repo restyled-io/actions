@@ -84,11 +84,15 @@ export function getInputs(): Inputs {
 export function cliArguments(inputs: Inputs): string[] {
   return ([] as string[])
     .concat(inputs.debug ? ["--debug"] : [])
-    .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-    .concat(inputs.imageCleanup ? ["--image-cleanup"] : [])
     .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
-    .concat(inputs.dryRun ? ["--dry-run"] : [])
-    .concat(inputs.noCommit ? ["--no-commit"] : ["--commit"])
-    .concat(inputs.noClean ? ["--no-clean"] : ["--clean"])
-    .concat(inputs.noPull ? ["--no-pull"] : ["--pull"]);
+    .concat(yesNo(inputs.failOnDifferences, "fail-on-differences"))
+    .concat(yesNo(inputs.imageCleanup, "image-cleanup"))
+    .concat(yesNo(inputs.dryRun, "dry-run"))
+    .concat(yesNo(!inputs.noCommit, "commit"))
+    .concat(yesNo(!inputs.noClean, "clean"))
+    .concat(yesNo(!inputs.noPull, "pull"));
+}
+
+function yesNo(p: boolean, name: string): string[] {
+  return p ? [`--${name}`] : [`--no-${name}`];
 }
