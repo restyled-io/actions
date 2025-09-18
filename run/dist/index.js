@@ -119,18 +119,23 @@ function getInputs() {
         imageCleanup: core.getBooleanInput("image-cleanup", { required: true }),
         manifest: core.getInput("manifest", { required: false }),
         noCommit: core.getBooleanInput("no-commit", { required: true }),
+        noClean: core.getBooleanInput("no-clean", { required: true }),
         noPull: core.getBooleanInput("no-pull", { required: true }),
     };
 }
 function cliArguments(inputs) {
     return []
         .concat(inputs.debug ? ["--debug"] : [])
-        .concat(inputs.failOnDifferences ? ["--fail-on-differences"] : [])
-        .concat(inputs.imageCleanup ? ["--image-cleanup"] : [])
         .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
-        .concat(inputs.dryRun ? ["--dry-run"] : [])
-        .concat(inputs.noCommit ? ["--no-commit"] : [])
-        .concat(inputs.noPull ? ["--no-pull"] : []);
+        .concat(yesNo(inputs.failOnDifferences, "fail-on-differences"))
+        .concat(yesNo(inputs.imageCleanup, "image-cleanup"))
+        .concat(yesNo(inputs.dryRun, "dry-run"))
+        .concat(yesNo(!inputs.noCommit, "commit"))
+        .concat(yesNo(!inputs.noClean, "clean"))
+        .concat(yesNo(!inputs.noPull, "pull"));
+}
+function yesNo(p, name) {
+    return p ? [`--${name}`] : [`--no-${name}`];
 }
 
 
