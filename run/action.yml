@@ -48,6 +48,9 @@ inputs:
   no-commit:
     description: "Pass `--no-commit` to `restyle`"
     default: false
+  no-clean:
+    description: "Pass `--no-clean` to `restyle`"
+    default: false
   no-pull:
     description: "Pass `--no-pull` to `restyle`"
     default: false

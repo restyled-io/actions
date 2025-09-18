@@ -31,6 +31,7 @@ export type Inputs = {
   imageCleanup: boolean;
   manifest: string;
   noCommit: boolean;
+  noClean: boolean;
   noPull: boolean;
 };
 
@@ -75,6 +76,7 @@ export function getInputs(): Inputs {
     imageCleanup: core.getBooleanInput("image-cleanup", { required: true }),
     manifest: core.getInput("manifest", { required: false }),
     noCommit: core.getBooleanInput("no-commit", { required: true }),
+    noClean: core.getBooleanInput("no-clean", { required: true }),
     noPull: core.getBooleanInput("no-pull", { required: true }),
   };
 }
@@ -86,6 +88,7 @@ export function cliArguments(inputs: Inputs): string[] {
     .concat(inputs.imageCleanup ? ["--image-cleanup"] : [])
     .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
     .concat(inputs.dryRun ? ["--dry-run"] : [])
-    .concat(inputs.noCommit ? ["--no-commit"] : [])
-    .concat(inputs.noPull ? ["--no-pull"] : []);
+    .concat(inputs.noCommit ? ["--no-commit"] : ["--commit"])
+    .concat(inputs.noClean ? ["--no-clean"] : ["--clean"])
+    .concat(inputs.noPull ? ["--no-pull"] : ["--pull"]);
 }
