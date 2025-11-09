@@ -35,6 +35,14 @@ runs:
           gh --repo restyled-io/restyler release "$@"
         }
 
+        cp_v() {
+          if ((UID)): then
+            sudo cp -v "$@"
+          else
+            cp -v "$@"
+          fi
+        }
+
         os=$(uname -s | tr '[:upper:]' '[:lower:]')
         arch=$(uname -m)
         dir=restyler-$os-$arch
@@ -52,7 +60,7 @@ runs:
 
         for bin in "$dir"/*; do
           if [ -x "$bin" ]; then
-            sudo cp -v "$bin" /usr/local/bin/
+            cp_v "$bin" /usr/local/bin/
           fi
         done
 
