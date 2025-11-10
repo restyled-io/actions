@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Copyright (C) 2025 Patrick Brisbin
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+set -euo pipefail
+
+curl_() {
+  curl --silent --fail --location "$@"
+}
+
+get_latest_tag_name() {
+  curl_ -H 'accept: application/json' "$REPO/releases/latest" |
+    jq -r '.tag_name'
+}
+
+cp_v() {
+  if ((UID)); then
+    sudo cp -v "$@"
+  else
+    cp -v "$@"
+  fi
+}
+
+: "${REPO:=https://github.com/restyled-io/restyler}"
+: "${OS:=$(uname -s | tr '[:upper:]' '[:lower:]')}"
+: "${ARCH:=$(uname -m)}"
+: "${TAG:=$(get_latest_tag_name)}"
+
+dir="restyler-$OS-$ARCH"
+tgz="$dir.tar.gz"
+artifact="$REPO/releases/download/$TAG/$tgz"
+
+printf "Download: %s\n" "$artifact"
+curl_ "$artifact" | tar xzf -
+
+for bin in "$dir"/*; do
+  if [ -x "$bin" ]; then
+    cp_v "$bin" /usr/local/bin/
+  fi
+done
+
+rm -rf "$dir"
