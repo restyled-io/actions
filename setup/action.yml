@@ -30,41 +30,7 @@ runs:
   using: composite
   steps:
     - shell: bash
-      run: |
-        gh_release() {
-          gh --repo restyled-io/restyler release "$@"
-        }
-
-        cp_v() {
-          if ((UID)): then
-            sudo cp -v "$@"
-          else
-            cp -v "$@"
-          fi
-        }
-
-        os=$(uname -s | tr '[:upper:]' '[:lower:]')
-        arch=$(uname -m)
-        dir=restyler-$os-$arch
-        ext=tar.gz
-        tag=$TAG
-
-        if [[ -z "$tag" ]]; then
-          tag=$(gh_release view --json tagName --jq '.tagName')
-        fi
-
-        printf 'Release artifact %s/%s.%s\n' "$tag" "$dir" "$ext"
-
-        gh_release download "$TAG" --pattern "$dir.$ext" --output - |
-          tar xzf -
-
-        for bin in "$dir"/*; do
-          if [ -x "$bin" ]; then
-            cp_v "$bin" /usr/local/bin/
-          fi
-        done
-
-        rm -rf "$dir"
+      run: 'exec "$GITHUB_ACTION_PATH"/bin/setup'
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         TAG: ${{ inputs.tag }}
