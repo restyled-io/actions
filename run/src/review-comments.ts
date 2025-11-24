@@ -98,8 +98,7 @@ export async function commentSuggestion(
   ];
 
   core.debug(`Leaving review comment on ${path}:${start_line}:${line}`);
-
-  client.rest.pulls.createReviewComment({
+  await client.rest.pulls.createReviewComment({
     ...github.context.repo,
     pull_number: pullRequest.number,
     body: body.join("\n"),
