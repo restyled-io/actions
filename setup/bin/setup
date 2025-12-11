@@ -37,6 +37,18 @@ cp_v() {
 : "${ARCH:=$(uname -m)}"
 : "${TAG:=$(get_latest_tag_name)}"
 
+if [[ -z "$TAG" ]]; then
+  cat >&2 <<'EOM'
+Cannot determine latest tag: /releases/latest request failed
+
+This usually means GitHub is having an intermittent outage. Try again, or
+specify an explicit tag input.
+
+EOM
+
+  exit 1
+fi
+
 dir="restyler-$OS-$ARCH"
 tgz="$dir.tar.gz"
 artifact="$REPO/releases/download/$TAG/$tgz"
