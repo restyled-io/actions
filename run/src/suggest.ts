@@ -15,7 +15,11 @@
  */
 import { NonEmpty, nonEmpty } from "./non-empty.js";
 import * as NE from "./non-empty.js";
-import { PatchLine, parseGitPatches, parseGitPatch } from "./parse-git-patch.js";
+import {
+  PatchLine,
+  parseGitPatches,
+  parseGitPatch,
+} from "./parse-git-patch.js";
 import { PullRequestFile } from "./pull-request.js";
 
 export type Suggestion = {
