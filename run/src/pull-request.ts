@@ -19,7 +19,7 @@ import * as temp from "temp";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-import { readProcess } from "./process";
+import { readProcess } from "./process.js";
 
 type GitHubClient = ReturnType<typeof github.getOctokit>;
 

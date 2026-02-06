@@ -21,7 +21,7 @@ import {
   PatchLine,
   parseGitPatches,
   parseGitPatch,
-} from "./parse-git-patch";
+} from "./parse-git-patch.js";
 
 describe("parseGitPatches", () => {
   // works on multi-patch, patch, but not diff-only

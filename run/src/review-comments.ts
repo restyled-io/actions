@@ -16,9 +16,9 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
-import { Suggestion } from "./suggest";
-import { PullRequest } from "./pull-request";
-import { queryReviewThreads } from "./github-graphql";
+import { Suggestion } from "./suggest.js";
+import { PullRequest } from "./pull-request.js";
+import { queryReviewThreads } from "./github-graphql.js";
 
 type GitHubClient = ReturnType<typeof github.getOctokit>;
 

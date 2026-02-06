@@ -13,10 +13,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { NonEmpty, nonEmpty } from "./non-empty";
-import * as NE from "./non-empty";
-import { PatchLine, parseGitPatches, parseGitPatch } from "./parse-git-patch";
-import { PullRequestFile } from "./pull-request";
+import { NonEmpty, nonEmpty } from "./non-empty.js";
+import * as NE from "./non-empty.js";
+import { PatchLine, parseGitPatches, parseGitPatch } from "./parse-git-patch.js";
+import { PullRequestFile } from "./pull-request.js";
 
 export type Suggestion = {
   path: string;

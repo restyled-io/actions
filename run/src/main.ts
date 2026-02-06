@@ -17,12 +17,12 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as exec from "@actions/exec";
 
-import { cliArguments, getInputs } from "./inputs";
-import { setOutputs } from "./outputs";
-import { readProcess } from "./process";
-import { getPullRequest } from "./pull-request";
-import { clearPriorSuggestions, commentSuggestion } from "./review-comments";
-import { suggest } from "./suggest";
+import { cliArguments, getInputs } from "./inputs.js";
+import { setOutputs } from "./outputs.js";
+import { readProcess } from "./process.js";
+import { getPullRequest } from "./pull-request.js";
+import { clearPriorSuggestions, commentSuggestion } from "./review-comments.js";
+import { suggest } from "./suggest.js";
 
 function pullRequestDescription(number: number): string {
   return `

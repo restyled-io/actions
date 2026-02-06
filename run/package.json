@@ -1,12 +1,13 @@
 {
   "name": "restyled-run",
   "version": "0.0.0",
+  "type": "module",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc && ncc build lib/main.js && sed -i 's/\\x0D$//' ./dist/index.js",
     "format": "prettier --write \"**/*.ts\"",
     "format-check": "prettier --check \"**/*.ts\"",
-    "test": "jest",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "lint": "eslint",
     "readme": "npx action-docs -u && prettier --write README.md"
   },
