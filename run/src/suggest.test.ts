@@ -15,8 +15,8 @@
  */
 import * as fs from "fs";
 
-import { PullRequestFile } from "./pull-request";
-import { suggest } from "./suggest";
+import { PullRequestFile } from "./pull-request.js";
+import { suggest } from "./suggest.js";
 
 describe("suggest", () => {
   const cases = ["test-files/suggest/restyled-io-actions-110"];
