@@ -1,1055 +1,9 @@
-/******/ (() => { // webpackBootstrap
-/******/ 	var __webpack_modules__ = ({
-
-/***/ 7945:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.queryReviewThreads = queryReviewThreads;
-async function queryReviewThreads(client, owner, repo, number) {
-    const query = `{
-    repository(owner: "${owner}", name: "${repo}") {
-      pullRequest(number: ${number}) {
-        reviewThreads(last: 100) {
-          nodes {
-            resolvedBy {
-              id
-            }
-            comments(last: 100) {
-              nodes {
-                body
-                fullDatabaseId
-                isMinimized
-                line
-                minimizedReason
-                path
-                startLine
-              }
-            }
-          }
-        }
-      }
-    }
-  }`;
-    const response = await client.graphql(query);
-    return response.repository.pullRequest.reviewThreads.nodes;
-}
-
-
-/***/ }),
-
-/***/ 6107:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getInputs = getInputs;
-exports.cliArguments = cliArguments;
-const core = __importStar(__nccwpck_require__(7484));
-const github = __importStar(__nccwpck_require__(3228));
-function getInputs() {
-    const paths = core.getMultilineInput("paths", { required: false });
-    if (github.context.eventName !== "pull_request") {
-        core.warning("Running for non-PR event. Weird things may happen.");
-        if (paths.length === 0) {
-            throw new Error("paths input is required for non-PR events");
-        }
-    }
-    const rawSuggestionLimit = core.getInput("suggestion-limit", {
-        required: false,
-    });
-    return {
-        paths,
-        githubToken: core.getInput("github-token", { required: true }),
-        suggestions: core.getBooleanInput("suggestions", {
-            required: true,
-        }),
-        suggestionsLimit: rawSuggestionLimit && rawSuggestionLimit !== ""
-            ? parseInt(rawSuggestionLimit, 10)
-            : null,
-        showPatch: core.getBooleanInput("show-patch", {
-            required: true,
-        }),
-        showPatchCommand: core.getBooleanInput("show-patch-command", {
-            required: true,
-        }),
-        committerEmail: core.getInput("committer-email", { required: true }),
-        committerName: core.getInput("committer-name", { required: true }),
-        debug: core.getBooleanInput("debug", { required: true }),
-        dryRun: core.getBooleanInput("dry-run", { required: true }),
-        failOnDifferences: core.getBooleanInput("fail-on-differences", {
-            required: true,
-        }),
-        imageCleanup: core.getBooleanInput("image-cleanup", { required: true }),
-        manifest: core.getInput("manifest", { required: false }),
-        noCommit: core.getBooleanInput("no-commit", { required: true }),
-        noClean: core.getBooleanInput("no-clean", { required: true }),
-        noPull: core.getBooleanInput("no-pull", { required: true }),
-    };
-}
-function cliArguments(inputs) {
-    return []
-        .concat(inputs.debug ? ["--debug"] : [])
-        .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
-        .concat(yesNo(inputs.failOnDifferences, "fail-on-differences"))
-        .concat(yesNo(inputs.imageCleanup, "image-cleanup"))
-        .concat(yesNo(inputs.dryRun, "dry-run"))
-        .concat(yesNo(!inputs.noCommit, "commit"))
-        .concat(yesNo(!inputs.noClean, "clean"))
-        .concat(yesNo(!inputs.noPull, "pull"));
-}
-function yesNo(p, name) {
-    return p ? [`--${name}`] : [`--no-${name}`];
-}
-
-
-/***/ }),
-
-/***/ 5915:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(7484));
-const github = __importStar(__nccwpck_require__(3228));
-const exec = __importStar(__nccwpck_require__(5236));
-const inputs_1 = __nccwpck_require__(6107);
-const outputs_1 = __nccwpck_require__(3914);
-const process_1 = __nccwpck_require__(1633);
-const pull_request_1 = __nccwpck_require__(4925);
-const review_comments_1 = __nccwpck_require__(7253);
-const suggest_1 = __nccwpck_require__(3146);
-function pullRequestDescription(number) {
-    return `
-Automated style fixes for #${number}, created by Restyled.
-
-To see which restylers made changes, view the Commits tab.
-
-To incorporate these changes, merge this Pull Request into the original. We
-recommend using the Squash or Rebase strategies.
-
-**NOTE**: As work continues on the original Pull Request, this process will
-re-run and update (force-push) this Pull Request with updated style fixes as
-necessary. If the style is fixed manually at any point (i.e. this process finds
-no fixes to make), this Pull Request will be closed automatically.
-`;
-}
-function formatBase64(x) {
-    const b64 = Buffer.from(x).toString("base64");
-    const lines = b64.match(/(.{1,76})/g);
-    return lines ? lines.join("\n") : b64;
-}
-async function run() {
-    try {
-        const inputs = (0, inputs_1.getInputs)();
-        const client = github.getOctokit(inputs.githubToken);
-        const pr = await (0, pull_request_1.getPullRequest)(client, inputs.paths);
-        const args = pr.restyleArgs
-            .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
-            .concat((0, inputs_1.cliArguments)(inputs));
-        const ec = await exec.exec("restyle", args, {
-            env: {
-                ...process.env,
-                GITHUB_TOKEN: inputs.githubToken,
-                GIT_AUTHOR_EMAIL: inputs.committerEmail,
-                GIT_AUTHOR_NAME: inputs.committerName,
-                GIT_COMMITTER_EMAIL: inputs.committerEmail,
-                GIT_COMMITTER_NAME: inputs.committerName,
-                LOG_BREAKPOINT: "200",
-                LOG_COLOR: "always",
-                LOG_CONCURRENCY: "1",
-            },
-            ignoreReturnCode: true,
-        });
-        let patch = "";
-        if (pr.restyleDiffBase.tag === "known") {
-            const base = pr.restyleDiffBase.sha;
-            patch = await (0, process_1.readProcess)("git", ["format-patch", "--stdout", base]);
-        }
-        const success = ec === 0 || (inputs.failOnDifferences && ec === 228);
-        const differences = inputs.failOnDifferences
-            ? ec === 228
-            : ec === 0 && patch !== "";
-        if (inputs.showPatch && differences) {
-            core.info("Restyled made the following fixes:");
-            core.info("  ");
-            core.info(patch);
-            core.info("  ");
-        }
-        if (inputs.showPatchCommand && differences) {
-            core.info("To apply these commits locally, run the following:");
-            core.info("  ");
-            core.info("{ base64 -d - | git am; } <<'EOM'");
-            core.info(formatBase64(patch));
-            core.info("EOM");
-            core.info("  ");
-        }
-        let suggestionsSkipped = false;
-        if (inputs.suggestions && success) {
-            const resolved = await (0, review_comments_1.clearPriorSuggestions)(client, pr);
-            if (differences) {
-                const suggestions = (0, suggest_1.suggest)(pr.files, resolved, patch);
-                let n = 0;
-                const ps = suggestions.map((s) => {
-                    const limitSkipReason = inputs.suggestionsLimit && n >= inputs.suggestionsLimit
-                        ? "limit reached"
-                        : null;
-                    const skipReason = s.skipReason ?? limitSkipReason;
-                    if (skipReason) {
-                        const line = s.startLine !== s.endLine
-                            ? `${s.startLine}-${s.endLine}`
-                            : `${s.startLine}`;
-                        const location = `${s.path}:${line}`;
-                        core.warning(`[${location}]: Skipping suggestion: ${skipReason}`);
-                        suggestionsSkipped = true;
-                        return Promise.resolve();
-                    }
-                    else {
-                        n += 1;
-                        return (0, review_comments_1.commentSuggestion)(client, pr, s);
-                    }
-                });
-                core.info(`Leaving ${n} suggestion(s)`);
-                await Promise.all(ps);
-            }
-        }
-        (0, outputs_1.setOutputs)({
-            success,
-            differences,
-            gitPatch: patch,
-            restyledBase: pr.headRef,
-            restyledHead: `restyled/${pr.headRef}`,
-            restyledTitle: `Restyled ${pr.title}`,
-            restyledBody: pullRequestDescription(pr.number),
-            suggestionsSkipped,
-        });
-        if (ec !== 0) {
-            core.setFailed(`Restyler exited non-zero: ${ec}`);
-        }
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            core.error(error);
-            core.setFailed(error.message);
-        }
-        else if (typeof error === "string") {
-            core.error(error);
-            core.setFailed(error);
-        }
-        else {
-            core.error("Non-Error exception");
-            core.setFailed("Non-Error exception");
-        }
-    }
-}
-run();
-
-
-/***/ }),
-
-/***/ 1571:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.build = build;
-exports.nonEmpty = nonEmpty;
-exports.append = append;
-exports.singleton = singleton;
-exports.head = head;
-exports.tail = tail;
-exports.last = last;
-exports.init = init;
-exports.toList = toList;
-exports.group = group;
-exports.groupBy = groupBy;
-function build(x, ...xs) {
-    return {
-        _head: x,
-        _tail: xs,
-    };
-}
-function nonEmpty(xs) {
-    return xs.length === 0 ? null : build(xs[0], ...xs.slice(1));
-}
-function append(a, b) {
-    return {
-        _head: head(a),
-        _tail: tail(a).concat(toList(b)),
-    };
-}
-function singleton(t) {
-    return {
-        _head: t,
-        _tail: [],
-    };
-}
-function head(ne) {
-    return ne._head;
-}
-function tail(ne) {
-    return ne._tail;
-}
-function last(ne) {
-    const t = ne._tail;
-    return t.length == 0 ? head(ne) : t.slice(-1)[0];
-}
-function init(ne) {
-    const t = ne._tail;
-    const l = t.length;
-    return l === 0 ? [] : [head(ne)].concat(t.slice(0, l - 1));
-}
-function toList(ne) {
-    return [head(ne)].concat(tail(ne));
-}
-function group(xs) {
-    return groupBy(xs, (a, b) => a === b);
-}
-function groupBy(xs, isEqual) {
-    const go = (acc, x) => {
-        const neAcc = nonEmpty(acc);
-        if (!neAcc) {
-            return [singleton(x)];
-        }
-        const prevGroup = last(neAcc);
-        const prevElem = last(prevGroup);
-        const updated = isEqual(prevElem, x)
-            ? [append(prevGroup, singleton(x))]
-            : [prevGroup, singleton(x)];
-        return init(neAcc).concat(updated);
-    };
-    return xs.reduce(go, []);
-}
-
-
-/***/ }),
-
-/***/ 3914:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setOutputs = setOutputs;
-const core = __importStar(__nccwpck_require__(7484));
-function setOutputs(outputs) {
-    core.setOutput("success", outputs.success ? "true" : "false");
-    core.setOutput("differences", outputs.differences ? "true" : "false");
-    core.setOutput("git-patch", outputs.gitPatch);
-    core.setOutput("restyled-base", outputs.restyledBase);
-    core.setOutput("restyled-head", outputs.restyledHead);
-    core.setOutput("restyled-title", outputs.restyledTitle);
-    core.setOutput("restyled-body", outputs.restyledBody);
-    core.setOutput("suggestions-skipped", outputs.suggestionsSkipped);
-}
-
-
-/***/ }),
-
-/***/ 297:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseGitPatches = parseGitPatches;
-exports.parseGitPatch = parseGitPatch;
-exports.parseGitDiff = parseGitDiff;
-const hashRegex = /^From (\S*)/;
-const authorRegex = /^From:\s?([^<].*[^>])?\s+(<(.*)>)?/;
-const fileNameRegex = /^diff --git "?a\/(.*)"?\s*"?b\/(.*)"?/;
-const fileLinesRegex = /^@@ -([0-9]*),?\S* \+([0-9]*),?/;
-const similarityIndexRegex = /^similarity index /;
-const addedFileModeRegex = /^new file mode /;
-const deletedFileModeRegex = /^deleted file mode /;
-function parseGitPatches(patches) {
-    const lines = patches.split("\n");
-    return splitIntoParts(lines, "From ")
-        .map((xs) => parseGitPatch(xs.join("\n")))
-        .filter((x) => {
-        return x;
-    });
-}
-function parseGitPatch(patch) {
-    if (typeof patch !== "string") {
-        throw new Error("Expected first argument (patch) to be a string");
-    }
-    const lines = patch.split("\n");
-    const gitPatchMetaInfo = splitMetaInfo(patch, lines);
-    if (!gitPatchMetaInfo)
-        return null;
-    const files = parseGitDiff(lines);
-    return {
-        ...gitPatchMetaInfo,
-        files,
-    };
-}
-function parseGitDiff(lines) {
-    const files = [];
-    splitIntoParts(lines, "diff --git").forEach((diff) => {
-        const fileNameLine = diff.shift();
-        if (!fileNameLine)
-            return;
-        const match3 = fileNameLine.match(fileNameRegex);
-        if (!match3)
-            return;
-        const [, a, b] = match3;
-        const metaLine = diff.shift();
-        if (!metaLine)
-            return;
-        const fileData = {
-            added: false,
-            deleted: false,
-            beforeName: a.trim(),
-            afterName: b.trim(),
-            modifiedLines: [],
-        };
-        files.push(fileData);
-        if (addedFileModeRegex.test(metaLine)) {
-            fileData.added = true;
-        }
-        if (deletedFileModeRegex.test(metaLine)) {
-            fileData.deleted = true;
-        }
-        if (similarityIndexRegex.test(metaLine)) {
-            return;
-        }
-        splitIntoParts(diff, "@@ ").forEach((lines) => {
-            const fileLinesLine = lines.shift();
-            if (!fileLinesLine)
-                return;
-            const match4 = fileLinesLine.match(fileLinesRegex);
-            if (!match4)
-                return;
-            const [, a, b] = match4;
-            let nA = parseInt(a);
-            let nB = parseInt(b);
-            lines.forEach((line) => {
-                if (line === "-- ") {
-                    return;
-                }
-                if (line.startsWith("+")) {
-                    fileData.modifiedLines.push({
-                        tag: "added",
-                        addedLineNumber: nB,
-                        line: line.substring(1),
-                    });
-                    nB++;
-                }
-                else if (line.startsWith("-")) {
-                    fileData.modifiedLines.push({
-                        tag: "removed",
-                        removedLineNumber: nA,
-                        line: line.substring(1),
-                    });
-                    nA++;
-                }
-                else if (line.startsWith(" ")) {
-                    fileData.modifiedLines.push({
-                        tag: "context",
-                        addedLineNumber: nB,
-                        removedLineNumber: nA,
-                        line: line.substring(1),
-                    });
-                    nA++;
-                    nB++;
-                }
-            });
-        });
-    });
-    return files;
-}
-function splitMetaInfo(patch, lines) {
-    if (!/^From/g.test(patch)) {
-        return {};
-    }
-    const hashLine = lines.shift();
-    if (!hashLine)
-        return null;
-    const match1 = hashLine.match(hashRegex);
-    if (!match1)
-        return null;
-    const [, hash] = match1;
-    const authorLine = lines.shift();
-    if (!authorLine)
-        return null;
-    const match2 = authorLine.match(authorRegex);
-    if (!match2)
-        return null;
-    const [, authorName, , authorEmail] = match2;
-    const dateLine = lines.shift();
-    if (!dateLine)
-        return null;
-    const [, date] = dateLine.split("Date: ");
-    const messageLine = lines.shift();
-    if (!messageLine)
-        return null;
-    const [, message] = messageLine.split("Subject: ");
-    return {
-        hash,
-        authorName,
-        authorEmail,
-        date,
-        message,
-    };
-}
-function splitIntoParts(lines, separator) {
-    const parts = [];
-    let currentPart;
-    lines.forEach((line) => {
-        if (line.startsWith(separator)) {
-            if (currentPart) {
-                parts.push(currentPart);
-            }
-            currentPart = [line];
-        }
-        else if (currentPart) {
-            currentPart.push(line);
-        }
-    });
-    if (currentPart) {
-        parts.push(currentPart);
-    }
-    return parts;
-}
-
-
-/***/ }),
-
-/***/ 1633:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.runProcess = runProcess;
-exports.readProcess = readProcess;
-const exec = __importStar(__nccwpck_require__(5236));
-async function runProcess(cmd, args) {
-    return await exec.exec(cmd, args, { ignoreReturnCode: true });
-}
-async function readProcess(cmd, args) {
-    let stdout = "";
-    let stderr = "";
-    try {
-        await exec.exec(cmd, args, {
-            silent: true,
-            listeners: {
-                stdout: (data) => {
-                    stdout += data.toString();
-                },
-                stderr: (data) => {
-                    stderr += data.toString();
-                },
-            },
-        });
-    }
-    catch (ex) {
-        console.error("Crashing due to exec failure");
-        console.error(`Captured stdout: ${stdout}`);
-        console.error(`Captured stderr: ${stderr}`);
-        throw ex;
-    }
-    return stdout.replace(/\n$/, "");
-}
-
-
-/***/ }),
-
-/***/ 4925:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPullRequest = getPullRequest;
-const fs = __importStar(__nccwpck_require__(9896));
-const temp = __importStar(__nccwpck_require__(2790));
-const core = __importStar(__nccwpck_require__(7484));
-const github = __importStar(__nccwpck_require__(3228));
-const process_1 = __nccwpck_require__(1633);
-async function getPullRequest(client, paths) {
-    const base = await getDiffBase();
-    const pr = github.context.payload.pull_request;
-    core.debug(`repo: ${JSON.stringify(github.context.repo)}`);
-    core.debug(`payload.pull_request: ${JSON.stringify(pr)}`);
-    if (!pr) {
-        return fakePullRequest(base, paths);
-    }
-    if (base.tag === "known" && base.sha !== pr.head.sha) {
-        core.info([
-            "The checked out commit does not match the event PR's head.",
-            `${base.sha} != ${pr.head.sha}.`,
-            "This usually means you've checked out the merge ref,",
-            "which is actions/checkout's default behavior.",
-            "This is usually fine, but if you have a very busy default branch,",
-            "Restyled could pick up changes you don't expect and do weird things.",
-            "Consider using `ref: ${{ github.event.pull_request.head.ref }}` instead.",
-        ].join(" "));
-    }
-    const pullRequestJson = temp.path({ suffix: ".json" });
-    fs.writeFileSync(pullRequestJson, JSON.stringify(pr));
-    const files = await client.paginate(client.rest.pulls.listFiles, {
-        ...github.context.repo,
-        pull_number: pr.number,
-    });
-    const restylePaths = paths.length === 0 ? files.map((f) => f.filename) : paths;
-    return {
-        number: pr.number,
-        title: pr.title,
-        headRef: pr.head.ref,
-        headSha: pr.head.sha,
-        restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
-        restyleDiffBase: base,
-        files,
-    };
-}
-function fakePullRequest(base, paths) {
-    return {
-        number: 0,
-        title: "Unknown",
-        headRef: "unknown",
-        headSha: "unknown",
-        restyleArgs: paths,
-        restyleDiffBase: base,
-        files: [],
-    };
-}
-async function getDiffBase() {
-    try {
-        const sha = await (0, process_1.readProcess)("git", ["rev-parse", "HEAD"]);
-        return { tag: "known", sha };
-    }
-    catch {
-        return { tag: "unknown" };
-    }
-}
-
-
-/***/ }),
-
-/***/ 7253:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.clearPriorSuggestions = clearPriorSuggestions;
-exports.commentSuggestion = commentSuggestion;
-const core = __importStar(__nccwpck_require__(7484));
-const github = __importStar(__nccwpck_require__(3228));
-const github_graphql_1 = __nccwpck_require__(7945);
-const COMMENT_TOKEN = "<!-- added by Restyled -->";
-async function clearPriorSuggestions(client, pullRequest) {
-    const { owner, repo } = github.context.repo;
-    const threads = await (0, github_graphql_1.queryReviewThreads)(client, owner, repo, pullRequest.number);
-    const ps = [];
-    const resolved = [];
-    threads.forEach((thread) => {
-        thread.comments.nodes.forEach((comment) => {
-            if (comment.body.includes(COMMENT_TOKEN)) {
-                if (comment.isMinimized || thread.resolvedBy) {
-                    core.info(`Found resolved suggestion at ${comment.path}:${comment.line}`);
-                    resolved.push({
-                        path: comment.path,
-                        description: "",
-                        startLine: comment.startLine ? comment.startLine : comment.line,
-                        endLine: comment.line,
-                        code: [],
-                    });
-                }
-                else {
-                    ps.push(client.rest.pulls
-                        .deleteReviewComment({
-                        ...github.context.repo,
-                        pull_number: pullRequest.number,
-                        comment_id: parseInt(comment.fullDatabaseId, 10),
-                    })
-                        .then(() => {
-                        return;
-                    }));
-                }
-            }
-        });
-    });
-    core.debug(`Deleting ${ps.length} old suggestions(s)`);
-    await Promise.all(ps);
-    return resolved;
-}
-async function commentSuggestion(client, pullRequest, suggestion) {
-    const path = suggestion.path;
-    const line = suggestion.endLine;
-    const start_line = suggestion.startLine == suggestion.endLine
-        ? undefined
-        : suggestion.startLine;
-    const body = [
-        suggestion.description,
-        "",
-        "```suggestion",
-        suggestion.code.join("\n"),
-        "```",
-        "",
-        COMMENT_TOKEN,
-    ];
-    core.debug(`Leaving review comment on ${path}:${start_line}:${line}`);
-    await client.rest.pulls.createReviewComment({
-        ...github.context.repo,
-        pull_number: pullRequest.number,
-        body: body.join("\n"),
-        commit_id: pullRequest.headSha,
-        path,
-        start_line,
-        line,
-        side: "RIGHT",
-    });
-}
-
-
-/***/ }),
-
-/***/ 3146:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.suggest = suggest;
-const non_empty_1 = __nccwpck_require__(1571);
-const NE = __importStar(__nccwpck_require__(1571));
-const parse_git_patch_1 = __nccwpck_require__(297);
-function suggest(baseFiles, resolved, patch) {
-    const patches = (0, parse_git_patch_1.parseGitPatches)(patch);
-    const suggestions = [];
-    patches.forEach((patch) => {
-        patch.files.forEach((file) => {
-            const groups = NE.groupBy(file.modifiedLines, (a, b) => {
-                return a.tag === b.tag || (a.tag === "removed" && b.tag === "added");
-            });
-            groups.forEach((group) => {
-                const removed = getRemoveLineNumbers(group);
-                if (!removed) {
-                    return;
-                }
-                const suggestion = {
-                    path: file.afterName,
-                    description: (patch.message ?? "").replace(/\[PATCH.*] /, ""),
-                    code: getAddedLines(group),
-                    startLine: NE.head(removed),
-                    endLine: NE.last(removed),
-                };
-                if (!isOnAddedLines(baseFiles, suggestion)) {
-                    suggestion.skipReason = "suggestions can only be made on added lines";
-                }
-                if (resolved.some((r) => isSameLocation(r, suggestion))) {
-                    suggestion.skipReason = "previously marked resolved";
-                }
-                suggestions.push(suggestion);
-            });
-        });
-    });
-    return suggestions;
-}
-function getRemoveLineNumbers(lines) {
-    const acc = [];
-    NE.toList(lines).forEach((line) => {
-        if (line.tag === "removed") {
-            acc.push(line.removedLineNumber);
-        }
-    });
-    return (0, non_empty_1.nonEmpty)(acc);
-}
-function getAddedLines(lines) {
-    const acc = [];
-    NE.toList(lines).forEach((line) => {
-        if (line.tag === "added") {
-            acc.push(line.line);
-        }
-    });
-    return acc;
-}
-function isOnAddedLines(baseFiles, suggestion) {
-    const matched = [];
-    const { path, startLine, endLine } = suggestion;
-    const suggestionSize = endLine - startLine + 1;
-    const lines = getPullRequestDiff(baseFiles, path);
-    if (lines.length >= suggestionSize) {
-        for (let i = startLine; i <= endLine; i++) {
-            const line = lines.find((line) => {
-                return line.tag === "added" && line.addedLineNumber === i;
-            });
-            if (line) {
-                matched.push(line);
-            }
-        }
-    }
-    return matched.length == suggestionSize;
-}
-function getPullRequestDiff(files, name) {
-    const file = files.find((f) => f.filename === name);
-    if (!file) {
-        return [];
-    }
-    const diff = [
-        `diff --git a/${file.filename} b/${file.filename}`,
-        "index 000000000..000000000 100644",
-        `--- a/${file.filename}`,
-        `+++ b/${file.filename}`,
-        file.patch ?? "",
-    ].join("\n");
-    const patch = (0, parse_git_patch_1.parseGitPatch)(diff);
-    const patchFile = (patch?.files ?? [])[0];
-    if (!patchFile) {
-        return [];
-    }
-    return patchFile.modifiedLines;
-}
-function isSameLocation(a, b) {
-    return (a.path === b.path && a.startLine == b.startLine && a.endLine == b.endLine);
-}
-
-
-/***/ }),
+import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
+/******/ var __webpack_modules__ = ({
 
 /***/ 4914:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -1184,7 +138,6 @@ function escapeProperty(s) {
 /***/ 7484:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -1570,7 +523,6 @@ exports.platform = __importStar(__nccwpck_require__(8968));
 /***/ 4753:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 // For internal use, subject to change.
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -1648,7 +600,6 @@ function prepareKeyValueMessage(key, value) {
 /***/ 5306:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1732,7 +683,6 @@ exports.OidcClient = OidcClient;
 /***/ 1976:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -1810,7 +760,6 @@ function toPlatformPath(pth) {
 /***/ 8968:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -1921,7 +870,6 @@ function getDetails() {
 /***/ 1847:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2211,7 +1159,6 @@ exports.summary = _summary;
 /***/ 302:
 /***/ ((__unused_webpack_module, exports) => {
 
-"use strict";
 
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -2257,7 +1204,6 @@ function toCommandProperties(annotationProperties) {
 /***/ 5236:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -2380,7 +1326,6 @@ function getExecOutput(commandLine, args, options) {
 /***/ 6665:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -3012,7 +1957,6 @@ class ExecState extends events.EventEmitter {
 /***/ 1648:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-"use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Context = void 0;
@@ -3075,7 +2019,6 @@ exports.Context = Context;
 /***/ 3228:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -3133,7 +2076,6 @@ function getOctokit(token, options, ...additionalPlugins) {
 /***/ 5156:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -3219,7 +2161,6 @@ function getApiBaseUrl() {
 /***/ 8006:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -3295,7 +2236,6 @@ function getOctokitOptions(token, options) {
 /***/ 4552:
 /***/ (function(__unused_webpack_module, exports) {
 
-"use strict";
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -3383,7 +2323,6 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 /***/ 4844:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -4127,7 +3066,6 @@ const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCa
 /***/ 4988:
 /***/ ((__unused_webpack_module, exports) => {
 
-"use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getProxyUrl = getProxyUrl;
@@ -4228,7 +3166,6 @@ class DecodedURL extends URL {
 /***/ 3368:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Client = __nccwpck_require__(3069)
@@ -4469,7 +3406,6 @@ module.exports = {
 /***/ 9724:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(4589)
@@ -4585,7 +3521,6 @@ module.exports = connect
 /***/ 6998:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -4844,7 +3779,6 @@ module.exports = pipeline
 /***/ 8675:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(4589)
@@ -5066,7 +4000,6 @@ module.exports.RequestHandler = RequestHandler
 /***/ 576:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(4589)
@@ -5294,7 +4227,6 @@ module.exports = stream
 /***/ 2274:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { InvalidArgumentError, SocketError } = __nccwpck_require__(8091)
@@ -5410,7 +4342,6 @@ module.exports = upgrade
 /***/ 5407:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 module.exports.request = __nccwpck_require__(8675)
@@ -5425,7 +4356,6 @@ module.exports.connect = __nccwpck_require__(9724)
 /***/ 3135:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // Ported from https://github.com/nodejs/undici/pull/907
 
 
@@ -5918,7 +4848,6 @@ module.exports = {
 /***/ 2296:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const net = __nccwpck_require__(7030)
@@ -6166,7 +5095,6 @@ module.exports = buildConnector
 /***/ 1303:
 /***/ ((module) => {
 
-"use strict";
 
 
 /** @type {Record<string, string | undefined>} */
@@ -6292,7 +5220,6 @@ module.exports = {
 /***/ 8150:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 const diagnosticsChannel = __nccwpck_require__(3053)
 const util = __nccwpck_require__(7975)
@@ -6502,7 +5429,6 @@ module.exports = {
 /***/ 8091:
 /***/ ((module) => {
 
-"use strict";
 
 
 const kUndiciError = Symbol.for('undici.error.UND_ERR')
@@ -6916,7 +5842,6 @@ module.exports = {
 /***/ 8823:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -7393,7 +6318,6 @@ module.exports = {
 /***/ 3568:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -7553,7 +6477,6 @@ module.exports = {
 /***/ 1544:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(4589)
@@ -8280,7 +7203,6 @@ module.exports = {
 /***/ 6261:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { InvalidArgumentError } = __nccwpck_require__(8091)
@@ -8417,7 +7339,6 @@ module.exports = Agent
 /***/ 8973:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -8634,7 +7555,6 @@ module.exports = BalancedPool
 /***/ 1557:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 /* global WebAssembly */
@@ -10012,7 +8932,6 @@ module.exports = connectH1
 /***/ 4092:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(4589)
@@ -10764,7 +9683,6 @@ module.exports = connectH2
 /***/ 3069:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // @ts-check
 
 
@@ -11394,7 +10312,6 @@ module.exports = Client
 /***/ 4745:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Dispatcher = __nccwpck_require__(2091)
@@ -11592,7 +10509,6 @@ module.exports = DispatcherBase
 /***/ 2091:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 const EventEmitter = __nccwpck_require__(8474)
 
@@ -11665,7 +10581,6 @@ module.exports = Dispatcher
 /***/ 7897:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const DispatcherBase = __nccwpck_require__(4745)
@@ -11833,7 +10748,6 @@ module.exports = EnvHttpProxyAgent
 /***/ 6524:
 /***/ ((module) => {
 
-"use strict";
 /* eslint-disable */
 
 
@@ -11958,7 +10872,6 @@ module.exports = class FixedQueue {
 /***/ 3272:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const DispatcherBase = __nccwpck_require__(4745)
@@ -12201,7 +11114,6 @@ module.exports = PoolStats
 /***/ 7404:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -12316,7 +11228,6 @@ module.exports = Pool
 /***/ 9848:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kProxy, kClose, kDestroy, kDispatch, kInterceptors } = __nccwpck_require__(9411)
@@ -12598,7 +11509,6 @@ module.exports = ProxyAgent
 /***/ 1882:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Dispatcher = __nccwpck_require__(2091)
@@ -12641,7 +11551,6 @@ module.exports = RetryAgent
 /***/ 5837:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 // We include a version number for the Dispatcher API. In case of breaking changes,
@@ -12681,7 +11590,6 @@ module.exports = {
 /***/ 7011:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = class DecoratorHandler {
@@ -12733,7 +11641,6 @@ module.exports = class DecoratorHandler {
 /***/ 5050:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const util = __nccwpck_require__(1544)
@@ -12973,7 +11880,6 @@ module.exports = RedirectHandler
 /***/ 112:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 const assert = __nccwpck_require__(4589)
 
@@ -13355,7 +12261,6 @@ module.exports = RetryHandler
 /***/ 7251:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 const { isIP } = __nccwpck_require__(7030)
 const { lookup } = __nccwpck_require__(610)
@@ -13738,7 +12643,6 @@ module.exports = interceptorOpts => {
 /***/ 2375:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const util = __nccwpck_require__(1544)
@@ -13869,7 +12773,6 @@ module.exports = createDumpInterceptor
 /***/ 1676:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const RedirectHandler = __nccwpck_require__(5050)
@@ -13898,7 +12801,6 @@ module.exports = createRedirectInterceptor
 /***/ 3650:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 const RedirectHandler = __nccwpck_require__(5050)
 
@@ -13930,7 +12832,6 @@ module.exports = opts => {
 /***/ 3874:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 const RetryHandler = __nccwpck_require__(112)
 
@@ -13957,7 +12858,6 @@ module.exports = globalOpts => {
 /***/ 7424:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-"use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SPECIAL_HEADERS = exports.HEADER_STATE = exports.MINOR = exports.MAJOR = exports.CONNECTION_TOKEN_CHARS = exports.HEADER_CHARS = exports.TOKEN = exports.STRICT_TOKEN = exports.HEX = exports.URL_CHAR = exports.STRICT_URL_CHAR = exports.USERINFO_CHARS = exports.MARK = exports.ALPHANUM = exports.NUM = exports.HEX_MAP = exports.NUM_MAP = exports.ALPHA = exports.FINISH = exports.H_METHOD_MAP = exports.METHOD_MAP = exports.METHODS_RTSP = exports.METHODS_ICE = exports.METHODS_HTTP = exports.METHODS = exports.LENIENT_FLAGS = exports.FLAGS = exports.TYPE = exports.ERROR = void 0;
@@ -14242,7 +13142,6 @@ exports.SPECIAL_HEADERS = {
 /***/ 7846:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Buffer } = __nccwpck_require__(4573)
@@ -14255,7 +13154,6 @@ module.exports = Buffer.from('AGFzbQEAAAABJwdgAX8Bf2ADf39/AX9gAX8AYAJ/fwBgBH9/f3
 /***/ 9474:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Buffer } = __nccwpck_require__(4573)
@@ -14268,7 +13166,6 @@ module.exports = Buffer.from('AGFzbQEAAAABJwdgAX8Bf2ADf39/AX9gAX8AYAJ/fwBgBH9/f3
 /***/ 8916:
 /***/ ((__unused_webpack_module, exports) => {
 
-"use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enumToMap = void 0;
@@ -14290,7 +13187,6 @@ exports.enumToMap = enumToMap;
 /***/ 5973:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kClients } = __nccwpck_require__(9411)
@@ -14458,7 +13354,6 @@ module.exports = MockAgent
 /***/ 8957:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { promisify } = __nccwpck_require__(7975)
@@ -14525,7 +13420,6 @@ module.exports = MockClient
 /***/ 5445:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { UndiciError } = __nccwpck_require__(8091)
@@ -14561,7 +13455,6 @@ module.exports = {
 /***/ 1599:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { getResponseData, buildKey, addMockDispatch } = __nccwpck_require__(1725)
@@ -14776,7 +13669,6 @@ module.exports.MockScope = MockScope
 /***/ 8780:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { promisify } = __nccwpck_require__(7975)
@@ -14843,7 +13735,6 @@ module.exports = MockPool
 /***/ 8149:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -14874,7 +13765,6 @@ module.exports = {
 /***/ 1725:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { MockNotMatchedError } = __nccwpck_require__(5445)
@@ -15249,7 +14139,6 @@ module.exports = {
 /***/ 1030:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Transform } = __nccwpck_require__(7075)
@@ -15300,7 +14189,6 @@ module.exports = class PendingInterceptorsFormatter {
 /***/ 8353:
 /***/ ((module) => {
 
-"use strict";
 
 
 const singulars = {
@@ -15337,7 +14225,6 @@ module.exports = class Pluralizer {
 /***/ 2563:
 /***/ ((module) => {
 
-"use strict";
 
 
 /**
@@ -15768,7 +14655,6 @@ module.exports = {
 /***/ 4330:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kConstruct } = __nccwpck_require__(7589)
@@ -16635,7 +15521,6 @@ module.exports = {
 /***/ 6949:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kConstruct } = __nccwpck_require__(7589)
@@ -16795,7 +15680,6 @@ module.exports = {
 /***/ 7589:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 module.exports = {
@@ -16808,7 +15692,6 @@ module.exports = {
 /***/ 102:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(4589)
@@ -16861,7 +15744,6 @@ module.exports = {
 /***/ 6820:
 /***/ ((module) => {
 
-"use strict";
 
 
 // https://wicg.github.io/cookie-store/#cookie-maximum-attribute-value-size
@@ -16881,7 +15763,6 @@ module.exports = {
 /***/ 5437:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { parseSetCookie } = __nccwpck_require__(2802)
@@ -17073,7 +15954,6 @@ module.exports = {
 /***/ 2802:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { maxNameValuePairSize, maxAttributeValueSize } = __nccwpck_require__(6820)
@@ -17398,7 +16278,6 @@ module.exports = {
 /***/ 5613:
 /***/ ((module) => {
 
-"use strict";
 
 
 /**
@@ -17688,7 +16567,6 @@ module.exports = {
 /***/ 2455:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 const { Transform } = __nccwpck_require__(7075)
 const { isASCIINumber, isValidLastEventId } = __nccwpck_require__(6627)
@@ -18094,7 +16972,6 @@ module.exports = {
 /***/ 6942:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { pipeline } = __nccwpck_require__(7075)
@@ -18582,7 +17459,6 @@ module.exports = {
 /***/ 6627:
 /***/ ((module) => {
 
-"use strict";
 
 
 /**
@@ -18627,7 +17503,6 @@ module.exports = {
 /***/ 8900:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const util = __nccwpck_require__(1544)
@@ -19164,7 +18039,6 @@ module.exports = {
 /***/ 1207:
 /***/ ((module) => {
 
-"use strict";
 
 
 const corsSafeListedMethods = /** @type {const} */ (['GET', 'HEAD', 'POST'])
@@ -19296,7 +18170,6 @@ module.exports = {
 /***/ 980:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(4589)
@@ -20048,7 +18921,6 @@ module.exports = {
 /***/ 933:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kConnected, kSize } = __nccwpck_require__(9411)
@@ -20102,7 +18974,6 @@ module.exports = function () {
 /***/ 1506:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Blob, File } = __nccwpck_require__(4573)
@@ -20236,7 +19107,6 @@ module.exports = { FileLike, isFileLike }
 /***/ 3100:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { isUSVString, bufferToLowerCasedHeaderName } = __nccwpck_require__(1544)
@@ -20718,7 +19588,6 @@ module.exports = {
 /***/ 9662:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { isBlobLike, iteratorMixin } = __nccwpck_require__(4296)
@@ -20978,7 +19847,6 @@ module.exports = { FormData, makeEntry }
 /***/ 2443:
 /***/ ((module) => {
 
-"use strict";
 
 
 // In case of breaking changes, increase the version
@@ -21026,7 +19894,6 @@ module.exports = {
 /***/ 3676:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // https://github.com/Ethan-Arrowood/undici-fetch
 
 
@@ -21721,7 +20588,6 @@ module.exports = {
 /***/ 7302:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // https://github.com/Ethan-Arrowood/undici-fetch
 
 
@@ -24001,7 +22867,6 @@ module.exports = {
 /***/ 6055:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 /* globals AbortController */
 
 
@@ -25046,7 +23911,6 @@ module.exports = { Request, makeRequest, fromInnerRequest, cloneRequest }
 /***/ 9107:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Headers, HeadersList, fill, getHeadersGuard, setHeadersGuard, setHeadersList } = __nccwpck_require__(3676)
@@ -25664,7 +24528,6 @@ module.exports = {
 /***/ 4883:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -25681,7 +24544,6 @@ module.exports = {
 /***/ 4296:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Transform } = __nccwpck_require__(7075)
@@ -27321,7 +26183,6 @@ module.exports = {
 /***/ 253:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { types, inspect } = __nccwpck_require__(7975)
@@ -28024,7 +26885,6 @@ module.exports = {
 /***/ 5207:
 /***/ ((module) => {
 
-"use strict";
 
 
 /**
@@ -28322,7 +27182,6 @@ module.exports = {
 /***/ 6299:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -28674,7 +27533,6 @@ module.exports = {
 /***/ 2981:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { webidl } = __nccwpck_require__(253)
@@ -28760,7 +27618,6 @@ module.exports = {
 /***/ 9657:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -28778,7 +27635,6 @@ module.exports = {
 /***/ 7522:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -29177,7 +28033,6 @@ module.exports = {
 /***/ 2569:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { uid, states, sentCloseFrameState, emptyBuffer, opcodes } = __nccwpck_require__(1816)
@@ -29556,7 +28411,6 @@ module.exports = {
 /***/ 1816:
 /***/ ((module) => {
 
-"use strict";
 
 
 // This is a Globally Unique Identifier unique used
@@ -29630,7 +28484,6 @@ module.exports = {
 /***/ 44:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { webidl } = __nccwpck_require__(253)
@@ -29967,7 +28820,6 @@ module.exports = {
 /***/ 9272:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { maxUnsigned16Bit } = __nccwpck_require__(1816)
@@ -30071,7 +28923,6 @@ module.exports = {
 /***/ 2869:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { createInflateRaw, Z_DEFAULT_WINDOWBITS } = __nccwpck_require__(8522)
@@ -30149,7 +29000,6 @@ module.exports = { PerMessageDeflate }
 /***/ 4588:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Writable } = __nccwpck_require__(7075)
@@ -30581,7 +29431,6 @@ module.exports = {
 /***/ 228:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { WebsocketFrameSend } = __nccwpck_require__(9272)
@@ -30693,7 +29542,6 @@ module.exports = { SendQueue }
 /***/ 2456:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -30713,7 +29561,6 @@ module.exports = {
 /***/ 5673:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = __nccwpck_require__(2456)
@@ -31035,7 +29882,6 @@ module.exports = {
 /***/ 5366:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { webidl } = __nccwpck_require__(253)
@@ -31631,7 +30477,6 @@ module.exports = {
 /***/ 7588:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -31862,7 +30707,6 @@ function getCmdPath() {
 /***/ 4994:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
-"use strict";
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -32181,7 +31025,6 @@ function copyFile(srcFile, destFile, force) {
 /***/ 7864:
 /***/ ((module) => {
 
-"use strict";
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -32266,7 +31109,6 @@ var createTokenAuth = function createTokenAuth2(token) {
 /***/ 1897:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -32435,7 +31277,6 @@ var Octokit = class {
 /***/ 4471:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -32819,7 +31660,6 @@ var endpoint = withDefaults(null, DEFAULTS);
 /***/ 7:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -32977,7 +31817,6 @@ function withCustomRequest(customRequest) {
 /***/ 8082:
 /***/ ((module) => {
 
-"use strict";
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -33378,7 +32217,6 @@ paginateRest.VERSION = VERSION;
 /***/ 4935:
 /***/ ((module) => {
 
-"use strict";
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -35548,7 +34386,6 @@ legacyRestEndpointMethods.VERSION = VERSION;
 /***/ 3708:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -35646,7 +34483,6 @@ var RequestError = class extends Error {
 /***/ 8636:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -35876,7 +34712,6 @@ var request = withDefaults(import_endpoint.endpoint, {
 /***/ 9380:
 /***/ ((module) => {
 
-"use strict";
 
 module.exports = balanced;
 function balanced(a, b, str) {
@@ -36147,7 +34982,6 @@ var isArray = Array.isArray || function (xs) {
 /***/ 4150:
 /***/ ((__unused_webpack_module, exports) => {
 
-"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
@@ -37989,7 +36823,6 @@ function onceStrict (fn) {
 /***/ 9024:
 /***/ ((module) => {
 
-"use strict";
 
 
 function posix(path) {
@@ -40264,7 +39097,6 @@ module.exports = __nccwpck_require__(218);
 /***/ 218:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 var net = __nccwpck_require__(9278);
@@ -40536,7 +39368,6 @@ exports.debug = debug; // for test
 /***/ 6752:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Client = __nccwpck_require__(6197)
@@ -40711,7 +39542,6 @@ module.exports.mockErrors = mockErrors
 /***/ 9965:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { InvalidArgumentError } = __nccwpck_require__(8707)
@@ -40928,7 +39758,6 @@ module.exports = {
 /***/ 4660:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { AsyncResource } = __nccwpck_require__(290)
@@ -41040,7 +39869,6 @@ module.exports = connect
 /***/ 6862:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -41297,7 +40125,6 @@ module.exports = pipeline
 /***/ 4043:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Readable = __nccwpck_require__(9927)
@@ -41485,7 +40312,6 @@ module.exports.RequestHandler = RequestHandler
 /***/ 3560:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { finished, PassThrough } = __nccwpck_require__(2203)
@@ -41713,7 +40539,6 @@ module.exports = stream
 /***/ 9501:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { InvalidArgumentError, RequestAbortedError, SocketError } = __nccwpck_require__(8707)
@@ -41826,7 +40651,6 @@ module.exports = upgrade
 /***/ 6615:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 module.exports.request = __nccwpck_require__(4043)
@@ -41841,7 +40665,6 @@ module.exports.connect = __nccwpck_require__(4660)
 /***/ 9927:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // Ported from https://github.com/nodejs/undici/pull/907
 
 
@@ -42224,7 +41047,6 @@ module.exports = { getResolveErrorBodyCallback }
 /***/ 1093:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -42422,7 +41244,6 @@ module.exports = BalancedPool
 /***/ 479:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kConstruct } = __nccwpck_require__(296)
@@ -43268,7 +42089,6 @@ module.exports = {
 /***/ 4738:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kConstruct } = __nccwpck_require__(296)
@@ -43420,7 +42240,6 @@ module.exports = {
 /***/ 296:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 module.exports = {
@@ -43433,7 +42252,6 @@ module.exports = {
 /***/ 3993:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(2613)
@@ -43490,7 +42308,6 @@ module.exports = {
 /***/ 6197:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // @ts-check
 
 
@@ -45781,7 +44598,6 @@ module.exports = Client
 /***/ 3194:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 /* istanbul ignore file: only for Node 12 */
@@ -45837,7 +44653,6 @@ module.exports = function () {
 /***/ 9237:
 /***/ ((module) => {
 
-"use strict";
 
 
 // https://wicg.github.io/cookie-store/#cookie-maximum-attribute-value-size
@@ -45857,7 +44672,6 @@ module.exports = {
 /***/ 3168:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { parseSetCookie } = __nccwpck_require__(8915)
@@ -46048,7 +44862,6 @@ module.exports = {
 /***/ 8915:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { maxNameValuePairSize, maxAttributeValueSize } = __nccwpck_require__(9237)
@@ -46373,7 +45186,6 @@ module.exports = {
 /***/ 3834:
 /***/ ((module) => {
 
-"use strict";
 
 
 /**
@@ -46655,7 +45467,6 @@ module.exports = {
 /***/ 9136:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const net = __nccwpck_require__(9278)
@@ -46852,7 +45663,6 @@ module.exports = buildConnector
 /***/ 735:
 /***/ ((module) => {
 
-"use strict";
 
 
 /** @type {Record<string, string | undefined>} */
@@ -46978,7 +45788,6 @@ module.exports = {
 /***/ 8707:
 /***/ ((module) => {
 
-"use strict";
 
 
 class UndiciError extends Error {
@@ -47216,7 +46025,6 @@ module.exports = {
 /***/ 4655:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -47793,7 +46601,6 @@ module.exports = {
 /***/ 3440:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const assert = __nccwpck_require__(2613)
@@ -48323,7 +47130,6 @@ module.exports = {
 /***/ 1:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Dispatcher = __nccwpck_require__(992)
@@ -48523,7 +47329,6 @@ module.exports = DispatcherBase
 /***/ 992:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const EventEmitter = __nccwpck_require__(4434)
@@ -48550,7 +47355,6 @@ module.exports = Dispatcher
 /***/ 8923:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Busboy = __nccwpck_require__(9581)
@@ -49171,7 +47975,6 @@ module.exports = {
 /***/ 7326:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { MessageChannel, receiveMessageOnPort } = __nccwpck_require__(8167)
@@ -49964,7 +48767,6 @@ module.exports = {
 /***/ 3041:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Blob, File: NativeFile } = __nccwpck_require__(181)
@@ -50316,7 +49118,6 @@ module.exports = { File, FileLike, isFileLike }
 /***/ 3073:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { isBlobLike, toUSVString, makeIterator } = __nccwpck_require__(5523)
@@ -50589,7 +49390,6 @@ module.exports = { FormData }
 /***/ 5628:
 /***/ ((module) => {
 
-"use strict";
 
 
 // In case of breaking changes, increase the version
@@ -50637,7 +49437,6 @@ module.exports = {
 /***/ 6349:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // https://github.com/Ethan-Arrowood/undici-fetch
 
 
@@ -51238,7 +50037,6 @@ module.exports = {
 /***/ 2315:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 // https://github.com/Ethan-Arrowood/undici-fetch
 
 
@@ -53394,7 +52192,6 @@ module.exports = {
 /***/ 5194:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 /* globals AbortController */
 
 
@@ -54348,7 +53145,6 @@ module.exports = { Request, makeRequest }
 /***/ 8676:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Headers, HeadersList, fill } = __nccwpck_require__(6349)
@@ -54927,7 +53723,6 @@ module.exports = {
 /***/ 9710:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -54945,7 +53740,6 @@ module.exports = {
 /***/ 5523:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { redirectStatusSet, referrerPolicySet: referrerPolicyTokens, badPortsSet } = __nccwpck_require__(7326)
@@ -56097,7 +54891,6 @@ module.exports = {
 /***/ 4222:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { types } = __nccwpck_require__(9023)
@@ -56751,7 +55544,6 @@ module.exports = {
 /***/ 396:
 /***/ ((module) => {
 
-"use strict";
 
 
 /**
@@ -57049,7 +55841,6 @@ module.exports = {
 /***/ 2160:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -57401,7 +56192,6 @@ module.exports = {
 /***/ 5976:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { webidl } = __nccwpck_require__(4222)
@@ -57487,7 +56277,6 @@ module.exports = {
 /***/ 6812:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -57505,7 +56294,6 @@ module.exports = {
 /***/ 165:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -57905,7 +56693,6 @@ module.exports = {
 /***/ 2581:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 // We include a version number for the Dispatcher API. In case of breaking changes,
@@ -57945,7 +56732,6 @@ module.exports = {
 /***/ 8840:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = class DecoratorHandler {
@@ -57988,7 +56774,6 @@ module.exports = class DecoratorHandler {
 /***/ 8299:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const util = __nccwpck_require__(3440)
@@ -58560,7 +57345,6 @@ module.exports = RetryHandler
 /***/ 4415:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const RedirectHandler = __nccwpck_require__(8299)
@@ -58589,7 +57373,6 @@ module.exports = createRedirectInterceptor
 /***/ 2824:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-"use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SPECIAL_HEADERS = exports.HEADER_STATE = exports.MINOR = exports.MAJOR = exports.CONNECTION_TOKEN_CHARS = exports.HEADER_CHARS = exports.TOKEN = exports.STRICT_TOKEN = exports.HEX = exports.URL_CHAR = exports.STRICT_URL_CHAR = exports.USERINFO_CHARS = exports.MARK = exports.ALPHANUM = exports.NUM = exports.HEX_MAP = exports.NUM_MAP = exports.ALPHA = exports.FINISH = exports.H_METHOD_MAP = exports.METHOD_MAP = exports.METHODS_RTSP = exports.METHODS_ICE = exports.METHODS_HTTP = exports.METHODS = exports.LENIENT_FLAGS = exports.FLAGS = exports.TYPE = exports.ERROR = void 0;
@@ -58890,7 +57673,6 @@ module.exports = 'AGFzbQEAAAABMAhgAX8Bf2ADf39/AX9gBH9/f38Bf2AAAGADf39/AGABfwBgAn
 /***/ 172:
 /***/ ((__unused_webpack_module, exports) => {
 
-"use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enumToMap = void 0;
@@ -58912,7 +57694,6 @@ exports.enumToMap = enumToMap;
 /***/ 7501:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kClients } = __nccwpck_require__(6443)
@@ -59091,7 +57872,6 @@ module.exports = MockAgent
 /***/ 7365:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { promisify } = __nccwpck_require__(9023)
@@ -59158,7 +57938,6 @@ module.exports = MockClient
 /***/ 2429:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { UndiciError } = __nccwpck_require__(8707)
@@ -59183,7 +57962,6 @@ module.exports = {
 /***/ 1511:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { getResponseData, buildKey, addMockDispatch } = __nccwpck_require__(3397)
@@ -59397,7 +58175,6 @@ module.exports.MockScope = MockScope
 /***/ 4004:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { promisify } = __nccwpck_require__(9023)
@@ -59464,7 +58241,6 @@ module.exports = MockPool
 /***/ 1117:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -59495,7 +58271,6 @@ module.exports = {
 /***/ 3397:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { MockNotMatchedError } = __nccwpck_require__(2429)
@@ -59854,7 +58629,6 @@ module.exports = {
 /***/ 6142:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Transform } = __nccwpck_require__(2203)
@@ -59902,7 +58676,6 @@ module.exports = class PendingInterceptorsFormatter {
 /***/ 1529:
 /***/ ((module) => {
 
-"use strict";
 
 
 const singulars = {
@@ -59939,7 +58712,6 @@ module.exports = class Pluralizer {
 /***/ 4869:
 /***/ ((module) => {
 
-"use strict";
 /* eslint-disable */
 
 
@@ -60064,7 +58836,6 @@ module.exports = class FixedQueue {
 /***/ 8640:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const DispatcherBase = __nccwpck_require__(1)
@@ -60307,7 +59078,6 @@ module.exports = PoolStats
 /***/ 5076:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const {
@@ -60423,7 +59193,6 @@ module.exports = Pool
 /***/ 2720:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kProxy, kClose, kDestroy, kInterceptors } = __nccwpck_require__(6443)
@@ -60620,7 +59389,6 @@ module.exports = ProxyAgent
 /***/ 8804:
 /***/ ((module) => {
 
-"use strict";
 
 
 let fastNow = Date.now()
@@ -60725,7 +59493,6 @@ module.exports = {
 /***/ 8550:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const diagnosticsChannel = __nccwpck_require__(1637)
@@ -61024,7 +59791,6 @@ module.exports = {
 /***/ 5913:
 /***/ ((module) => {
 
-"use strict";
 
 
 // This is a Globally Unique Identifier unique used
@@ -61083,7 +59849,6 @@ module.exports = {
 /***/ 6255:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { webidl } = __nccwpck_require__(4222)
@@ -61394,7 +60159,6 @@ module.exports = {
 /***/ 1237:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { maxUnsigned16Bit } = __nccwpck_require__(5913)
@@ -61475,7 +60239,6 @@ module.exports = {
 /***/ 3171:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { Writable } = __nccwpck_require__(2203)
@@ -61827,7 +60590,6 @@ module.exports = {
 /***/ 2933:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = {
@@ -61847,7 +60609,6 @@ module.exports = {
 /***/ 3574:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = __nccwpck_require__(2933)
@@ -62055,7 +60816,6 @@ module.exports = {
 /***/ 5171:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const { webidl } = __nccwpck_require__(4222)
@@ -62704,7 +61464,6 @@ module.exports = {
 /***/ 3843:
 /***/ ((__unused_webpack_module, exports) => {
 
-"use strict";
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
@@ -62770,391 +61529,342 @@ function wrappy (fn, cb) {
 /***/ 2613:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("assert");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("assert");
 
 /***/ }),
 
 /***/ 290:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("async_hooks");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("async_hooks");
 
 /***/ }),
 
 /***/ 181:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("buffer");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("buffer");
 
 /***/ }),
 
 /***/ 5317:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("child_process");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("child_process");
 
 /***/ }),
 
 /***/ 4236:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("console");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("console");
 
 /***/ }),
 
 /***/ 9140:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("constants");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("constants");
 
 /***/ }),
 
 /***/ 6982:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("crypto");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("crypto");
 
 /***/ }),
 
 /***/ 1637:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("diagnostics_channel");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("diagnostics_channel");
 
 /***/ }),
 
 /***/ 4434:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("events");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("events");
 
 /***/ }),
 
 /***/ 9896:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("fs");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("fs");
 
 /***/ }),
 
 /***/ 8611:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("http");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("http");
 
 /***/ }),
 
 /***/ 5675:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("http2");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("http2");
 
 /***/ }),
 
 /***/ 5692:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("https");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("https");
 
 /***/ }),
 
 /***/ 9278:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("net");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("net");
 
 /***/ }),
 
 /***/ 4589:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:assert");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:assert");
 
 /***/ }),
 
 /***/ 6698:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:async_hooks");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:async_hooks");
 
 /***/ }),
 
 /***/ 4573:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:buffer");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:buffer");
 
 /***/ }),
 
 /***/ 7540:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:console");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:console");
 
 /***/ }),
 
 /***/ 7598:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:crypto");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:crypto");
 
 /***/ }),
 
 /***/ 3053:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:diagnostics_channel");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:diagnostics_channel");
 
 /***/ }),
 
 /***/ 610:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:dns");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:dns");
 
 /***/ }),
 
 /***/ 8474:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:events");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:events");
 
 /***/ }),
 
 /***/ 7067:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:http");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:http");
 
 /***/ }),
 
 /***/ 2467:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:http2");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:http2");
 
 /***/ }),
 
 /***/ 7030:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:net");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:net");
 
 /***/ }),
 
 /***/ 643:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:perf_hooks");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:perf_hooks");
 
 /***/ }),
 
 /***/ 1792:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:querystring");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:querystring");
 
 /***/ }),
 
 /***/ 7075:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:stream");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:stream");
 
 /***/ }),
 
 /***/ 1692:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:tls");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:tls");
 
 /***/ }),
 
 /***/ 3136:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:url");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:url");
 
 /***/ }),
 
 /***/ 7975:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:util");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:util");
 
 /***/ }),
 
 /***/ 3429:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:util/types");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:util/types");
 
 /***/ }),
 
 /***/ 5919:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:worker_threads");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:worker_threads");
 
 /***/ }),
 
 /***/ 8522:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("node:zlib");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:zlib");
 
 /***/ }),
 
 /***/ 857:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("os");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("os");
 
 /***/ }),
 
 /***/ 6928:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("path");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("path");
 
 /***/ }),
 
 /***/ 2987:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("perf_hooks");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("perf_hooks");
 
 /***/ }),
 
 /***/ 3480:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("querystring");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("querystring");
 
 /***/ }),
 
 /***/ 2203:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("stream");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("stream");
 
 /***/ }),
 
 /***/ 3774:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("stream/web");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("stream/web");
 
 /***/ }),
 
 /***/ 3193:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("string_decoder");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("string_decoder");
 
 /***/ }),
 
 /***/ 3557:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("timers");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("timers");
 
 /***/ }),
 
 /***/ 4756:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("tls");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("tls");
 
 /***/ }),
 
 /***/ 7016:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("url");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("url");
 
 /***/ }),
 
 /***/ 9023:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("util");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util");
 
 /***/ }),
 
 /***/ 8253:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("util/types");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util/types");
 
 /***/ }),
 
 /***/ 8167:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("worker_threads");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("worker_threads");
 
 /***/ }),
 
 /***/ 3106:
 /***/ ((module) => {
 
-"use strict";
-module.exports = require("zlib");
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("zlib");
 
 /***/ }),
 
 /***/ 7182:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const WritableStream = (__nccwpck_require__(7075).Writable)
@@ -63375,7 +62085,6 @@ module.exports = Dicer
 /***/ 2271:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const EventEmitter = (__nccwpck_require__(8474).EventEmitter)
@@ -63483,7 +62192,6 @@ module.exports = HeaderParser
 /***/ 612:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const inherits = (__nccwpck_require__(7975).inherits)
@@ -63504,7 +62212,6 @@ module.exports = PartStream
 /***/ 4136:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 /**
@@ -63740,7 +62447,6 @@ module.exports = SBMH
 /***/ 9581:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const WritableStream = (__nccwpck_require__(7075).Writable)
@@ -63833,7 +62539,6 @@ module.exports.Dicer = Dicer
 /***/ 1192:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 // TODO:
@@ -64147,7 +62852,6 @@ module.exports = Multipart
 /***/ 855:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 
 
 const Decoder = __nccwpck_require__(1496)
@@ -64345,7 +63049,6 @@ module.exports = UrlEncoded
 /***/ 1496:
 /***/ ((module) => {
 
-"use strict";
 
 
 const RE_PLUS = /\+/g
@@ -64407,7 +63110,6 @@ module.exports = Decoder
 /***/ 692:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = function basename (path) {
@@ -64429,7 +63131,6 @@ module.exports = function basename (path) {
 /***/ 2747:
 /***/ (function(module) {
 
-"use strict";
 
 
 // Node has always utf-8
@@ -64551,7 +63252,6 @@ module.exports = decodeText
 /***/ 2393:
 /***/ ((module) => {
 
-"use strict";
 
 
 module.exports = function getLimit (limits, name, defaultLimit) {
@@ -64575,7 +63275,6 @@ module.exports = function getLimit (limits, name, defaultLimit) {
 /***/ 8929:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
 /* eslint-disable object-property-newline */
 
 
@@ -64776,50 +63475,763 @@ module.exports = parseParams
 
 /***/ })
 
-/******/ 	});
+/******/ });
 /************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __nccwpck_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		var threw = true;
-/******/ 		try {
-/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
-/******/ 			threw = false;
-/******/ 		} finally {
-/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
-/******/ 		}
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
+/******/ // The module cache
+/******/ var __webpack_module_cache__ = {};
+/******/ 
+/******/ // The require function
+/******/ function __nccwpck_require__(moduleId) {
+/******/ 	// Check if module is in cache
+/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 	if (cachedModule !== undefined) {
+/******/ 		return cachedModule.exports;
 /******/ 	}
-/******/ 	
+/******/ 	// Create a new module (and put it into the cache)
+/******/ 	var module = __webpack_module_cache__[moduleId] = {
+/******/ 		// no module.id needed
+/******/ 		// no module.loaded needed
+/******/ 		exports: {}
+/******/ 	};
+/******/ 
+/******/ 	// Execute the module function
+/******/ 	var threw = true;
+/******/ 	try {
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
+/******/ 		threw = false;
+/******/ 	} finally {
+/******/ 		if(threw) delete __webpack_module_cache__[moduleId];
+/******/ 	}
+/******/ 
+/******/ 	// Return the exports of the module
+/******/ 	return module.exports;
+/******/ }
+/******/ 
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat */
-/******/ 	
-/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/ 	
+/******/ /* webpack/runtime/compat */
+/******/ 
+/******/ if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = new URL('.', import.meta.url).pathname.slice(import.meta.url.match(/^file:\/\/\/\w:/) ? 1 : 0, -1) + "/";
+/******/ 
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(5915);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
-/******/ })()
-;
+var __webpack_exports__ = {};
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(3228);
+// EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
+var lib_exec = __nccwpck_require__(5236);
+;// CONCATENATED MODULE: ./lib/inputs.js
+
+
+function getInputs() {
+    const paths = core.getMultilineInput("paths", { required: false });
+    if (github.context.eventName !== "pull_request") {
+        core.warning("Running for non-PR event. Weird things may happen.");
+        if (paths.length === 0) {
+            throw new Error("paths input is required for non-PR events");
+        }
+    }
+    const rawSuggestionLimit = core.getInput("suggestion-limit", {
+        required: false,
+    });
+    return {
+        paths,
+        githubToken: core.getInput("github-token", { required: true }),
+        suggestions: core.getBooleanInput("suggestions", {
+            required: true,
+        }),
+        suggestionsLimit: rawSuggestionLimit && rawSuggestionLimit !== ""
+            ? parseInt(rawSuggestionLimit, 10)
+            : null,
+        showPatch: core.getBooleanInput("show-patch", {
+            required: true,
+        }),
+        showPatchCommand: core.getBooleanInput("show-patch-command", {
+            required: true,
+        }),
+        committerEmail: core.getInput("committer-email", { required: true }),
+        committerName: core.getInput("committer-name", { required: true }),
+        debug: core.getBooleanInput("debug", { required: true }),
+        dryRun: core.getBooleanInput("dry-run", { required: true }),
+        failOnDifferences: core.getBooleanInput("fail-on-differences", {
+            required: true,
+        }),
+        imageCleanup: core.getBooleanInput("image-cleanup", { required: true }),
+        manifest: core.getInput("manifest", { required: false }),
+        noCommit: core.getBooleanInput("no-commit", { required: true }),
+        noClean: core.getBooleanInput("no-clean", { required: true }),
+        noPull: core.getBooleanInput("no-pull", { required: true }),
+    };
+}
+function cliArguments(inputs) {
+    return []
+        .concat(inputs.debug ? ["--debug"] : [])
+        .concat(inputs.manifest !== "" ? ["--manifest", inputs.manifest] : [])
+        .concat(yesNo(inputs.failOnDifferences, "fail-on-differences"))
+        .concat(yesNo(inputs.imageCleanup, "image-cleanup"))
+        .concat(yesNo(inputs.dryRun, "dry-run"))
+        .concat(yesNo(!inputs.noCommit, "commit"))
+        .concat(yesNo(!inputs.noClean, "clean"))
+        .concat(yesNo(!inputs.noPull, "pull"));
+}
+function yesNo(p, name) {
+    return p ? [`--${name}`] : [`--no-${name}`];
+}
+
+;// CONCATENATED MODULE: ./lib/outputs.js
+
+function setOutputs(outputs) {
+    core.setOutput("success", outputs.success ? "true" : "false");
+    core.setOutput("differences", outputs.differences ? "true" : "false");
+    core.setOutput("git-patch", outputs.gitPatch);
+    core.setOutput("restyled-base", outputs.restyledBase);
+    core.setOutput("restyled-head", outputs.restyledHead);
+    core.setOutput("restyled-title", outputs.restyledTitle);
+    core.setOutput("restyled-body", outputs.restyledBody);
+    core.setOutput("suggestions-skipped", outputs.suggestionsSkipped);
+}
+
+;// CONCATENATED MODULE: ./lib/process.js
+
+async function runProcess(cmd, args) {
+    return await exec.exec(cmd, args, { ignoreReturnCode: true });
+}
+async function readProcess(cmd, args) {
+    let stdout = "";
+    let stderr = "";
+    try {
+        await lib_exec.exec(cmd, args, {
+            silent: true,
+            listeners: {
+                stdout: (data) => {
+                    stdout += data.toString();
+                },
+                stderr: (data) => {
+                    stderr += data.toString();
+                },
+            },
+        });
+    }
+    catch (ex) {
+        console.error("Crashing due to exec failure");
+        console.error(`Captured stdout: ${stdout}`);
+        console.error(`Captured stderr: ${stderr}`);
+        throw ex;
+    }
+    return stdout.replace(/\n$/, "");
+}
+
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
+// EXTERNAL MODULE: ./node_modules/temp/lib/temp.js
+var temp = __nccwpck_require__(2790);
+;// CONCATENATED MODULE: ./lib/pull-request.js
+
+
+
+
+
+async function getPullRequest(client, paths) {
+    const base = await getDiffBase();
+    const pr = github.context.payload.pull_request;
+    core.debug(`repo: ${JSON.stringify(github.context.repo)}`);
+    core.debug(`payload.pull_request: ${JSON.stringify(pr)}`);
+    if (!pr) {
+        return fakePullRequest(base, paths);
+    }
+    if (base.tag === "known" && base.sha !== pr.head.sha) {
+        core.info([
+            "The checked out commit does not match the event PR's head.",
+            `${base.sha} != ${pr.head.sha}.`,
+            "This usually means you've checked out the merge ref,",
+            "which is actions/checkout's default behavior.",
+            "This is usually fine, but if you have a very busy default branch,",
+            "Restyled could pick up changes you don't expect and do weird things.",
+            "Consider using `ref: ${{ github.event.pull_request.head.ref }}` instead.",
+        ].join(" "));
+    }
+    const pullRequestJson = temp.path({ suffix: ".json" });
+    external_fs_.writeFileSync(pullRequestJson, JSON.stringify(pr));
+    const files = await client.paginate(client.rest.pulls.listFiles, {
+        ...github.context.repo,
+        pull_number: pr.number,
+    });
+    const restylePaths = paths.length === 0 ? files.map((f) => f.filename) : paths;
+    return {
+        number: pr.number,
+        title: pr.title,
+        headRef: pr.head.ref,
+        headSha: pr.head.sha,
+        restyleArgs: ["--pull-request-json", pullRequestJson].concat(restylePaths),
+        restyleDiffBase: base,
+        files,
+    };
+}
+function fakePullRequest(base, paths) {
+    return {
+        number: 0,
+        title: "Unknown",
+        headRef: "unknown",
+        headSha: "unknown",
+        restyleArgs: paths,
+        restyleDiffBase: base,
+        files: [],
+    };
+}
+async function getDiffBase() {
+    try {
+        const sha = await readProcess("git", ["rev-parse", "HEAD"]);
+        return { tag: "known", sha };
+    }
+    catch {
+        return { tag: "unknown" };
+    }
+}
+
+;// CONCATENATED MODULE: ./lib/github-graphql.js
+async function queryReviewThreads(client, owner, repo, number) {
+    const query = `{
+    repository(owner: "${owner}", name: "${repo}") {
+      pullRequest(number: ${number}) {
+        reviewThreads(last: 100) {
+          nodes {
+            resolvedBy {
+              id
+            }
+            comments(last: 100) {
+              nodes {
+                body
+                fullDatabaseId
+                isMinimized
+                line
+                minimizedReason
+                path
+                startLine
+              }
+            }
+          }
+        }
+      }
+    }
+  }`;
+    const response = await client.graphql(query);
+    return response.repository.pullRequest.reviewThreads.nodes;
+}
+
+;// CONCATENATED MODULE: ./lib/review-comments.js
+
+
+
+const COMMENT_TOKEN = "<!-- added by Restyled -->";
+async function clearPriorSuggestions(client, pullRequest) {
+    const { owner, repo } = github.context.repo;
+    const threads = await queryReviewThreads(client, owner, repo, pullRequest.number);
+    const ps = [];
+    const resolved = [];
+    threads.forEach((thread) => {
+        thread.comments.nodes.forEach((comment) => {
+            if (comment.body.includes(COMMENT_TOKEN)) {
+                if (comment.isMinimized || thread.resolvedBy) {
+                    core.info(`Found resolved suggestion at ${comment.path}:${comment.line}`);
+                    resolved.push({
+                        path: comment.path,
+                        description: "",
+                        startLine: comment.startLine ? comment.startLine : comment.line,
+                        endLine: comment.line,
+                        code: [],
+                    });
+                }
+                else {
+                    ps.push(client.rest.pulls
+                        .deleteReviewComment({
+                        ...github.context.repo,
+                        pull_number: pullRequest.number,
+                        comment_id: parseInt(comment.fullDatabaseId, 10),
+                    })
+                        .then(() => {
+                        return;
+                    }));
+                }
+            }
+        });
+    });
+    core.debug(`Deleting ${ps.length} old suggestions(s)`);
+    await Promise.all(ps);
+    return resolved;
+}
+async function commentSuggestion(client, pullRequest, suggestion) {
+    const path = suggestion.path;
+    const line = suggestion.endLine;
+    const start_line = suggestion.startLine == suggestion.endLine
+        ? undefined
+        : suggestion.startLine;
+    const body = [
+        suggestion.description,
+        "",
+        "```suggestion",
+        suggestion.code.join("\n"),
+        "```",
+        "",
+        COMMENT_TOKEN,
+    ];
+    core.debug(`Leaving review comment on ${path}:${start_line}:${line}`);
+    await client.rest.pulls.createReviewComment({
+        ...github.context.repo,
+        pull_number: pullRequest.number,
+        body: body.join("\n"),
+        commit_id: pullRequest.headSha,
+        path,
+        start_line,
+        line,
+        side: "RIGHT",
+    });
+}
+
+;// CONCATENATED MODULE: ./lib/non-empty.js
+function build(x, ...xs) {
+    return {
+        _head: x,
+        _tail: xs,
+    };
+}
+function nonEmpty(xs) {
+    return xs.length === 0 ? null : build(xs[0], ...xs.slice(1));
+}
+function append(a, b) {
+    return {
+        _head: head(a),
+        _tail: tail(a).concat(toList(b)),
+    };
+}
+function singleton(t) {
+    return {
+        _head: t,
+        _tail: [],
+    };
+}
+function head(ne) {
+    return ne._head;
+}
+function tail(ne) {
+    return ne._tail;
+}
+function last(ne) {
+    const t = ne._tail;
+    return t.length == 0 ? head(ne) : t.slice(-1)[0];
+}
+function init(ne) {
+    const t = ne._tail;
+    const l = t.length;
+    return l === 0 ? [] : [head(ne)].concat(t.slice(0, l - 1));
+}
+function toList(ne) {
+    return [head(ne)].concat(tail(ne));
+}
+function group(xs) {
+    return groupBy(xs, (a, b) => a === b);
+}
+function groupBy(xs, isEqual) {
+    const go = (acc, x) => {
+        const neAcc = nonEmpty(acc);
+        if (!neAcc) {
+            return [singleton(x)];
+        }
+        const prevGroup = last(neAcc);
+        const prevElem = last(prevGroup);
+        const updated = isEqual(prevElem, x)
+            ? [append(prevGroup, singleton(x))]
+            : [prevGroup, singleton(x)];
+        return init(neAcc).concat(updated);
+    };
+    return xs.reduce(go, []);
+}
+
+;// CONCATENATED MODULE: ./lib/parse-git-patch.js
+const hashRegex = /^From (\S*)/;
+const authorRegex = /^From:\s?([^<].*[^>])?\s+(<(.*)>)?/;
+const fileNameRegex = /^diff --git "?a\/(.*)"?\s*"?b\/(.*)"?/;
+const fileLinesRegex = /^@@ -([0-9]*),?\S* \+([0-9]*),?/;
+const similarityIndexRegex = /^similarity index /;
+const addedFileModeRegex = /^new file mode /;
+const deletedFileModeRegex = /^deleted file mode /;
+function parseGitPatches(patches) {
+    const lines = patches.split("\n");
+    return splitIntoParts(lines, "From ")
+        .map((xs) => parseGitPatch(xs.join("\n")))
+        .filter((x) => {
+        return x;
+    });
+}
+function parseGitPatch(patch) {
+    if (typeof patch !== "string") {
+        throw new Error("Expected first argument (patch) to be a string");
+    }
+    const lines = patch.split("\n");
+    const gitPatchMetaInfo = splitMetaInfo(patch, lines);
+    if (!gitPatchMetaInfo)
+        return null;
+    const files = parseGitDiff(lines);
+    return {
+        ...gitPatchMetaInfo,
+        files,
+    };
+}
+function parseGitDiff(lines) {
+    const files = [];
+    splitIntoParts(lines, "diff --git").forEach((diff) => {
+        const fileNameLine = diff.shift();
+        if (!fileNameLine)
+            return;
+        const match3 = fileNameLine.match(fileNameRegex);
+        if (!match3)
+            return;
+        const [, a, b] = match3;
+        const metaLine = diff.shift();
+        if (!metaLine)
+            return;
+        const fileData = {
+            added: false,
+            deleted: false,
+            beforeName: a.trim(),
+            afterName: b.trim(),
+            modifiedLines: [],
+        };
+        files.push(fileData);
+        if (addedFileModeRegex.test(metaLine)) {
+            fileData.added = true;
+        }
+        if (deletedFileModeRegex.test(metaLine)) {
+            fileData.deleted = true;
+        }
+        if (similarityIndexRegex.test(metaLine)) {
+            return;
+        }
+        splitIntoParts(diff, "@@ ").forEach((lines) => {
+            const fileLinesLine = lines.shift();
+            if (!fileLinesLine)
+                return;
+            const match4 = fileLinesLine.match(fileLinesRegex);
+            if (!match4)
+                return;
+            const [, a, b] = match4;
+            let nA = parseInt(a);
+            let nB = parseInt(b);
+            lines.forEach((line) => {
+                if (line === "-- ") {
+                    return;
+                }
+                if (line.startsWith("+")) {
+                    fileData.modifiedLines.push({
+                        tag: "added",
+                        addedLineNumber: nB,
+                        line: line.substring(1),
+                    });
+                    nB++;
+                }
+                else if (line.startsWith("-")) {
+                    fileData.modifiedLines.push({
+                        tag: "removed",
+                        removedLineNumber: nA,
+                        line: line.substring(1),
+                    });
+                    nA++;
+                }
+                else if (line.startsWith(" ")) {
+                    fileData.modifiedLines.push({
+                        tag: "context",
+                        addedLineNumber: nB,
+                        removedLineNumber: nA,
+                        line: line.substring(1),
+                    });
+                    nA++;
+                    nB++;
+                }
+            });
+        });
+    });
+    return files;
+}
+function splitMetaInfo(patch, lines) {
+    if (!/^From/g.test(patch)) {
+        return {};
+    }
+    const hashLine = lines.shift();
+    if (!hashLine)
+        return null;
+    const match1 = hashLine.match(hashRegex);
+    if (!match1)
+        return null;
+    const [, hash] = match1;
+    const authorLine = lines.shift();
+    if (!authorLine)
+        return null;
+    const match2 = authorLine.match(authorRegex);
+    if (!match2)
+        return null;
+    const [, authorName, , authorEmail] = match2;
+    const dateLine = lines.shift();
+    if (!dateLine)
+        return null;
+    const [, date] = dateLine.split("Date: ");
+    const messageLine = lines.shift();
+    if (!messageLine)
+        return null;
+    const [, message] = messageLine.split("Subject: ");
+    return {
+        hash,
+        authorName,
+        authorEmail,
+        date,
+        message,
+    };
+}
+function splitIntoParts(lines, separator) {
+    const parts = [];
+    let currentPart;
+    lines.forEach((line) => {
+        if (line.startsWith(separator)) {
+            if (currentPart) {
+                parts.push(currentPart);
+            }
+            currentPart = [line];
+        }
+        else if (currentPart) {
+            currentPart.push(line);
+        }
+    });
+    if (currentPart) {
+        parts.push(currentPart);
+    }
+    return parts;
+}
+
+;// CONCATENATED MODULE: ./lib/suggest.js
+
+
+
+function suggest(baseFiles, resolved, patch) {
+    const patches = parseGitPatches(patch);
+    const suggestions = [];
+    patches.forEach((patch) => {
+        patch.files.forEach((file) => {
+            const groups = groupBy(file.modifiedLines, (a, b) => {
+                return a.tag === b.tag || (a.tag === "removed" && b.tag === "added");
+            });
+            groups.forEach((group) => {
+                const removed = getRemoveLineNumbers(group);
+                if (!removed) {
+                    return;
+                }
+                const suggestion = {
+                    path: file.afterName,
+                    description: (patch.message ?? "").replace(/\[PATCH.*] /, ""),
+                    code: getAddedLines(group),
+                    startLine: head(removed),
+                    endLine: last(removed),
+                };
+                if (!isOnAddedLines(baseFiles, suggestion)) {
+                    suggestion.skipReason = "suggestions can only be made on added lines";
+                }
+                if (resolved.some((r) => isSameLocation(r, suggestion))) {
+                    suggestion.skipReason = "previously marked resolved";
+                }
+                suggestions.push(suggestion);
+            });
+        });
+    });
+    return suggestions;
+}
+function getRemoveLineNumbers(lines) {
+    const acc = [];
+    toList(lines).forEach((line) => {
+        if (line.tag === "removed") {
+            acc.push(line.removedLineNumber);
+        }
+    });
+    return nonEmpty(acc);
+}
+function getAddedLines(lines) {
+    const acc = [];
+    toList(lines).forEach((line) => {
+        if (line.tag === "added") {
+            acc.push(line.line);
+        }
+    });
+    return acc;
+}
+function isOnAddedLines(baseFiles, suggestion) {
+    const matched = [];
+    const { path, startLine, endLine } = suggestion;
+    const suggestionSize = endLine - startLine + 1;
+    const lines = getPullRequestDiff(baseFiles, path);
+    if (lines.length >= suggestionSize) {
+        for (let i = startLine; i <= endLine; i++) {
+            const line = lines.find((line) => {
+                return line.tag === "added" && line.addedLineNumber === i;
+            });
+            if (line) {
+                matched.push(line);
+            }
+        }
+    }
+    return matched.length == suggestionSize;
+}
+function getPullRequestDiff(files, name) {
+    const file = files.find((f) => f.filename === name);
+    if (!file) {
+        return [];
+    }
+    const diff = [
+        `diff --git a/${file.filename} b/${file.filename}`,
+        "index 000000000..000000000 100644",
+        `--- a/${file.filename}`,
+        `+++ b/${file.filename}`,
+        file.patch ?? "",
+    ].join("\n");
+    const patch = parseGitPatch(diff);
+    const patchFile = (patch?.files ?? [])[0];
+    if (!patchFile) {
+        return [];
+    }
+    return patchFile.modifiedLines;
+}
+function isSameLocation(a, b) {
+    return (a.path === b.path && a.startLine == b.startLine && a.endLine == b.endLine);
+}
+
+;// CONCATENATED MODULE: ./lib/main.js
+
+
+
+
+
+
+
+
+
+function pullRequestDescription(number) {
+    return `
+Automated style fixes for #${number}, created by Restyled.
+
+To see which restylers made changes, view the Commits tab.
+
+To incorporate these changes, merge this Pull Request into the original. We
+recommend using the Squash or Rebase strategies.
+
+**NOTE**: As work continues on the original Pull Request, this process will
+re-run and update (force-push) this Pull Request with updated style fixes as
+necessary. If the style is fixed manually at any point (i.e. this process finds
+no fixes to make), this Pull Request will be closed automatically.
+`;
+}
+function formatBase64(x) {
+    const b64 = Buffer.from(x).toString("base64");
+    const lines = b64.match(/(.{1,76})/g);
+    return lines ? lines.join("\n") : b64;
+}
+async function run() {
+    try {
+        const inputs = getInputs();
+        const client = github.getOctokit(inputs.githubToken);
+        const pr = await getPullRequest(client, inputs.paths);
+        const args = pr.restyleArgs
+            .concat(process.env["RUNNER_DEBUG"] === "1" ? ["--debug"] : [])
+            .concat(cliArguments(inputs));
+        const ec = await lib_exec.exec("restyle", args, {
+            env: {
+                ...process.env,
+                GITHUB_TOKEN: inputs.githubToken,
+                GIT_AUTHOR_EMAIL: inputs.committerEmail,
+                GIT_AUTHOR_NAME: inputs.committerName,
+                GIT_COMMITTER_EMAIL: inputs.committerEmail,
+                GIT_COMMITTER_NAME: inputs.committerName,
+                LOG_BREAKPOINT: "200",
+                LOG_COLOR: "always",
+                LOG_CONCURRENCY: "1",
+            },
+            ignoreReturnCode: true,
+        });
+        let patch = "";
+        if (pr.restyleDiffBase.tag === "known") {
+            const base = pr.restyleDiffBase.sha;
+            patch = await readProcess("git", ["format-patch", "--stdout", base]);
+        }
+        const success = ec === 0 || (inputs.failOnDifferences && ec === 228);
+        const differences = inputs.failOnDifferences
+            ? ec === 228
+            : ec === 0 && patch !== "";
+        if (inputs.showPatch && differences) {
+            core.info("Restyled made the following fixes:");
+            core.info("  ");
+            core.info(patch);
+            core.info("  ");
+        }
+        if (inputs.showPatchCommand && differences) {
+            core.info("To apply these commits locally, run the following:");
+            core.info("  ");
+            core.info("{ base64 -d - | git am; } <<'EOM'");
+            core.info(formatBase64(patch));
+            core.info("EOM");
+            core.info("  ");
+        }
+        let suggestionsSkipped = false;
+        if (inputs.suggestions && success) {
+            const resolved = await clearPriorSuggestions(client, pr);
+            if (differences) {
+                const suggestions = suggest(pr.files, resolved, patch);
+                let n = 0;
+                const ps = suggestions.map((s) => {
+                    const limitSkipReason = inputs.suggestionsLimit && n >= inputs.suggestionsLimit
+                        ? "limit reached"
+                        : null;
+                    const skipReason = s.skipReason ?? limitSkipReason;
+                    if (skipReason) {
+                        const line = s.startLine !== s.endLine
+                            ? `${s.startLine}-${s.endLine}`
+                            : `${s.startLine}`;
+                        const location = `${s.path}:${line}`;
+                        core.warning(`[${location}]: Skipping suggestion: ${skipReason}`);
+                        suggestionsSkipped = true;
+                        return Promise.resolve();
+                    }
+                    else {
+                        n += 1;
+                        return commentSuggestion(client, pr, s);
+                    }
+                });
+                core.info(`Leaving ${n} suggestion(s)`);
+                await Promise.all(ps);
+            }
+        }
+        setOutputs({
+            success,
+            differences,
+            gitPatch: patch,
+            restyledBase: pr.headRef,
+            restyledHead: `restyled/${pr.headRef}`,
+            restyledTitle: `Restyled ${pr.title}`,
+            restyledBody: pullRequestDescription(pr.number),
+            suggestionsSkipped,
+        });
+        if (ec !== 0) {
+            core.setFailed(`Restyler exited non-zero: ${ec}`);
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.error(error);
+            core.setFailed(error.message);
+        }
+        else if (typeof error === "string") {
+            core.error(error);
+            core.setFailed(error);
+        }
+        else {
+            core.error("Non-Error exception");
+            core.setFailed("Non-Error exception");
+        }
+    }
+}
+run();
+
