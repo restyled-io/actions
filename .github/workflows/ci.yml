@@ -20,7 +20,7 @@ jobs:
       - run: yarn test
       - run: yarn build
       - run: yarn lint
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: run/dist/index.js
