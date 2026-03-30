@@ -17,8 +17,8 @@
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "strict": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "types": ["vitest/globals"]
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./src/**/*.test.ts"]
+  "include": ["./src/**/*"]
 }
