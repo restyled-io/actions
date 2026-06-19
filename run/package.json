@@ -23,7 +23,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/eslint__js": "^8.42.3",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "@vercel/ncc": "^0.44.0",
     "eslint": "^10.5.0",
     "globals": "^17.6.0",
