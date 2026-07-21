@@ -28,7 +28,7 @@
     "eslint": "^10.7.0",
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
