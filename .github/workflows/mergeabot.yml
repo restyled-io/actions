@@ -19,7 +19,7 @@ jobs:
           app-id: ${{ vars.AUTOMATION_APP_ID }}
           private-key: ${{ secrets.AUTOMATION_PRIVATE_KEY }}
 
-      - uses: freckle/mergeabot-action@v2
+      - uses: freckle/mergeabot-action@v3
         with:
           quarantine-days: -1
           github-token: ${{ steps.token.outputs.token }}
