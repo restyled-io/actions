@@ -1095,9 +1095,9 @@ fdir@^6.5.0:
   integrity sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==
 
 figlet@^1.7.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/figlet/-/figlet-1.10.0.tgz#177689d3108ef8db556620dafee31c1297628ad5"
-  integrity sha512-aktIwEZZ6Gp9AWdMXW4YCi0J2Ahuxo67fNJRUIWD81w8pQ0t9TS8FFpbl27ChlTLF06VkwjDesZSzEVzN75rzA==
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/figlet/-/figlet-1.12.0.tgz#3e9c3a12f112db9479bd5ae4b87bc2b337b9a1af"
+  integrity sha512-Ith3WsUi0N/EqGt+0/F6XnWhT04sohhH2tT0Dq7GdUmWbMTIoCbg2Jq9qKggmTO62ST5kRCfB311EmIMbizGyA==
   dependencies:
     commander "^14.0.0"
 
